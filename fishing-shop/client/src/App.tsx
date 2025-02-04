@@ -29,21 +29,39 @@ const theme = createTheme({
     },
   },
   typography: {
-    fontFamily: '"Roboto", "Arial", sans-serif',
+    fontFamily: '"Quicksand", "Segoe UI", "Helvetica Neue", sans-serif',
     h1: {
       fontSize: '2.5rem',
-      fontWeight: 500,
+      fontWeight: 600,
       color: '#1b5e20',
+      letterSpacing: '0.02em',
     },
     h2: {
       fontSize: '2rem',
       fontWeight: 500,
       color: '#2e7d32',
+      letterSpacing: '0.01em',
     },
     h3: {
       fontSize: '1.75rem',
       fontWeight: 500,
       color: '#2e7d32',
+    },
+    h5: {
+      fontWeight: 300,
+    },
+    h6: {
+      fontWeight: 400,
+    },
+    body1: {
+      fontWeight: 400,
+      letterSpacing: '0.01em',
+      lineHeight: 1.7,
+    },
+    body2: {
+      fontWeight: 400,
+      letterSpacing: '0.01em',
+      lineHeight: 1.6,
     },
   },
   components: {
@@ -52,6 +70,7 @@ const theme = createTheme({
         root: {
           textTransform: 'none',
           borderRadius: 8,
+          fontWeight: 500,
         },
       },
     },
