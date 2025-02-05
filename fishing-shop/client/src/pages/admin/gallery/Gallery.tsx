@@ -68,11 +68,11 @@ const Gallery = () => {
     let filtered = [...images];
 
     // Apply search filter
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
+    if (searchQuery.trim()) {
+      const query = searchQuery.trim().toLowerCase();
       filtered = filtered.filter(image => 
-        image.originalFilename.toLowerCase().includes(query) ||
-        (image.description?.toLowerCase() || '').includes(query)
+        (image.original_filename || '').toLowerCase().includes(query) ||
+        (image.description || '').toLowerCase().includes(query)
       );
     }
 
@@ -192,7 +192,21 @@ const Gallery = () => {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      'image/*': []
+      'image/jpeg': ['.jpg', '.jpeg', '.jfif'],
+      'image/png': ['.png'],
+      'image/gif': ['.gif'],
+      'image/webp': ['.webp'],
+      'image/svg+xml': ['.svg']
+    },
+    onDropRejected: (rejectedFiles) => {
+      const newUploads = rejectedFiles.map(rejected => ({
+        id: crypto.randomUUID(),
+        file: rejected.file,
+        progress: 0,
+        status: 'failed' as const,
+        error: 'Only image files (JPEG, JPG, JFIF, PNG, GIF, WebP, SVG) are allowed.'
+      }));
+      setUploads(current => [...current, ...newUploads]);
     }
   });
 
@@ -509,7 +523,7 @@ const Gallery = () => {
                   <Box
                     component="img"
                     src={image.url}
-                    alt={image.originalFilename}
+                    alt={image.original_filename}
                     sx={{
                       width: '100%',
                       height: 200,
@@ -529,7 +543,7 @@ const Gallery = () => {
                     minHeight: 0
                   }}>
                     <Typography variant="body2" noWrap align="center" sx={{ width: '100%' }}>
-                      {image.originalFilename}
+                      {image.original_filename}
                     </Typography>
                     {image.description && (
                       <Typography 

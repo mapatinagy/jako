@@ -1,7 +1,7 @@
 export interface GalleryImage {
   id: number;
   filename: string;
-  originalFilename: string;
+  original_filename: string;
   description: string | null;
   created_at: string;
   url?: string;
