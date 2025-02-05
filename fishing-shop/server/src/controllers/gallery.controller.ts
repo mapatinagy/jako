@@ -17,11 +17,29 @@ export const getAllImages = async (req: Request, res: Response) => {
 export const uploadImage = async (req: Request, res: Response) => {
   try {
     if (!req.file) {
+      console.log(`[${new Date().toISOString()}] Upload failed: No file provided`);
       return res.status(400).json({ success: false, message: 'No file uploaded' });
     }
 
     const { filename, originalname, size, mimetype } = req.file;
     const description = req.body.description || null;
+
+    // Log upload attempt
+    console.log(`[${new Date().toISOString()}] Upload attempt: ${originalname} (${formatFileSize(size)})`);
+
+    // Check if file with same original filename already exists
+    const [existingFiles] = await pool.execute(
+      'SELECT id FROM gallery WHERE original_filename = ?',
+      [originalname]
+    );
+
+    if ((existingFiles as any[]).length > 0) {
+      console.log(`[${new Date().toISOString()}] Upload rejected: ${originalname} - File already exists`);
+      return res.status(400).json({
+        success: false,
+        message: 'A file with this name already exists. Please rename the file before uploading.'
+      });
+    }
 
     const [result] = await pool.execute(
       `INSERT INTO gallery (filename, original_filename, description, file_size, mime_type, upload_status)
@@ -32,15 +50,28 @@ export const uploadImage = async (req: Request, res: Response) => {
     const insertId = (result as any).insertId;
     const [newImage] = await pool.execute('SELECT * FROM gallery WHERE id = ?', [insertId]);
 
+    // Log successful upload
+    console.log(`[${new Date().toISOString()}] Upload successful: ${originalname} (ID: ${insertId})`);
+
     res.status(201).json({
       success: true,
       message: 'Image uploaded successfully',
       image: (newImage as any[])[0]
     });
   } catch (error) {
-    console.error('Error uploading image:', error);
+    // Log error details
+    console.error(`[${new Date().toISOString()}] Upload error for file: ${req.file?.originalname}`);
+    console.error('Error details:', error);
     res.status(500).json({ success: false, message: 'Failed to upload image' });
   }
+};
+
+// Helper function to format file size
+const formatFileSize = (bytes: number): string => {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
+  if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+  return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
 };
 
 // Update image description

@@ -83,12 +83,16 @@ const Gallery = () => {
             setUploads(current => current.filter(u => u.id !== upload.id));
           }, 2000);
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Upload failed:', error);
         setUploads(current =>
           current.map(u =>
             u.id === upload.id
-              ? { ...u, status: 'failed', error: 'Upload failed' }
+              ? { 
+                  ...u, 
+                  status: 'failed', 
+                  error: error.response?.data?.message || 'Upload failed' 
+                }
               : u
           )
         );
