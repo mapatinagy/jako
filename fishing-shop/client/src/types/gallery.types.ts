@@ -3,6 +3,7 @@ export interface GalleryImage {
   filename: string;
   originalFilename: string;
   description: string | null;
+  created_at: string;
   url?: string;
 }
 

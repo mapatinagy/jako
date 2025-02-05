@@ -15,21 +15,30 @@ import {
   TextField,
   AppBar,
   Toolbar,
-  Stack
+  Stack,
+  InputAdornment,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import LogoutIcon from '@mui/icons-material/Logout';
 import DashboardIcon from '@mui/icons-material/Dashboard';
+import SearchIcon from '@mui/icons-material/Search';
 import { useNavigate } from 'react-router-dom';
 import { useDropzone } from 'react-dropzone';
 import axios from 'axios';
 import { GalleryImage, UploadStatus } from '../../../types/gallery.types';
 import SessionTimer from '../../../components/auth/SessionTimer';
+import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 
 const Gallery = () => {
   const navigate = useNavigate();
   const [images, setImages] = useState<GalleryImage[]>([]);
+  const [filteredImages, setFilteredImages] = useState<GalleryImage[]>([]);
   const [uploads, setUploads] = useState<UploadStatus[]>([]);
   const [selectedImages, setSelectedImages] = useState<number[]>([]);
   const [editDialog, setEditDialog] = useState<{
@@ -41,10 +50,58 @@ const Gallery = () => {
     imageId: null,
     description: ''
   });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [dateRange, setDateRange] = useState<{
+    from: Date | null;
+    to: Date | null;
+  }>({
+    from: null,
+    to: null
+  });
 
   useEffect(() => {
     fetchImages();
   }, []);
+
+  useEffect(() => {
+    // Filter images whenever search query or date range changes
+    let filtered = [...images];
+
+    // Apply search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(image => 
+        image.originalFilename.toLowerCase().includes(query) ||
+        (image.description?.toLowerCase() || '').includes(query)
+      );
+    }
+
+    // Apply date range filter
+    if (dateRange.from || dateRange.to) {
+      filtered = filtered.filter(image => {
+        const imageDate = new Date(image.created_at);
+        if (dateRange.from && dateRange.to) {
+          const endDate = new Date(dateRange.to);
+          endDate.setHours(23, 59, 59, 999);  // Set to end of day
+          return imageDate >= dateRange.from && imageDate <= endDate;
+        } else if (dateRange.from) {
+          return imageDate >= dateRange.from;
+        } else if (dateRange.to) {
+          const endDate = new Date(dateRange.to);
+          endDate.setHours(23, 59, 59, 999);  // Set to end of day
+          return imageDate <= endDate;
+        }
+        return true;
+      });
+    }
+
+    // Sort by newest first
+    filtered.sort((a, b) => 
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
+
+    setFilteredImages(filtered);
+  }, [images, searchQuery, dateRange]);
 
   const fetchImages = async () => {
     try {
@@ -149,9 +206,9 @@ const Gallery = () => {
 
   const handleSelectAll = () => {
     setSelectedImages(
-      selectedImages.length === images.length 
+      selectedImages.length === filteredImages.length 
         ? [] 
-        : images.map(img => img.id)
+        : filteredImages.map(img => img.id)
     );
   };
 
@@ -312,6 +369,50 @@ const Gallery = () => {
             </Typography>
           </Box>
 
+          {/* Search and Filter Section */}
+          <Box sx={{ mb: 3, display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
+            <TextField
+              placeholder="Search images..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              sx={{ flexGrow: 1, minWidth: '200px' }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon />
+                  </InputAdornment>
+                ),
+              }}
+            />
+            <LocalizationProvider dateAdapter={AdapterDateFns}>
+              <DatePicker
+                label="From Date"
+                value={dateRange.from}
+                onChange={(newValue) => setDateRange(prev => ({ ...prev, from: newValue }))}
+                slotProps={{ textField: { sx: { minWidth: '160px' } } }}
+                maxDate={dateRange.to || undefined}
+              />
+              <DatePicker
+                label="To Date"
+                value={dateRange.to}
+                onChange={(newValue) => setDateRange(prev => ({ ...prev, to: newValue }))}
+                slotProps={{ textField: { sx: { minWidth: '160px' } } }}
+                minDate={dateRange.from || undefined}
+              />
+            </LocalizationProvider>
+            {(dateRange.from || dateRange.to || searchQuery) && (
+              <Button 
+                variant="outlined" 
+                onClick={() => {
+                  setDateRange({ from: null, to: null });
+                  setSearchQuery('');
+                }}
+              >
+                Clear Filters
+              </Button>
+            )}
+          </Box>
+
           {/* Upload Progress */}
           {uploads.length > 0 && (
             <Box sx={{ mb: 3 }}>
@@ -334,16 +435,16 @@ const Gallery = () => {
           )}
 
           {/* Select All and Delete */}
-          {images.length > 0 && (
+          {filteredImages.length > 0 && (
             <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <Checkbox
-                  checked={selectedImages.length === images.length}
-                  indeterminate={selectedImages.length > 0 && selectedImages.length < images.length}
+                  checked={selectedImages.length === filteredImages.length}
+                  indeterminate={selectedImages.length > 0 && selectedImages.length < filteredImages.length}
                   onChange={handleSelectAll}
                 />
                 <Typography variant="body2">
-                  Select All ({selectedImages.length} of {images.length} selected)
+                  Select All ({selectedImages.length} of {filteredImages.length} selected)
                 </Typography>
               </Box>
               {selectedImages.length > 0 && (
@@ -361,7 +462,7 @@ const Gallery = () => {
 
           {/* Images Grid */}
           <Grid container spacing={2}>
-            {images.map((image) => (
+            {filteredImages.map((image) => (
               <Grid item xs={12} sm={6} md={4} lg={3} key={image.id}>
                 <Paper 
                   sx={{ 
@@ -456,9 +557,11 @@ const Gallery = () => {
             ))}
           </Grid>
 
-          {images.length === 0 && (
+          {filteredImages.length === 0 && (
             <Typography variant="body1" color="text.secondary" align="center">
-              No images uploaded yet. Start by dropping some images above.
+              {images.length === 0 
+                ? 'No images uploaded yet. Start by dropping some images above.'
+                : 'No images match your search criteria.'}
             </Typography>
           )}
         </Paper>
