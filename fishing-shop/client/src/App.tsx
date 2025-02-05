@@ -8,6 +8,7 @@ import Contact from './pages/Contact';
 import Imprint from './pages/Imprint';
 import AdminLogin from './pages/admin/Login';
 import AdminDashboard from './pages/admin/Dashboard';
+import ProtectedRoute from './components/auth/ProtectedRoute';
 
 const theme = createTheme({
   palette: {
@@ -101,7 +102,14 @@ function App() {
           </Route>
           
           <Route path="/admin/login" element={<AdminLogin />} />
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route
+            path="/admin/dashboard"
+            element={
+              <ProtectedRoute>
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </Router>
     </ThemeProvider>

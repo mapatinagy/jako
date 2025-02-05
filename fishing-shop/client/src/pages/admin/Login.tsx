@@ -1,16 +1,41 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Box, Paper, TextField, Button, Typography, Container, Alert } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { getAuthToken } from '../../utils/auth';
+import { initSession } from '../../utils/session';
 
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Get the previous location or default to dashboard
+  const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/admin/dashboard';
+
+  useEffect(() => {
+    // Check if user was redirected due to token expiration
+    const params = new URLSearchParams(location.search);
+    if (params.get('expired') === 'true') {
+      setMessage('Your session has expired. Please log in again.');
+    }
+  }, [location]);
+
+  // Check if already logged in with valid token
+  useEffect(() => {
+    const token = getAuthToken();
+    if (token) {
+      initSession();
+      navigate(from, { replace: true });
+    }
+  }, [navigate, from]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setMessage('');
 
     try {
       const response = await fetch('http://localhost:3000/api/auth/login', {
@@ -27,11 +52,12 @@ const Login = () => {
         throw new Error(data.message || 'Login failed');
       }
 
-      // Store the token
+      // Store the token and initialize session
       localStorage.setItem('authToken', data.token);
+      initSession();
       
-      // Redirect to admin dashboard
-      navigate('/admin/dashboard');
+      // Redirect to the previous attempted URL or dashboard
+      navigate(from, { replace: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed');
     }
@@ -60,6 +86,12 @@ const Login = () => {
           <Typography component="h1" variant="h5" sx={{ mb: 3 }}>
             Admin Login
           </Typography>
+
+          {message && (
+            <Alert severity="info" sx={{ mb: 2, width: '100%' }}>
+              {message}
+            </Alert>
+          )}
 
           {error && (
             <Alert severity="error" sx={{ mb: 2, width: '100%' }}>

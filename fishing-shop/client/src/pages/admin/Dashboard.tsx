@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Box, Grid, Paper, Typography, Container, AppBar, Toolbar, Button, Divider, Stack } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import CollectionsIcon from '@mui/icons-material/Collections';
@@ -6,9 +7,16 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import ImageIcon from '@mui/icons-material/Image';
 import NewspaperIcon from '@mui/icons-material/Newspaper';
+import SessionTimer from '../../components/session/SessionTimer';
+import { setupActivityTracking, cleanupActivityTracking } from '../../utils/session';
 
 const Dashboard = () => {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    setupActivityTracking();
+    return () => cleanupActivityTracking();
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('authToken');
@@ -26,18 +34,53 @@ const Dashboard = () => {
   return (
     <Box>
       {/* Admin Header */}
-      <AppBar position="static" color="default" elevation={1}>
+      <AppBar position="static" sx={{ backgroundColor: 'primary.main' }}>
         <Toolbar sx={{ px: { xs: 2, sm: 4, md: 6, lg: 8 } }}>
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <DashboardIcon color="primary" />
-            <Typography variant="h6" color="primary" sx={{ flexGrow: 1 }}>
+          <Stack 
+            direction="row" 
+            alignItems="center" 
+            spacing={1.5} 
+            sx={{ 
+              cursor: 'pointer',
+              '&:hover': {
+                '& .MuiTypography-root, & .MuiSvgIcon-root': {
+                  opacity: 0.8
+                }
+              }
+            }}
+            onClick={() => navigate('/admin/dashboard')}
+          >
+            <DashboardIcon 
+              sx={{ 
+                fontSize: 32,
+                color: 'white',
+                transition: 'opacity 0.2s ease'
+              }} 
+            />
+            <Typography 
+              variant="h5" 
+              sx={{ 
+                color: 'white',
+                fontWeight: 600,
+                transition: 'opacity 0.2s ease'
+              }}
+            >
               Admin Panel
             </Typography>
           </Stack>
+          <Box sx={{ flexGrow: 1 }} />
+          <SessionTimer />
           <Button
-            color="primary"
             onClick={handleLogout}
-            startIcon={<LogoutIcon />}
+            startIcon={<LogoutIcon sx={{ fontSize: 28 }} />}
+            sx={{
+              ml: 2,
+              color: 'white',
+              fontSize: '1.2rem',
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.1)'
+              }
+            }}
           >
             Logout
           </Button>
