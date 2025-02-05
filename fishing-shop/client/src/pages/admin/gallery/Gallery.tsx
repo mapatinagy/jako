@@ -17,10 +17,8 @@ import {
   Toolbar,
   Stack,
   InputAdornment,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel
+  useTheme,
+  useMediaQuery
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
@@ -31,9 +29,10 @@ import { useNavigate } from 'react-router-dom';
 import { useDropzone } from 'react-dropzone';
 import axios from 'axios';
 import { GalleryImage, UploadStatus } from '../../../types/gallery.types';
-import SessionTimer from '../../../components/auth/SessionTimer';
+import SessionTimer from '../../../components/session/SessionTimer';
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { setupActivityTracking, cleanupActivityTracking } from '../../../utils/session';
 
 const Gallery = () => {
   const navigate = useNavigate();
@@ -58,6 +57,15 @@ const Gallery = () => {
     from: null,
     to: null
   });
+
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isTablet = useMediaQuery(theme.breakpoints.down('md'));
+
+  useEffect(() => {
+    setupActivityTracking();
+    return () => cleanupActivityTracking();
+  }, []);
 
   useEffect(() => {
     fetchImages();
@@ -299,7 +307,12 @@ const Gallery = () => {
     <Box>
       {/* Admin Header */}
       <AppBar position="static" sx={{ backgroundColor: 'primary.main' }}>
-        <Toolbar sx={{ px: { xs: 2, sm: 4, md: 6, lg: 8 } }}>
+        <Toolbar sx={{ 
+          px: { xs: 1, sm: 2, md: 4, lg: 6 },
+          flexDirection: { xs: 'column', sm: 'row' },
+          gap: { xs: 1, sm: 0 },
+          py: { xs: 1, sm: 0 }
+        }}>
           <Stack 
             direction="row" 
             alignItems="center" 
@@ -316,7 +329,7 @@ const Gallery = () => {
           >
             <DashboardIcon 
               sx={{ 
-                fontSize: 32,
+                fontSize: { xs: 24, sm: 32 },
                 color: 'white',
                 transition: 'opacity 0.2s ease'
               }} 
@@ -326,48 +339,67 @@ const Gallery = () => {
               sx={{ 
                 color: 'white',
                 fontWeight: 600,
-                transition: 'opacity 0.2s ease'
+                transition: 'opacity 0.2s ease',
+                fontSize: { xs: '1.2rem', sm: '1.5rem' }
               }}
             >
               Admin Panel
             </Typography>
           </Stack>
           <Box sx={{ flexGrow: 1 }} />
-          <SessionTimer />
-          <Button
-            onClick={handleLogout}
-            startIcon={<LogoutIcon sx={{ fontSize: 28 }} />}
-            sx={{
-              ml: 2,
-              color: 'white',
-              fontSize: '1.2rem',
-              '&:hover': {
-                backgroundColor: 'rgba(255, 255, 255, 0.1)'
-              }
+          <Stack 
+            direction="row" 
+            spacing={2} 
+            alignItems="center"
+            sx={{ 
+              width: { xs: '100%', sm: 'auto' },
+              justifyContent: { xs: 'space-between', sm: 'flex-end' }
             }}
           >
-            Logout
-          </Button>
+            <SessionTimer />
+            <Button
+              onClick={handleLogout}
+              startIcon={<LogoutIcon sx={{ fontSize: { xs: 20, sm: 28 } }} />}
+              sx={{
+                color: 'white',
+                fontSize: { xs: '1rem', sm: '1.2rem' },
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)'
+                }
+              }}
+            >
+              Logout
+            </Button>
+          </Stack>
         </Toolbar>
       </AppBar>
 
-      <Container maxWidth="xl" sx={{ py: 4 }}>
+      <Container maxWidth="xl" sx={{ py: { xs: 2, sm: 4 } }}>
         {/* Header Section */}
-        <Box sx={{ mb: 4 }}>
-          <Typography variant="h3" gutterBottom color="primary">
+        <Box sx={{ mb: { xs: 2, sm: 4 } }}>
+          <Typography 
+            variant="h3" 
+            gutterBottom 
+            color="primary"
+            sx={{ fontSize: { xs: '1.75rem', sm: '2.5rem' } }}
+          >
             Gallery Management
           </Typography>
-          <Typography variant="subtitle1" color="text.secondary">
+          <Typography 
+            variant="subtitle1" 
+            color="text.secondary"
+            sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}
+          >
             Upload, manage, and organize your gallery images
           </Typography>
         </Box>
 
-        <Paper sx={{ p: 3, mb: 3 }}>
+        <Paper sx={{ p: { xs: 2, sm: 3 }, mb: 3 }}>
           {/* Upload Area */}
           <Box
             {...getRootProps()}
             sx={{
-              p: 3,
+              p: { xs: 2, sm: 3 },
               mb: 3,
               border: '2px dashed',
               borderColor: isDragActive ? 'primary.main' : 'grey.300',
@@ -378,18 +410,27 @@ const Gallery = () => {
             }}
           >
             <input {...getInputProps()} />
-            <Typography>
+            <Typography sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
               {isDragActive ? 'Drop the images here' : 'Drag & drop images here, or click to select files'}
             </Typography>
           </Box>
 
           {/* Search and Filter Section */}
-          <Box sx={{ mb: 3, display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
+          <Box sx={{ 
+            mb: 3, 
+            display: 'flex', 
+            gap: { xs: 1, sm: 2 }, 
+            alignItems: 'center', 
+            flexWrap: 'wrap' 
+          }}>
             <TextField
               placeholder="Search images..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              sx={{ flexGrow: 1, minWidth: '200px' }}
+              sx={{ 
+                flexGrow: 1,
+                minWidth: { xs: '100%', sm: '200px' }
+              }}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -399,20 +440,38 @@ const Gallery = () => {
               }}
             />
             <LocalizationProvider dateAdapter={AdapterDateFns}>
-              <DatePicker
-                label="From Date"
-                value={dateRange.from}
-                onChange={(newValue) => setDateRange(prev => ({ ...prev, from: newValue }))}
-                slotProps={{ textField: { sx: { minWidth: '160px' } } }}
-                maxDate={dateRange.to || undefined}
-              />
-              <DatePicker
-                label="To Date"
-                value={dateRange.to}
-                onChange={(newValue) => setDateRange(prev => ({ ...prev, to: newValue }))}
-                slotProps={{ textField: { sx: { minWidth: '160px' } } }}
-                minDate={dateRange.from || undefined}
-              />
+              <Stack 
+                direction={{ xs: 'column', sm: 'row' }} 
+                spacing={1} 
+                sx={{ width: { xs: '100%', sm: 'auto' } }}
+              >
+                <DatePicker
+                  label="From Date"
+                  value={dateRange.from}
+                  onChange={(newValue) => setDateRange(prev => ({ ...prev, from: newValue }))}
+                  slotProps={{ 
+                    textField: { 
+                      sx: { 
+                        minWidth: { xs: '100%', sm: '160px' } 
+                      } 
+                    } 
+                  }}
+                  maxDate={dateRange.to || undefined}
+                />
+                <DatePicker
+                  label="To Date"
+                  value={dateRange.to}
+                  onChange={(newValue) => setDateRange(prev => ({ ...prev, to: newValue }))}
+                  slotProps={{ 
+                    textField: { 
+                      sx: { 
+                        minWidth: { xs: '100%', sm: '160px' } 
+                      } 
+                    } 
+                  }}
+                  minDate={dateRange.from || undefined}
+                />
+              </Stack>
             </LocalizationProvider>
             {(dateRange.from || dateRange.to || searchQuery) && (
               <Button 
@@ -421,6 +480,7 @@ const Gallery = () => {
                   setDateRange({ from: null, to: null });
                   setSearchQuery('');
                 }}
+                sx={{ width: { xs: '100%', sm: 'auto' } }}
               >
                 Clear Filters
               </Button>
@@ -430,7 +490,7 @@ const Gallery = () => {
           {/* Upload Progress */}
           {uploads.length > 0 && (
             <Box sx={{ mb: 3 }}>
-              <Typography variant="h6" gutterBottom>
+              <Typography variant="h6" gutterBottom sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
                 Uploads
               </Typography>
               {uploads.map(upload => (
@@ -450,14 +510,25 @@ const Gallery = () => {
 
           {/* Select All and Delete */}
           {filteredImages.length > 0 && (
-            <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <Box sx={{ 
+              mb: 2, 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 2,
+              flexDirection: { xs: 'column', sm: 'row' },
+              width: '100%'
+            }}>
+              <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center',
+                width: { xs: '100%', sm: 'auto' }
+              }}>
                 <Checkbox
                   checked={selectedImages.length === filteredImages.length}
                   indeterminate={selectedImages.length > 0 && selectedImages.length < filteredImages.length}
                   onChange={handleSelectAll}
                 />
-                <Typography variant="body2">
+                <Typography variant="body2" sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
                   Select All ({selectedImages.length} of {filteredImages.length} selected)
                 </Typography>
               </Box>
@@ -467,6 +538,7 @@ const Gallery = () => {
                   color="error"
                   startIcon={<DeleteIcon />}
                   onClick={handleDelete}
+                  sx={{ width: { xs: '100%', sm: 'auto' } }}
                 >
                   Delete Selected
                 </Button>
@@ -475,9 +547,9 @@ const Gallery = () => {
           )}
 
           {/* Images Grid */}
-          <Grid container spacing={2}>
+          <Grid container spacing={{ xs: 1, sm: 2 }}>
             {filteredImages.map((image) => (
-              <Grid item xs={12} sm={6} md={4} lg={3} key={image.id}>
+              <Grid item xs={6} sm={4} md={3} lg={2} key={image.id}>
                 <Paper 
                   sx={{ 
                     p: 1,
@@ -495,11 +567,12 @@ const Gallery = () => {
                     onChange={() => handleSelectImage(image.id)}
                     sx={{
                       position: 'absolute',
-                      top: 8,
-                      left: 8,
+                      top: 4,
+                      left: 4,
                       zIndex: 1,
                       backgroundColor: 'rgba(255, 255, 255, 0.8)',
                       borderRadius: 1,
+                      padding: { xs: '4px', sm: '8px' },
                       '&:hover': {
                         backgroundColor: 'rgba(255, 255, 255, 0.9)'
                       }
@@ -508,17 +581,18 @@ const Gallery = () => {
                   <IconButton
                     sx={{
                       position: 'absolute',
-                      top: 8,
-                      right: 8,
+                      top: 4,
+                      right: 4,
                       zIndex: 1,
                       backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                      padding: { xs: '4px', sm: '8px' },
                       '&:hover': {
                         backgroundColor: 'rgba(255, 255, 255, 0.9)'
                       }
                     }}
                     onClick={(e) => handleEditClick(image, e)}
                   >
-                    <EditIcon />
+                    <EditIcon sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }} />
                   </IconButton>
                   <Box
                     component="img"
@@ -526,7 +600,7 @@ const Gallery = () => {
                     alt={image.original_filename}
                     sx={{
                       width: '100%',
-                      height: 200,
+                      height: { xs: 120, sm: 160, md: 200 },
                       objectFit: 'cover',
                       borderRadius: 1,
                       filter: selectedImages.includes(image.id) ? 'brightness(0.8)' : 'none'
@@ -542,7 +616,15 @@ const Gallery = () => {
                     alignItems: 'center',
                     minHeight: 0
                   }}>
-                    <Typography variant="body2" noWrap align="center" sx={{ width: '100%' }}>
+                    <Typography 
+                      variant="body2" 
+                      noWrap 
+                      align="center" 
+                      sx={{ 
+                        width: '100%',
+                        fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                      }}
+                    >
                       {image.original_filename}
                     </Typography>
                     {image.description && (
@@ -559,7 +641,8 @@ const Gallery = () => {
                           textOverflow: 'ellipsis',
                           lineHeight: 1.2,
                           width: '100%',
-                          px: 1
+                          px: 1,
+                          fontSize: { xs: '0.75rem', sm: '0.875rem' }
                         }}
                       >
                         {image.description}
@@ -572,7 +655,12 @@ const Gallery = () => {
           </Grid>
 
           {filteredImages.length === 0 && (
-            <Typography variant="body1" color="text.secondary" align="center">
+            <Typography 
+              variant="body1" 
+              color="text.secondary" 
+              align="center"
+              sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}
+            >
               {images.length === 0 
                 ? 'No images uploaded yet. Start by dropping some images above.'
                 : 'No images match your search criteria.'}
@@ -586,6 +674,7 @@ const Gallery = () => {
           onClose={handleEditClose}
           maxWidth="sm"
           fullWidth
+          fullScreen={isMobile}
         >
           <DialogTitle>Edit Image Description</DialogTitle>
           <DialogContent>
@@ -600,18 +689,35 @@ const Gallery = () => {
               onChange={(e) => setEditDialog(prev => ({ ...prev, description: e.target.value }))}
             />
           </DialogContent>
-          <DialogActions>
+          <DialogActions sx={{ flexDirection: { xs: 'column', sm: 'row' }, gap: { xs: 1, sm: 0 }, p: 2 }}>
             <Button 
               onClick={() => setEditDialog(prev => ({ ...prev, description: '' }))}
               color="error"
+              fullWidth={isMobile}
             >
               Clear
             </Button>
-            <Box sx={{ flex: 1 }} />
-            <Button onClick={handleEditClose}>Cancel</Button>
-            <Button onClick={handleEditSave} variant="contained" color="primary">
-              Save
-            </Button>
+            <Box sx={{ flex: { xs: 0, sm: 1 } }} />
+            <Stack 
+              direction={{ xs: 'column', sm: 'row' }} 
+              spacing={1} 
+              sx={{ width: { xs: '100%', sm: 'auto' } }}
+            >
+              <Button 
+                onClick={handleEditClose}
+                fullWidth={isMobile}
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleEditSave} 
+                variant="contained" 
+                color="primary"
+                fullWidth={isMobile}
+              >
+                Save
+              </Button>
+            </Stack>
           </DialogActions>
         </Dialog>
       </Container>
