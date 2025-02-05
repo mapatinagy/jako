@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Box, Container, Typography, Grid, Paper, Checkbox, Button } from '@mui/material';
+import { Box, Container, Typography, Grid, Paper, Checkbox, Button, IconButton } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
 import { useDropzone } from 'react-dropzone';
 import axios from 'axios';
 import { GalleryImage, UploadStatus } from '../../../types/gallery.types';
@@ -245,6 +246,25 @@ const Gallery = () => {
                     }
                   }}
                 />
+                <IconButton
+                  sx={{
+                    position: 'absolute',
+                    top: 8,
+                    right: 8,
+                    zIndex: 1,
+                    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                    '&:hover': {
+                      backgroundColor: 'rgba(255, 255, 255, 0.9)'
+                    }
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // Edit functionality will be added later
+                    console.log('Edit clicked for image:', image.id);
+                  }}
+                >
+                  <EditIcon />
+                </IconButton>
                 <Box
                   component="img"
                   src={image.url}
