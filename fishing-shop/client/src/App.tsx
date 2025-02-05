@@ -8,6 +8,7 @@ import Contact from './pages/Contact';
 import Imprint from './pages/Imprint';
 import AdminLogin from './pages/admin/Login';
 import AdminDashboard from './pages/admin/Dashboard';
+import AdminGallery from './pages/admin/gallery/Gallery';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 
 const theme = createTheme({
@@ -107,6 +108,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/gallery"
+            element={
+              <ProtectedRoute>
+                <AdminGallery />
               </ProtectedRoute>
             }
           />
