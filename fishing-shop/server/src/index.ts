@@ -3,6 +3,8 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import path from 'path';
 import authRoutes from './routes/auth.routes';
+import galleryRoutes from './routes/gallery.routes';
+import newsRoutes from './routes/news.routes';
 
 // Load environment variables
 dotenv.config();
@@ -21,6 +23,8 @@ app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/gallery', galleryRoutes);
+app.use('/api/news', newsRoutes);
 
 // Basic route for testing
 app.get('/api/health', (req, res) => {

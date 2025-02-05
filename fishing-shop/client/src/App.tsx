@@ -6,6 +6,8 @@ import Gallery from './pages/Gallery';
 import News from './pages/News';
 import Contact from './pages/Contact';
 import Imprint from './pages/Imprint';
+import AdminLogin from './pages/admin/Login';
+import AdminDashboard from './pages/admin/Dashboard';
 
 const theme = createTheme({
   palette: {
@@ -97,6 +99,9 @@ function App() {
             <Route path="contact" element={<Contact />} />
             <Route path="imprint" element={<Imprint />} />
           </Route>
+          
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
         </Routes>
       </Router>
     </ThemeProvider>

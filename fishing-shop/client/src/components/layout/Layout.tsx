@@ -22,6 +22,7 @@ export default function Layout() {
     { text: 'News', path: '/news' },
     { text: 'Contact', path: '/contact' },
     { text: 'Imprint', path: '/imprint' },
+    { text: 'Admin', path: '/admin/login' },
   ];
 
   return (
