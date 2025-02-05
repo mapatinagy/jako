@@ -185,7 +185,11 @@ function Home() {
             <Typography variant="body1" sx={{ mb: 4, color: 'text.secondary', lineHeight: 1.8 }}>
               Today, we pride ourselves on our personalized service and carefully curated selection of products. Whether you're an experienced angler, a dedicated pet owner, or a passionate gardener, our knowledgeable team is here to help you succeed.
             </Typography>
-            <Box sx={{ display: 'flex', gap: 3 }}>
+            <Box sx={{ 
+              display: 'flex', 
+              gap: 3,
+              justifyContent: { xs: 'center', md: 'flex-start' }
+            }}>
               <Paper 
                 elevation={0} 
                 sx={{ 
@@ -401,29 +405,6 @@ function Home() {
             </Paper>
           </Grid>
         </Grid>
-      </Box>
-
-      {/* Featured Section */}
-      <Box sx={{ bgcolor: 'secondary.light', py: 8 }}>
-        <Container maxWidth={false} sx={{ px: { xs: 2, sm: 4, md: 6, lg: 8 } }}>
-          <Typography variant="h2" sx={{ mb: 4 }}>
-            Why Choose Us?
-          </Typography>
-          <Grid container spacing={4}>
-            <Grid item xs={12} md={4}>
-              <Typography variant="h6" sx={{ mb: 2 }}>Expert Advice</Typography>
-              <Typography>Get professional guidance from our experienced team members.</Typography>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <Typography variant="h6" sx={{ mb: 2 }}>Quality Products</Typography>
-              <Typography>We carefully select each product to ensure the highest quality.</Typography>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <Typography variant="h6" sx={{ mb: 2 }}>Great Value</Typography>
-              <Typography>Competitive prices without compromising on quality.</Typography>
-            </Grid>
-          </Grid>
-        </Container>
       </Box>
     </Box>
   );
