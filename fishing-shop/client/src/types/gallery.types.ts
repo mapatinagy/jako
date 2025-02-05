@@ -2,6 +2,7 @@ export interface GalleryImage {
   id: number;
   filename: string;
   originalFilename: string;
+  description: string | null;
   url?: string;
 }
 
