@@ -86,14 +86,14 @@ export const deleteImages = async (req: Request, res: Response) => {
 
     // Get filenames before deletion for file cleanup
     const [images] = await pool.execute(
-      'SELECT filename FROM gallery WHERE id IN (?)',
-      [imageIds.join(',')]
+      `SELECT filename FROM gallery WHERE id IN (${imageIds.map(() => '?').join(',')})`,
+      imageIds
     );
 
     // Delete from database
     await pool.execute(
-      'DELETE FROM gallery WHERE id IN (?)',
-      [imageIds.join(',')]
+      `DELETE FROM gallery WHERE id IN (${imageIds.map(() => '?').join(',')})`,
+      imageIds
     );
 
     res.json({
