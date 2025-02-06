@@ -32,6 +32,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import SessionTimer from '../../../components/session/SessionTimer';
 import { setupActivityTracking, cleanupActivityTracking } from '../../../utils/session';
 import { formatDistanceToNow } from 'date-fns';
+import { DatePicker } from '@mui/x-date-pickers';
 
 interface UploadedImage {
   url: string;
@@ -62,6 +63,9 @@ const News = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [editingPost, setEditingPost] = useState<NewsPost | null>(null);
   const [deleteConfirmPost, setDeleteConfirmPost] = useState<NewsPost | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [fromDate, setFromDate] = useState<Date | null>(null);
+  const [toDate, setToDate] = useState<Date | null>(null);
 
   useEffect(() => {
     setupActivityTracking();
@@ -351,6 +355,29 @@ const News = () => {
     setSuccess(null);
   };
 
+  const filteredPosts = posts.filter(post => {
+    // Text search filter
+    const searchLower = searchQuery.toLowerCase();
+    const matchesSearch = searchQuery === '' || 
+      post.title.toLowerCase().includes(searchLower) ||
+      post.content.toLowerCase().includes(searchLower);
+
+    // Date range filter
+    let matchesDateRange = true;
+    if (fromDate) {
+      const fromDateTime = new Date(fromDate);
+      fromDateTime.setHours(0, 0, 0, 0);
+      matchesDateRange = matchesDateRange && new Date(post.created_at) >= fromDateTime;
+    }
+    if (toDate) {
+      const toDateTime = new Date(toDate);
+      toDateTime.setHours(23, 59, 59, 999);
+      matchesDateRange = matchesDateRange && new Date(post.created_at) <= toDateTime;
+    }
+
+    return matchesSearch && matchesDateRange;
+  });
+
   return (
     <Box>
       <Snackbar
@@ -510,6 +537,59 @@ const News = () => {
         </Paper>
       </Container>
 
+      {/* Filter Section */}
+      <Container maxWidth="lg" sx={{ pb: 4 }}>
+        <Paper sx={{ p: 3 }}>
+          <Typography variant="h6" gutterBottom>
+            Filter Posts
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+            <TextField
+              label="Search in titles and content"
+              variant="outlined"
+              size="small"
+              fullWidth
+              sx={{ flex: 1, minWidth: '200px' }}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Enter search terms..."
+            />
+            <Box sx={{ 
+              display: 'flex', 
+              gap: 2, 
+              flexWrap: 'wrap',
+              flex: 1,
+              minWidth: '200px'
+            }}>
+              <DatePicker
+                label="From Date"
+                value={fromDate}
+                onChange={(newValue) => setFromDate(newValue)}
+                maxDate={toDate || undefined}
+                slotProps={{
+                  textField: {
+                    size: 'small',
+                    fullWidth: true
+                  }
+                }}
+              />
+              <DatePicker
+                label="To Date"
+                value={toDate}
+                onChange={(newValue) => setToDate(newValue)}
+                minDate={fromDate || undefined}
+                slotProps={{
+                  textField: {
+                    size: 'small',
+                    fullWidth: true
+                  }
+                }}
+              />
+            </Box>
+          </Box>
+        </Paper>
+      </Container>
+
       {/* Posts Section */}
       <Container maxWidth="lg" sx={{ pb: 4 }}>
         <Paper sx={{ p: 3 }}>
@@ -521,7 +601,7 @@ const News = () => {
             <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
               <Typography>Loading posts...</Typography>
             </Box>
-          ) : posts.length === 0 ? (
+          ) : filteredPosts.length === 0 ? (
             <Box sx={{ p: 3, textAlign: 'center' }}>
               <Typography color="text.secondary">
                 No posts created yet. Create your first post above!
@@ -529,7 +609,7 @@ const News = () => {
             </Box>
           ) : (
             <Stack spacing={2}>
-              {posts.map((post) => (
+              {filteredPosts.map((post) => (
                 <Paper 
                   key={post.id} 
                   elevation={2}
