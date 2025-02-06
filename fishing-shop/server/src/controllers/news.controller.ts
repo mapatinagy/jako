@@ -58,10 +58,28 @@ export const getNewsPost = async (req: Request, res: Response) => {
 // Create news post
 export const createNewsPost = async (req: Request, res: Response) => {
   try {
-    const { title, content, is_published = false, featured_image = null as string | null }: CreateNewsRequest = req.body;
+    const { title, content, is_published = false, featured_image = null }: CreateNewsRequest = req.body;
 
     if (!title || !content) {
       return res.status(400).json({ success: false, message: 'Title and content are required' });
+    }
+
+    // Validate featured_image if it exists
+    if (featured_image) {
+      try {
+        const images = JSON.parse(featured_image);
+        if (!Array.isArray(images)) {
+          return res.status(400).json({ 
+            success: false, 
+            message: 'featured_image must be a JSON array of image URLs' 
+          });
+        }
+      } catch (e) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Invalid featured_image format' 
+        });
+      }
     }
 
     const [result] = await pool.execute(

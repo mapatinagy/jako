@@ -38,6 +38,7 @@ const News = () => {
   const [content, setContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const quillRef = useRef<ReactQuill>(null);
@@ -87,36 +88,17 @@ const News = () => {
 
       const data = await response.json();
       if (data.success) {
-        // Insert all successfully uploaded images into the editor
-        const quill = quillRef.current?.getEditor();
-        if (quill) {
-          const range = quill.getSelection() || { index: quill.getLength(), length: 0 };
-          const newImages: UploadedImage[] = [];
-          
-          data.images.forEach((image: { url: string }, index: number) => {
-            const insertIndex = range.index + index;
-            if (index > 0) {
-              // Add a newline between images
-              quill.insertText(insertIndex, '\n');
-            }
-            const fullUrl = `http://localhost:3000${image.url}`;
-            quill.insertEmbed(insertIndex, 'image', fullUrl);
-            
-            newImages.push({
-              url: fullUrl,
-              index: insertIndex
-            });
-          });
-          
-          quill.setSelection((range.index || 0) + data.images.length, 0);
-          setUploadedImages(prev => [...prev, ...newImages]);
-        }
+        const newImages = data.images.map((image: { url: string }) => ({
+          url: `http://localhost:3000${image.url}`,
+          index: uploadedImages.length
+        }));
+        
+        setUploadedImages(prev => [...prev, ...newImages]);
       }
     } catch (error) {
       console.error('Error uploading images:', error);
       setError('Failed to upload images. Please try again.');
     } finally {
-      // Reset file input
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -124,21 +106,6 @@ const News = () => {
   };
 
   const handleRemoveImage = (imageToRemove: UploadedImage) => {
-    // Remove from editor
-    const quill = quillRef.current?.getEditor();
-    if (quill) {
-      const content = quill.getContents();
-      let index = 0;
-      content.ops?.forEach((op: any) => {
-        if (op.insert && op.insert.image === imageToRemove.url) {
-          quill.deleteText(index, 1);
-        } else {
-          index += op.insert?.length || 1;
-        }
-      });
-    }
-
-    // Remove from thumbnails
     setUploadedImages(prev => prev.filter(img => img.url !== imageToRemove.url));
   };
 
@@ -148,6 +115,9 @@ const News = () => {
     }
 
     setIsSubmitting(true);
+    setError(null);
+    setSuccess(null);
+
     try {
       const token = localStorage.getItem('authToken');
       const response = await fetch('http://localhost:3000/api/news/posts', {
@@ -159,7 +129,8 @@ const News = () => {
         body: JSON.stringify({
           title: title.trim(),
           content: content.trim(),
-          is_published: false
+          is_published: false,
+          featured_image: uploadedImages.length > 0 ? JSON.stringify(uploadedImages.map(img => img.url)) : null
         })
       });
 
@@ -167,10 +138,13 @@ const News = () => {
         throw new Error('Failed to create news post');
       }
 
+      setSuccess('News post created successfully!');
       setTitle('');
       setContent('');
+      setUploadedImages([]); // Clear uploaded images
     } catch (error) {
       console.error('Error creating news post:', error);
+      setError('Failed to create news post. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -265,14 +239,14 @@ const News = () => {
                 <Typography variant="subtitle1" gutterBottom>
                   Uploaded Images
                 </Typography>
-                <ImageList sx={{ width: '100%', maxHeight: 200 }} cols={4} rowHeight={100}>
+                <ImageList sx={{ width: '100%', maxHeight: 200 }} cols={4} rowHeight={100} gap={8}>
                   {uploadedImages.map((img, index) => (
                     <ImageListItem key={index} sx={{ position: 'relative' }}>
                       <img
                         src={img.url}
                         alt={`Uploaded ${index + 1}`}
                         loading="lazy"
-                        style={{ height: '100px', width: '100%', objectFit: 'cover' }}
+                        style={{ height: '100px', width: '100%', objectFit: 'cover', borderRadius: '4px' }}
                       />
                       <MuiIconButton
                         sx={{
@@ -338,6 +312,17 @@ const News = () => {
       >
         <Alert onClose={() => setError(null)} severity="error" sx={{ width: '100%' }}>
           {error}
+        </Alert>
+      </Snackbar>
+
+      <Snackbar 
+        open={!!success} 
+        autoHideDuration={6000} 
+        onClose={() => setSuccess(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={() => setSuccess(null)} severity="success" sx={{ width: '100%' }}>
+          {success}
         </Alert>
       </Snackbar>
     </Box>
