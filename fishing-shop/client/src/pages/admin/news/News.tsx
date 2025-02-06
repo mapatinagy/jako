@@ -12,15 +12,25 @@ import {
   IconButton,
   Alert,
   Snackbar,
+  ImageList,
+  ImageListItem,
+  IconButton as MuiIconButton,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import ReactQuill from 'react-quill';
+import Quill from 'quill';
 import 'react-quill/dist/quill.snow.css';
 import LogoutIcon from '@mui/icons-material/Logout';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import ImageIcon from '@mui/icons-material/Image';
+import DeleteIcon from '@mui/icons-material/Delete';
 import SessionTimer from '../../../components/session/SessionTimer';
 import { setupActivityTracking, cleanupActivityTracking } from '../../../utils/session';
+
+interface UploadedImage {
+  url: string;
+  index: number;
+}
 
 const News = () => {
   const navigate = useNavigate();
@@ -28,6 +38,7 @@ const News = () => {
   const [content, setContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const quillRef = useRef<ReactQuill>(null);
 
@@ -80,14 +91,25 @@ const News = () => {
         const quill = quillRef.current?.getEditor();
         if (quill) {
           const range = quill.getSelection() || { index: quill.getLength(), length: 0 };
+          const newImages: UploadedImage[] = [];
+          
           data.images.forEach((image: { url: string }, index: number) => {
+            const insertIndex = range.index + index;
             if (index > 0) {
               // Add a newline between images
-              quill.insertText(range.index + index, '\n');
+              quill.insertText(insertIndex, '\n');
             }
-            quill.insertEmbed(range.index + index, 'image', `http://localhost:3000${image.url}`);
+            const fullUrl = `http://localhost:3000${image.url}`;
+            quill.insertEmbed(insertIndex, 'image', fullUrl);
+            
+            newImages.push({
+              url: fullUrl,
+              index: insertIndex
+            });
           });
+          
           quill.setSelection((range.index || 0) + data.images.length, 0);
+          setUploadedImages(prev => [...prev, ...newImages]);
         }
       }
     } catch (error) {
@@ -99,6 +121,25 @@ const News = () => {
         fileInputRef.current.value = '';
       }
     }
+  };
+
+  const handleRemoveImage = (imageToRemove: UploadedImage) => {
+    // Remove from editor
+    const quill = quillRef.current?.getEditor();
+    if (quill) {
+      const content = quill.getContents();
+      let index = 0;
+      content.ops?.forEach((op: any) => {
+        if (op.insert && op.insert.image === imageToRemove.url) {
+          quill.deleteText(index, 1);
+        } else {
+          index += op.insert?.length || 1;
+        }
+      });
+    }
+
+    // Remove from thumbnails
+    setUploadedImages(prev => prev.filter(img => img.url !== imageToRemove.url));
   };
 
   const handleSubmit = async () => {
@@ -218,6 +259,42 @@ const News = () => {
                 style={{ height: 'auto' }}
               />
             </Box>
+
+            {uploadedImages.length > 0 && (
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="subtitle1" gutterBottom>
+                  Uploaded Images
+                </Typography>
+                <ImageList sx={{ width: '100%', maxHeight: 200 }} cols={4} rowHeight={100}>
+                  {uploadedImages.map((img, index) => (
+                    <ImageListItem key={index} sx={{ position: 'relative' }}>
+                      <img
+                        src={img.url}
+                        alt={`Uploaded ${index + 1}`}
+                        loading="lazy"
+                        style={{ height: '100px', width: '100%', objectFit: 'cover' }}
+                      />
+                      <MuiIconButton
+                        sx={{
+                          position: 'absolute',
+                          top: 4,
+                          right: 4,
+                          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                          color: 'white',
+                          '&:hover': {
+                            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                          },
+                          padding: '4px',
+                        }}
+                        onClick={() => handleRemoveImage(img)}
+                      >
+                        <DeleteIcon sx={{ fontSize: '1.2rem' }} />
+                      </MuiIconButton>
+                    </ImageListItem>
+                  ))}
+                </ImageList>
+              </Box>
+            )}
 
             <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
               <input
