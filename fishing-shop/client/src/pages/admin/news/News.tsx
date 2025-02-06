@@ -87,7 +87,7 @@ const News = () => {
       if (data.success) {
         setPosts(data.posts.map((post: any) => ({
           ...post,
-          featured_image: post.featured_image ? `http://localhost:3000${JSON.parse(post.featured_image)[0]}` : null
+          featured_image: post.featured_image ? post.featured_image.map((url: string) => `http://localhost:3000${url}`) : null
         })));
       } else {
         throw new Error(data.message || 'Failed to fetch posts');
@@ -200,6 +200,37 @@ const News = () => {
       setError('Failed to create news post. Please try again.');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleTogglePublish = async (postId: number) => {
+    try {
+      const token = localStorage.getItem('authToken');
+      const response = await fetch(`http://localhost:3000/api/news/posts/${postId}/toggle-publish`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to toggle publish status');
+      }
+
+      const data = await response.json();
+      if (data.success) {
+        // Update the post in the local state
+        setPosts(posts.map(post => 
+          post.id === postId 
+            ? { ...post, is_published: !post.is_published }
+            : post
+        ));
+        setSuccess(data.message);
+      }
+    } catch (error) {
+      console.error('Error toggling publish status:', error);
+      setError('Failed to toggle publish status');
     }
   };
 
@@ -396,58 +427,68 @@ const News = () => {
                     }
                   }}
                 >
-                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
-                    {post.featured_image && (
-                      <Box
-                        component="img"
-                        src={post.featured_image}
-                        alt={post.title}
-                        sx={{
-                          width: 120,
-                          height: 120,
-                          objectFit: 'cover',
-                          borderRadius: 1
-                        }}
-                      />
-                    )}
-                    <Box sx={{ flexGrow: 1 }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                        <Typography variant="h6">{post.title}</Typography>
-                        <Box>
-                          <Button
-                            size="small"
-                            variant={post.is_published ? "contained" : "outlined"}
-                            color={post.is_published ? "success" : "primary"}
-                            sx={{ mr: 1 }}
-                          >
-                            {post.is_published ? "Published" : "Draft"}
-                          </Button>
-                          <Button
-                            size="small"
-                            variant="outlined"
-                            color="primary"
-                          >
-                            Edit
-                          </Button>
-                        </Box>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                      <Typography variant="h6">{post.title}</Typography>
+                      <Box>
+                        <Button
+                          size="small"
+                          variant={post.is_published ? "contained" : "outlined"}
+                          color={post.is_published ? "success" : "primary"}
+                          sx={{ mr: 1 }}
+                          onClick={() => handleTogglePublish(post.id)}
+                        >
+                          {post.is_published ? "Published" : "Draft"}
+                        </Button>
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          color="primary"
+                        >
+                          Edit
+                        </Button>
                       </Box>
-                      <Typography 
-                        variant="body2" 
-                        color="text.secondary"
-                        sx={{ 
-                          mb: 1,
-                          display: '-webkit-box',
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: 'vertical',
-                          overflow: 'hidden'
-                        }}
-                      >
-                        {post.content.replace(/<[^>]+>/g, '')}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        Created {formatDistanceToNow(new Date(post.created_at))} ago
-                      </Typography>
                     </Box>
+                    
+                    <Typography 
+                      variant="body2" 
+                      color="text.secondary"
+                      sx={{ mb: 1 }}
+                      dangerouslySetInnerHTML={{ __html: post.content }}
+                    />
+
+                    {post.featured_image && Array.isArray(post.featured_image) && post.featured_image.length > 0 && (
+                      <ImageList 
+                        sx={{ 
+                          width: '100%', 
+                          maxHeight: post.featured_image.length > 3 ? 400 : 200,
+                          mb: 2 
+                        }} 
+                        cols={post.featured_image.length === 1 ? 1 : 3} 
+                        rowHeight={200}
+                        gap={8}
+                      >
+                        {post.featured_image.map((image: string, index: number) => (
+                          <ImageListItem key={index}>
+                            <img
+                              src={image}
+                              alt={`${post.title} - Image ${index + 1}`}
+                              loading="lazy"
+                              style={{ 
+                                height: '100%',
+                                width: '100%',
+                                objectFit: 'cover',
+                                borderRadius: '4px'
+                              }}
+                            />
+                          </ImageListItem>
+                        ))}
+                      </ImageList>
+                    )}
+
+                    <Typography variant="caption" color="text.secondary">
+                      Created {formatDistanceToNow(new Date(post.created_at))} ago
+                    </Typography>
                   </Box>
                 </Paper>
               ))}

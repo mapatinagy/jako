@@ -9,16 +9,27 @@ export const getNewsPosts = async (req: Request, res: Response) => {
     const [testResult] = await pool.execute('SELECT 1 as test');
     console.log('Test query successful:', testResult);
 
-    // Simple query to get all posts without pagination
-    const [posts] = await pool.execute('SELECT * FROM news');
+    // Get all posts ordered by creation date DESC
+    const [posts] = await pool.execute('SELECT * FROM news ORDER BY created_at DESC');
     console.log('Posts retrieved:', (posts as any[]).length);
 
     // Transform the posts
-    const transformedPosts = (posts as any[]).map(post => ({
-      ...post,
-      is_published: Boolean(post.is_published),
-      featured_image: post.featured_image ? post.featured_image : null
-    }));
+    const transformedPosts = (posts as any[]).map(post => {
+      let parsedImages = null;
+      if (post.featured_image) {
+        try {
+          parsedImages = JSON.parse(post.featured_image);
+        } catch (e) {
+          console.error('Error parsing featured_image:', e);
+        }
+      }
+
+      return {
+        ...post,
+        is_published: Boolean(post.is_published),
+        featured_image: parsedImages
+      };
+    });
 
     res.json({
       success: true,
@@ -220,5 +231,49 @@ export const uploadNewsImage = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error uploading news images:', error);
     res.status(500).json({ success: false, message: 'Error uploading images' });
+  }
+};
+
+// Toggle publish status
+export const togglePublishStatus = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    
+    // First get the current status
+    const [posts] = await pool.execute(
+      'SELECT is_published FROM news WHERE id = ?',
+      [id]
+    );
+
+    if (!(posts as any[])[0]) {
+      return res.status(404).json({ success: false, message: 'News post not found' });
+    }
+
+    const currentStatus = (posts as any[])[0].is_published;
+    const newStatus = currentStatus ? 0 : 1; // Toggle between 0 and 1
+
+    // Update the status
+    await pool.execute(
+      'UPDATE news SET is_published = ? WHERE id = ?',
+      [newStatus, id]
+    );
+
+    // Get the updated post
+    const [updatedPost] = await pool.execute(
+      'SELECT * FROM news WHERE id = ?',
+      [id]
+    );
+
+    res.json({
+      success: true,
+      message: `Post ${newStatus ? 'published' : 'unpublished'} successfully`,
+      post: {
+        ...(updatedPost as any[])[0],
+        is_published: Boolean(newStatus)
+      }
+    });
+  } catch (error) {
+    console.error('Error toggling publish status:', error);
+    res.status(500).json({ success: false, message: 'Failed to toggle publish status' });
   }
 }; 

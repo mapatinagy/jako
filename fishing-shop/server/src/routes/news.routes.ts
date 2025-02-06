@@ -1,24 +1,19 @@
-import { Router, RequestHandler } from 'express';
-import { getNewsPosts, getNewsPost, createNewsPost, updateNewsPost, deleteNewsPost, uploadNewsImage } from '../controllers/news.controller';
+import { Router } from 'express';
 import { authenticateToken } from '../middleware/auth.middleware';
+import { getNewsPosts, getNewsPost, createNewsPost, updateNewsPost, deleteNewsPost, uploadNewsImage, togglePublishStatus } from '../controllers/news.controller';
 import { upload } from '../utils/file.utils';
 
 const router = Router();
 
+// Protected routes (require authentication)
+router.get('/posts', authenticateToken, getNewsPosts);
+router.post('/posts', authenticateToken, createNewsPost);
+router.patch('/posts/:id', authenticateToken, updateNewsPost);
+router.delete('/posts/:id', authenticateToken, deleteNewsPost);
+router.post('/upload-image', authenticateToken, upload.array('images'), uploadNewsImage);
+router.patch('/posts/:id/toggle-publish', authenticateToken, togglePublishStatus);
+
 // Public routes
-router.get('/posts/:id', getNewsPost as RequestHandler);
-
-// Protected routes
-router.get('/posts', authenticateToken as RequestHandler, getNewsPosts as RequestHandler);
-router.post('/posts', authenticateToken as RequestHandler, createNewsPost as RequestHandler);
-router.patch('/posts/:id', authenticateToken as RequestHandler, updateNewsPost as RequestHandler);
-router.delete('/posts/:id', authenticateToken as RequestHandler, deleteNewsPost as RequestHandler);
-
-// Image upload route for news posts
-router.post('/upload-image', 
-  authenticateToken as RequestHandler,
-  upload.array('images', 10), // Allow up to 10 images at once
-  uploadNewsImage as RequestHandler
-);
+router.get('/posts/:id', getNewsPost);
 
 export default router; 
