@@ -15,6 +15,10 @@ import {
   ImageList,
   ImageListItem,
   IconButton as MuiIconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import ReactQuill from 'react-quill';
@@ -41,6 +45,7 @@ interface NewsPost {
   created_at: string;
   is_published: boolean;
   featured_image: string | null;
+  featured_image_originals?: string[];
 }
 
 const News = () => {
@@ -55,6 +60,8 @@ const News = () => {
   const quillRef = useRef<ReactQuill>(null);
   const [posts, setPosts] = useState<NewsPost[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [editingPost, setEditingPost] = useState<NewsPost | null>(null);
+  const [deleteConfirmPost, setDeleteConfirmPost] = useState<NewsPost | null>(null);
 
   useEffect(() => {
     setupActivityTracking();
@@ -90,7 +97,8 @@ const News = () => {
           featured_image: post.featured_image ? 
             post.featured_image.map((url: string) => 
               url.startsWith('http') ? url : `http://localhost:3000${url}`
-            ) : null
+            ) : null,
+          featured_image_originals: post.featured_image_originals || []
         })));
       } else {
         throw new Error(data.message || 'Failed to fetch posts');
@@ -115,7 +123,10 @@ const News = () => {
     // Validate file types
     const invalidFiles = files.filter(file => !file.type.match(/^image\/(jpeg|jpg|png|gif|webp|svg\+xml)$/));
     if (invalidFiles.length > 0) {
-      setError('Only image files (JPEG, JPG, PNG, GIF, WebP, SVG) are allowed.');
+      setError(
+        `Invalid file type(s): ${invalidFiles.map(f => f.name).join(', ')}. \n` +
+        'Only the following image formats are allowed: JPEG, JPG, PNG, GIF, WebP, SVG.'
+      );
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -138,21 +149,26 @@ const News = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to upload images');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to upload images');
       }
 
       const data = await response.json();
       if (data.success) {
-        const newImages = data.images.map((image: { url: string }) => ({
+        const newImages = data.images.map((image: { url: string }, idx: number) => ({
           url: `http://localhost:3000${image.url}`,
-          index: uploadedImages.length
+          index: uploadedImages.length + idx
         }));
         
         setUploadedImages(prev => [...prev, ...newImages]);
+        setSuccess(`Successfully uploaded ${files.length} image${files.length > 1 ? 's' : ''}`);
       }
     } catch (error) {
       console.error('Error uploading images:', error);
-      setError('Failed to upload images. Please try again.');
+      setError(
+        'Failed to upload images. Please try again. ' + 
+        (error instanceof Error ? error.message : '')
+      );
     } finally {
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
@@ -175,36 +191,71 @@ const News = () => {
 
     try {
       const token = localStorage.getItem('authToken');
-      const response = await fetch('http://localhost:3000/api/news/posts', {
-        method: 'POST',
+      const isEditing = !!editingPost;
+      
+      // Remove duplicate URLs and format the image URLs as a JSON string
+      const uniqueUrls = Array.from(new Set(
+        uploadedImages.map(img => img.url.replace('http://localhost:3000', ''))
+      ));
+      const imageUrls = uniqueUrls.length > 0 ? JSON.stringify(uniqueUrls) : null;
+
+      const response = await fetch(
+        `http://localhost:3000/api/news/posts${isEditing ? `/${editingPost.id}` : ''}`, 
+        {
+          method: isEditing ? 'PATCH' : 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            title: title.trim(),
+            content: content.trim(),
+            is_published: isEditing ? editingPost.is_published : false,
+            featured_image: imageUrls
+          })
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `Failed to ${isEditing ? 'update' : 'create'} news post`);
+      }
+
+      setSuccess(`News post ${isEditing ? 'updated' : 'created'} successfully!`);
+      resetForm();
+      fetchPosts();
+    } catch (error) {
+      console.error(`Error ${editingPost ? 'updating' : 'creating'} news post:`, error);
+      setError(`Failed to ${editingPost ? 'update' : 'create'} news post. Please try again.`);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (postId: number) => {
+    try {
+      const token = localStorage.getItem('authToken');
+      const response = await fetch(`http://localhost:3000/api/news/posts/${postId}`, {
+        method: 'DELETE',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          title: title.trim(),
-          content: content.trim(),
-          is_published: false,
-          featured_image: uploadedImages.length > 0 ? 
-            JSON.stringify(uploadedImages.map(img => img.url.replace('http://localhost:3000', ''))) : 
-            null
-        })
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create news post');
+        throw new Error('Failed to delete post');
       }
 
-      setSuccess('News post created successfully!');
-      setTitle('');
-      setContent('');
-      setUploadedImages([]);
-      fetchPosts();
+      const data = await response.json();
+      if (data.success) {
+        setPosts(posts.filter(post => post.id !== postId));
+        setSuccess('Post deleted successfully');
+        setDeleteConfirmPost(null);
+      }
     } catch (error) {
-      console.error('Error creating news post:', error);
-      setError('Failed to create news post. Please try again.');
-    } finally {
-      setIsSubmitting(false);
+      console.error('Error deleting post:', error);
+      setError('Failed to delete post');
     }
   };
 
@@ -263,8 +314,67 @@ const News = () => {
     'emoji'
   ];
 
+  // Reset form function
+  const resetForm = () => {
+    setTitle('');
+    setContent('');
+    setUploadedImages([]);
+    setEditingPost(null);
+  };
+
+  // Function to populate form with post data
+  const populateForm = (post: NewsPost) => {
+    setTitle(post.title);
+    setContent(post.content);
+    if (post.featured_image && Array.isArray(post.featured_image)) {
+      setUploadedImages(post.featured_image.map((url, index) => ({
+        url,
+        index,
+      })));
+    } else {
+      setUploadedImages([]);
+    }
+    setEditingPost(post);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Update the Create Post button text
+  const submitButtonText = isSubmitting 
+    ? (editingPost ? 'Updating...' : 'Creating...') 
+    : (editingPost ? 'Update Post' : 'Create Post');
+
+  const handleCloseError = () => {
+    setError(null);
+  };
+
+  const handleCloseSuccess = () => {
+    setSuccess(null);
+  };
+
   return (
     <Box>
+      <Snackbar
+        open={!!error}
+        autoHideDuration={6000}
+        onClose={handleCloseError}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert onClose={handleCloseError} severity="error" sx={{ width: '100%' }}>
+          {error}
+        </Alert>
+      </Snackbar>
+
+      <Snackbar
+        open={!!success}
+        autoHideDuration={6000}
+        onClose={handleCloseSuccess}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert onClose={handleCloseSuccess} severity="success" sx={{ width: '100%' }}>
+          {success}
+        </Alert>
+      </Snackbar>
+
       {/* Admin Header */}
       <AppBar position="static" sx={{ backgroundColor: 'primary.main' }}>
         <Toolbar sx={{ px: { xs: 2, sm: 4 } }}>
@@ -393,7 +503,7 @@ const News = () => {
                 onClick={handleSubmit}
                 disabled={isSubmitting || !title.trim() || !content.trim()}
               >
-                {isSubmitting ? 'Creating...' : 'Create Post'}
+                {submitButtonText}
               </Button>
             </Box>
           </Box>
@@ -449,8 +559,18 @@ const News = () => {
                           size="small"
                           variant="outlined"
                           color="primary"
+                          sx={{ mr: 1 }}
+                          onClick={() => populateForm(post)}
                         >
                           Edit
+                        </Button>
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          color="error"
+                          onClick={() => setDeleteConfirmPost(post)}
+                        >
+                          Delete
                         </Button>
                       </Box>
                     </Box>
@@ -511,6 +631,28 @@ const News = () => {
           )}
         </Paper>
       </Container>
+
+      <Dialog
+        open={!!deleteConfirmPost}
+        onClose={() => setDeleteConfirmPost(null)}
+      >
+        <DialogTitle>Confirm Delete</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Are you sure you want to delete the post "{deleteConfirmPost?.title}"? This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteConfirmPost(null)}>Cancel</Button>
+          <Button 
+            onClick={() => deleteConfirmPost && handleDelete(deleteConfirmPost.id)} 
+            color="error" 
+            variant="contained"
+          >
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
