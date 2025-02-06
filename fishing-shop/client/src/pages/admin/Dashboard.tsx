@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Box, Grid, Paper, Typography, Container, AppBar, Toolbar, Button, Divider, Stack } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import CollectionsIcon from '@mui/icons-material/Collections';
@@ -12,23 +12,71 @@ import { setupActivityTracking, cleanupActivityTracking } from '../../utils/sess
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const [stats, setStats] = useState({
+    totalImages: 0,
+    newImages: 0,
+    totalNews: 0,
+    draftNews: 0
+  });
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     setupActivityTracking();
+    fetchStats();
     return () => cleanupActivityTracking();
   }, []);
+
+  const fetchStats = async () => {
+    try {
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      // Fetch gallery stats
+      const galleryResponse = await fetch('http://localhost:3000/api/gallery/images', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const galleryData = await galleryResponse.json();
+      
+      // Fetch news stats
+      const newsResponse = await fetch('http://localhost:3000/api/news/posts', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const newsData = await newsResponse.json();
+
+      // Calculate stats
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+      const newImagesCount = galleryData.images.filter((image: any) => 
+        new Date(image.created_at) > sevenDaysAgo
+      ).length;
+
+      const draftPostsCount = newsData.posts.filter((post: any) => 
+        !post.is_published
+      ).length;
+
+      setStats({
+        totalImages: galleryData.images.length,
+        newImages: newImagesCount,
+        totalNews: newsData.posts.length,
+        draftNews: draftPostsCount
+      });
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('authToken');
     navigate('/admin/login');
-  };
-
-  // Mock statistics - these would come from your API in a real application
-  const stats = {
-    totalImages: 24,
-    newImages: 5,
-    totalNews: 12,
-    draftNews: 3,
   };
 
   return (
@@ -103,28 +151,36 @@ const Dashboard = () => {
           <Grid item xs={12} sm={6} md={3}>
             <Paper sx={{ p: 3, textAlign: 'center' }}>
               <ImageIcon color="primary" sx={{ fontSize: 40, mb: 1 }} />
-              <Typography variant="h4" color="primary">{stats.totalImages}</Typography>
+              <Typography variant="h4" color="primary">
+                {isLoading ? '...' : stats.totalImages}
+              </Typography>
               <Typography variant="body2" color="text.secondary">Total Images</Typography>
             </Paper>
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
             <Paper sx={{ p: 3, textAlign: 'center' }}>
               <CollectionsIcon color="primary" sx={{ fontSize: 40, mb: 1 }} />
-              <Typography variant="h4" color="primary">{stats.newImages}</Typography>
-              <Typography variant="body2" color="text.secondary">New Images</Typography>
+              <Typography variant="h4" color="primary">
+                {isLoading ? '...' : stats.newImages}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">New Images (Last 7 Days)</Typography>
             </Paper>
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
             <Paper sx={{ p: 3, textAlign: 'center' }}>
               <NewspaperIcon color="primary" sx={{ fontSize: 40, mb: 1 }} />
-              <Typography variant="h4" color="primary">{stats.totalNews}</Typography>
+              <Typography variant="h4" color="primary">
+                {isLoading ? '...' : stats.totalNews}
+              </Typography>
               <Typography variant="body2" color="text.secondary">Total News</Typography>
             </Paper>
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
             <Paper sx={{ p: 3, textAlign: 'center' }}>
               <ArticleIcon color="primary" sx={{ fontSize: 40, mb: 1 }} />
-              <Typography variant="h4" color="primary">{stats.draftNews}</Typography>
+              <Typography variant="h4" color="primary">
+                {isLoading ? '...' : stats.draftNews}
+              </Typography>
               <Typography variant="body2" color="text.secondary">Draft News</Typography>
             </Paper>
           </Grid>
