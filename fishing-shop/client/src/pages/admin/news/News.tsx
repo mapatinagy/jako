@@ -18,8 +18,9 @@ import {
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import ReactQuill from 'react-quill';
-import Quill from 'quill';
 import 'react-quill/dist/quill.snow.css';
+import 'quill-emoji/dist/quill-emoji.css';
+import '../../../utils/quill-modules';
 import LogoutIcon from '@mui/icons-material/Logout';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import ImageIcon from '@mui/icons-material/Image';
@@ -156,15 +157,22 @@ const News = () => {
       ['bold', 'italic', 'underline'],
       [{ 'list': 'ordered'}, { 'list': 'bullet' }],
       ['link'],
+      ['emoji'],
       ['clean']
-    ]
+    ],
+    'emoji-toolbar': {
+      buttonIcon: '😀'
+    },
+    'emoji-shortname': true,
+    'emoji-textarea': false
   };
 
   const formats = [
     'header',
     'bold', 'italic', 'underline',
     'list', 'bullet',
-    'link', 'image'
+    'link', 'image',
+    'emoji'
   ];
 
   return (

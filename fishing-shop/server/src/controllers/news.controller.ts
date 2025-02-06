@@ -60,6 +60,14 @@ export const createNewsPost = async (req: Request, res: Response) => {
   try {
     const { title, content, is_published = false, featured_image = null }: CreateNewsRequest = req.body;
 
+    // Log the incoming request data
+    console.log('Creating news post with data:', {
+      titleLength: title?.length,
+      contentLength: content?.length,
+      is_published,
+      hasFeaturedImage: !!featured_image
+    });
+
     if (!title || !content) {
       return res.status(400).json({ success: false, message: 'Title and content are required' });
     }
@@ -75,6 +83,7 @@ export const createNewsPost = async (req: Request, res: Response) => {
           });
         }
       } catch (e) {
+        console.error('Error parsing featured_image:', e);
         return res.status(400).json({ 
           success: false, 
           message: 'Invalid featured_image format' 
@@ -82,6 +91,7 @@ export const createNewsPost = async (req: Request, res: Response) => {
       }
     }
 
+    console.log('Inserting into database...');
     const [result] = await pool.execute(
       `INSERT INTO news (title, content, is_published, featured_image) 
        VALUES (?, ?, ?, ?)`,
@@ -89,6 +99,8 @@ export const createNewsPost = async (req: Request, res: Response) => {
     );
 
     const insertId = (result as any).insertId;
+    console.log('Post created with ID:', insertId);
+
     const [newPost] = await pool.execute('SELECT * FROM news WHERE id = ?', [insertId]);
 
     res.status(201).json({
@@ -97,8 +109,18 @@ export const createNewsPost = async (req: Request, res: Response) => {
       post: (newPost as any[])[0]
     });
   } catch (error) {
-    console.error('Error creating news post:', error);
-    res.status(500).json({ success: false, message: 'Failed to create news post' });
+    console.error('Detailed error creating news post:', error);
+    // Log the full error details
+    if (error instanceof Error) {
+      console.error('Error name:', error.name);
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+    }
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to create news post',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 };
 
