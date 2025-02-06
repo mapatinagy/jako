@@ -27,10 +27,20 @@ import ImageIcon from '@mui/icons-material/Image';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SessionTimer from '../../../components/session/SessionTimer';
 import { setupActivityTracking, cleanupActivityTracking } from '../../../utils/session';
+import { formatDistanceToNow } from 'date-fns';
 
 interface UploadedImage {
   url: string;
   index: number;
+}
+
+interface NewsPost {
+  id: number;
+  title: string;
+  content: string;
+  created_at: string;
+  is_published: boolean;
+  featured_image: string | null;
 }
 
 const News = () => {
@@ -43,11 +53,52 @@ const News = () => {
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const quillRef = useRef<ReactQuill>(null);
+  const [posts, setPosts] = useState<NewsPost[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     setupActivityTracking();
+    fetchPosts();
     return () => cleanupActivityTracking();
   }, []);
+
+  const fetchPosts = async () => {
+    setIsLoading(true);
+    try {
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      const response = await fetch('http://localhost:3000/api/news/posts', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to fetch posts');
+      }
+
+      const data = await response.json();
+      if (data.success) {
+        setPosts(data.posts.map((post: any) => ({
+          ...post,
+          featured_image: post.featured_image ? `http://localhost:3000${JSON.parse(post.featured_image)[0]}` : null
+        })));
+      } else {
+        throw new Error(data.message || 'Failed to fetch posts');
+      }
+    } catch (error) {
+      console.error('Error fetching posts:', error);
+      setError(error instanceof Error ? error.message : 'Failed to fetch posts');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('authToken');
@@ -142,7 +193,8 @@ const News = () => {
       setSuccess('News post created successfully!');
       setTitle('');
       setContent('');
-      setUploadedImages([]); // Clear uploaded images
+      setUploadedImages([]);
+      fetchPosts();
     } catch (error) {
       console.error('Error creating news post:', error);
       setError('Failed to create news post. Please try again.');
@@ -309,6 +361,98 @@ const News = () => {
               </Button>
             </Box>
           </Box>
+        </Paper>
+      </Container>
+
+      {/* Posts Section */}
+      <Container maxWidth="lg" sx={{ pb: 4 }}>
+        <Paper sx={{ p: 3 }}>
+          <Typography variant="h5" gutterBottom>
+            Created Posts
+          </Typography>
+
+          {isLoading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+              <Typography>Loading posts...</Typography>
+            </Box>
+          ) : posts.length === 0 ? (
+            <Box sx={{ p: 3, textAlign: 'center' }}>
+              <Typography color="text.secondary">
+                No posts created yet. Create your first post above!
+              </Typography>
+            </Box>
+          ) : (
+            <Stack spacing={2}>
+              {posts.map((post) => (
+                <Paper 
+                  key={post.id} 
+                  elevation={2}
+                  sx={{ 
+                    p: 2,
+                    transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
+                    '&:hover': {
+                      transform: 'translateY(-2px)',
+                      boxShadow: 4
+                    }
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+                    {post.featured_image && (
+                      <Box
+                        component="img"
+                        src={post.featured_image}
+                        alt={post.title}
+                        sx={{
+                          width: 120,
+                          height: 120,
+                          objectFit: 'cover',
+                          borderRadius: 1
+                        }}
+                      />
+                    )}
+                    <Box sx={{ flexGrow: 1 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                        <Typography variant="h6">{post.title}</Typography>
+                        <Box>
+                          <Button
+                            size="small"
+                            variant={post.is_published ? "contained" : "outlined"}
+                            color={post.is_published ? "success" : "primary"}
+                            sx={{ mr: 1 }}
+                          >
+                            {post.is_published ? "Published" : "Draft"}
+                          </Button>
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            color="primary"
+                          >
+                            Edit
+                          </Button>
+                        </Box>
+                      </Box>
+                      <Typography 
+                        variant="body2" 
+                        color="text.secondary"
+                        sx={{ 
+                          mb: 1,
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden'
+                        }}
+                      >
+                        {post.content.replace(/<[^>]+>/g, '')}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        Created {formatDistanceToNow(new Date(post.created_at))} ago
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Paper>
+              ))}
+            </Stack>
+          )}
         </Paper>
       </Container>
 

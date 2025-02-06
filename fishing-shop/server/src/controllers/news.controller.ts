@@ -5,36 +5,54 @@ import { CreateNewsRequest, UpdateNewsRequest, PaginationParams } from '../types
 // Get all news posts with pagination
 export const getNewsPosts = async (req: Request, res: Response) => {
   try {
-    const { page = 1, limit = 10, published_only = false } = req.query as unknown as PaginationParams;
-    const offset = (page - 1) * limit;
+    // First, test a simple query
+    const [testResult] = await pool.execute('SELECT 1 as test');
+    console.log('Test query successful:', testResult);
 
-    // Build the WHERE clause
-    const whereClause = published_only ? 'WHERE is_published = true' : '';
+    // Simple query to get all posts without pagination
+    const [posts] = await pool.execute('SELECT * FROM news');
+    console.log('Posts retrieved:', (posts as any[]).length);
 
-    // Get total count
-    const [countResult] = await pool.execute(
-      `SELECT COUNT(*) as total FROM news ${whereClause}`
-    );
-    const total = (countResult as any[])[0].total;
-
-    // Get paginated results
-    const [posts] = await pool.execute(
-      `SELECT * FROM news ${whereClause} 
-       ORDER BY created_at DESC 
-       LIMIT ? OFFSET ?`,
-      [limit, offset]
-    );
+    // Transform the posts
+    const transformedPosts = (posts as any[]).map(post => ({
+      ...post,
+      is_published: Boolean(post.is_published),
+      featured_image: post.featured_image ? post.featured_image : null
+    }));
 
     res.json({
       success: true,
-      posts,
-      total,
-      page,
-      totalPages: Math.ceil(total / limit)
+      posts: transformedPosts,
+      total: transformedPosts.length,
+      page: 1,
+      totalPages: 1
     });
   } catch (error) {
     console.error('Error fetching news posts:', error);
-    res.status(500).json({ success: false, message: 'Failed to fetch news posts' });
+    if (error instanceof Error) {
+      console.error('Error details:', {
+        name: error.name,
+        message: error.message,
+        stack: error.stack
+      });
+
+      // Send more detailed error information in development
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch news posts',
+        error: process.env.NODE_ENV === 'development' ? {
+          message: error.message,
+          name: error.name,
+          stack: error.stack
+        } : 'Internal server error'
+      });
+    } else {
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch news posts',
+        error: 'Unknown error'
+      });
+    }
   }
 };
 
@@ -58,15 +76,9 @@ export const getNewsPost = async (req: Request, res: Response) => {
 // Create news post
 export const createNewsPost = async (req: Request, res: Response) => {
   try {
-    const { title, content, is_published = false, featured_image = null }: CreateNewsRequest = req.body;
-
-    // Log the incoming request data
-    console.log('Creating news post with data:', {
-      titleLength: title?.length,
-      contentLength: content?.length,
-      is_published,
-      hasFeaturedImage: !!featured_image
-    });
+    const { title, content, featured_image = null }: CreateNewsRequest = req.body;
+    // Set is_published to true by default
+    const is_published = 1; // Using 1 for MySQL tinyint(1)
 
     if (!title || !content) {
       return res.status(400).json({ success: false, message: 'Title and content are required' });
@@ -91,7 +103,6 @@ export const createNewsPost = async (req: Request, res: Response) => {
       }
     }
 
-    console.log('Inserting into database...');
     const [result] = await pool.execute(
       `INSERT INTO news (title, content, is_published, featured_image) 
        VALUES (?, ?, ?, ?)`,
@@ -99,8 +110,6 @@ export const createNewsPost = async (req: Request, res: Response) => {
     );
 
     const insertId = (result as any).insertId;
-    console.log('Post created with ID:', insertId);
-
     const [newPost] = await pool.execute('SELECT * FROM news WHERE id = ?', [insertId]);
 
     res.status(201).json({
@@ -109,12 +118,13 @@ export const createNewsPost = async (req: Request, res: Response) => {
       post: (newPost as any[])[0]
     });
   } catch (error) {
-    console.error('Detailed error creating news post:', error);
-    // Log the full error details
+    console.error('Error creating news post:', error);
     if (error instanceof Error) {
-      console.error('Error name:', error.name);
-      console.error('Error message:', error.message);
-      console.error('Error stack:', error.stack);
+      console.error('Error details:', {
+        name: error.name,
+        message: error.message,
+        stack: error.stack
+      });
     }
     res.status(500).json({ 
       success: false, 

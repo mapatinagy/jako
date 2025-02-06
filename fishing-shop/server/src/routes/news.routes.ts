@@ -6,10 +6,10 @@ import { upload } from '../utils/file.utils';
 const router = Router();
 
 // Public routes
-router.get('/posts', getNewsPosts as RequestHandler);
 router.get('/posts/:id', getNewsPost as RequestHandler);
 
 // Protected routes
+router.get('/posts', authenticateToken as RequestHandler, getNewsPosts as RequestHandler);
 router.post('/posts', authenticateToken as RequestHandler, createNewsPost as RequestHandler);
 router.patch('/posts/:id', authenticateToken as RequestHandler, updateNewsPost as RequestHandler);
 router.delete('/posts/:id', authenticateToken as RequestHandler, deleteNewsPost as RequestHandler);
