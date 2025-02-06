@@ -11,6 +11,7 @@ import Imprint from './pages/Imprint';
 import AdminLogin from './pages/admin/Login';
 import AdminDashboard from './pages/admin/Dashboard';
 import AdminGallery from './pages/admin/gallery/Gallery';
+import AdminNews from './pages/admin/news/News';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 
 const theme = createTheme({
@@ -119,6 +120,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <AdminGallery />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/news"
+              element={
+                <ProtectedRoute>
+                  <AdminNews />
                 </ProtectedRoute>
               }
             />
