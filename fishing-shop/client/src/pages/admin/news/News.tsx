@@ -87,7 +87,10 @@ const News = () => {
       if (data.success) {
         setPosts(data.posts.map((post: any) => ({
           ...post,
-          featured_image: post.featured_image ? post.featured_image.map((url: string) => `http://localhost:3000${url}`) : null
+          featured_image: post.featured_image ? 
+            post.featured_image.map((url: string) => 
+              url.startsWith('http') ? url : `http://localhost:3000${url}`
+            ) : null
         })));
       } else {
         throw new Error(data.message || 'Failed to fetch posts');
@@ -182,7 +185,9 @@ const News = () => {
           title: title.trim(),
           content: content.trim(),
           is_published: false,
-          featured_image: uploadedImages.length > 0 ? JSON.stringify(uploadedImages.map(img => img.url)) : null
+          featured_image: uploadedImages.length > 0 ? 
+            JSON.stringify(uploadedImages.map(img => img.url.replace('http://localhost:3000', ''))) : 
+            null
         })
       });
 
@@ -458,32 +463,42 @@ const News = () => {
                     />
 
                     {post.featured_image && Array.isArray(post.featured_image) && post.featured_image.length > 0 && (
-                      <ImageList 
-                        sx={{ 
-                          width: '100%', 
-                          maxHeight: post.featured_image.length > 3 ? 400 : 200,
-                          mb: 2 
-                        }} 
-                        cols={post.featured_image.length === 1 ? 1 : 3} 
-                        rowHeight={200}
-                        gap={8}
-                      >
-                        {post.featured_image.map((image: string, index: number) => (
-                          <ImageListItem key={index}>
-                            <img
-                              src={image}
-                              alt={`${post.title} - Image ${index + 1}`}
-                              loading="lazy"
-                              style={{ 
-                                height: '100%',
-                                width: '100%',
-                                objectFit: 'cover',
-                                borderRadius: '4px'
+                      <Box sx={{ mb: 2 }}>
+                        <ImageList 
+                          sx={{ 
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            gap: 2,
+                            m: 0
+                          }} 
+                          cols={3} 
+                          rowHeight={200}
+                        >
+                          {post.featured_image.map((image: string, index: number) => (
+                            <ImageListItem 
+                              key={index}
+                              sx={{
+                                width: '200px !important',
+                                height: '200px !important',
+                                flexGrow: 0,
+                                flexShrink: 0
                               }}
-                            />
-                          </ImageListItem>
-                        ))}
-                      </ImageList>
+                            >
+                              <img
+                                src={image}
+                                alt={`${post.title} - Image ${index + 1}`}
+                                loading="lazy"
+                                style={{ 
+                                  height: '100%',
+                                  width: '100%',
+                                  objectFit: 'cover',
+                                  borderRadius: '4px'
+                                }}
+                              />
+                            </ImageListItem>
+                          ))}
+                        </ImageList>
+                      </Box>
                     )}
 
                     <Typography variant="caption" color="text.secondary">
@@ -496,30 +511,8 @@ const News = () => {
           )}
         </Paper>
       </Container>
-
-      <Snackbar 
-        open={!!error} 
-        autoHideDuration={6000} 
-        onClose={() => setError(null)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert onClose={() => setError(null)} severity="error" sx={{ width: '100%' }}>
-          {error}
-        </Alert>
-      </Snackbar>
-
-      <Snackbar 
-        open={!!success} 
-        autoHideDuration={6000} 
-        onClose={() => setSuccess(null)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert onClose={() => setSuccess(null)} severity="success" sx={{ width: '100%' }}>
-          {success}
-        </Alert>
-      </Snackbar>
     </Box>
   );
 };
 
-export default News; 
+export default News;
