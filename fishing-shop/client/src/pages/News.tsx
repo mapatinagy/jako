@@ -10,7 +10,8 @@ import {
   Fade,
   Divider,
   Avatar,
-  Stack
+  Stack,
+  Paper
 } from '@mui/material';
 import { format } from 'date-fns';
 import StoreIcon from '@mui/icons-material/Store';
@@ -37,6 +38,7 @@ const News = () => {
       const data = await response.json();
       
       if (data.success) {
+        console.log('Received posts:', data.posts);
         setPosts(data.posts);
       }
     } catch (error) {
@@ -64,14 +66,25 @@ const News = () => {
   );
 
   return (
-    <Box sx={{ py: 6, bgcolor: 'background.default' }}>
+    <Box sx={{ py: 6, bgcolor: 'background.default', minHeight: '100vh' }}>
       <Container maxWidth="md">
         {/* Hero Section */}
-        <Box sx={{ mb: 6, textAlign: 'center' }}>
+        <Paper 
+          elevation={0}
+          sx={{ 
+            mb: 6, 
+            textAlign: 'center',
+            p: 4,
+            background: 'linear-gradient(to right bottom, #2e7d32, #4caf50)',
+            color: 'white',
+            borderRadius: 2
+          }}
+        >
           <Typography 
             variant="h1" 
             sx={{ 
               mb: 2,
+              color: 'white',
               position: 'relative',
               display: 'inline-block',
               '&::after': {
@@ -82,17 +95,17 @@ const News = () => {
                 transform: 'translateX(-50%)',
                 width: 100,
                 height: 3,
-                bgcolor: 'primary.main',
+                bgcolor: 'white',
                 borderRadius: 1
               }
             }}
           >
             Latest News
           </Typography>
-          <Typography variant="h5" color="text.secondary" sx={{ maxWidth: 800, mx: 'auto', mt: 3 }}>
+          <Typography variant="h5" sx={{ maxWidth: 800, mx: 'auto', mt: 3, color: 'rgba(255, 255, 255, 0.9)' }}>
             Stay updated with our latest products, events, and special offers
           </Typography>
-        </Box>
+        </Paper>
 
         {/* News Feed */}
         <Box>
@@ -122,20 +135,20 @@ const News = () => {
                     }
                   }}
                 >
-                  <CardContent>
+                  <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
                     {/* Post Header */}
-                    <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
+                    <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2.5 }}>
                       <Avatar 
                         sx={{ 
                           bgcolor: 'primary.main',
-                          width: 40,
-                          height: 40
+                          width: 48,
+                          height: 48
                         }}
                       >
                         <StoreIcon />
                       </Avatar>
                       <Box>
-                        <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'text.primary' }}>
+                        <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary', mb: 0.5 }}>
                           Fishing Shop
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
@@ -146,11 +159,12 @@ const News = () => {
 
                     {/* Post Title */}
                     <Typography 
-                      variant="h6" 
+                      variant="h5" 
                       sx={{ 
-                        mb: 2,
+                        mb: 2.5,
                         color: 'text.primary',
-                        fontWeight: 500
+                        fontWeight: 500,
+                        lineHeight: 1.3
                       }}
                     >
                       {post.title}
@@ -160,33 +174,40 @@ const News = () => {
                     {post.featured_image && (
                       <Box 
                         sx={{ 
-                          mb: 2,
-                          borderRadius: 1,
+                          mb: 2.5,
+                          borderRadius: 2,
                           overflow: 'hidden',
                           boxShadow: (theme) => theme.shadows[2]
                         }}
                       >
                         <CardMedia
                           component="img"
-                          image={
-                            post.featured_image.startsWith('/') || post.featured_image.startsWith('http')
-                              ? post.featured_image
-                              : (() => {
-                                  try {
-                                    const images = JSON.parse(post.featured_image);
-                                    return Array.isArray(images) && images.length > 0
-                                      ? `http://localhost:3000/uploads/${images[0]}`
-                                      : '';
-                                  } catch {
-                                    return `http://localhost:3000/uploads/${post.featured_image}`;
-                                  }
-                                })()
-                          }
+                          image={(() => {
+                            console.log('Processing featured_image:', post.featured_image);
+                            console.log('Type:', typeof post.featured_image);
+                            
+                            if (!post.featured_image) {
+                              return '';
+                            }
+
+                            // Handle array of image paths
+                            if (Array.isArray(post.featured_image) && post.featured_image.length > 0) {
+                              const firstImage = post.featured_image[0];
+                              // If the path already includes the full URL, use it as is
+                              if (firstImage.startsWith('http')) {
+                                return firstImage;
+                              }
+                              // Otherwise, prepend the base URL
+                              return `http://localhost:3000${firstImage}`;
+                            }
+
+                            return '';
+                          })()}
                           alt={post.title}
                           sx={{
                             width: '100%',
                             height: 'auto',
-                            maxHeight: 400,
+                            maxHeight: 500,
                             objectFit: 'cover',
                             transition: 'transform 0.3s ease',
                             '&:hover': {
@@ -198,26 +219,46 @@ const News = () => {
                     )}
 
                     {/* Post Content */}
-                    <Typography 
-                      variant="body1" 
-                      color="text.secondary"
+                    <Box 
                       sx={{ 
-                        mb: 2,
-                        lineHeight: 1.7,
-                        '& img': {
-                          maxWidth: '100%',
-                          height: 'auto',
-                          borderRadius: 1,
-                          my: 2
+                        '& > div': { 
+                          mb: 2.5,
+                          '&:last-child': { mb: 0 }
                         }
                       }}
-                      dangerouslySetInnerHTML={{ __html: post.content }}
-                    />
+                    >
+                      <Typography 
+                        component="div"
+                        sx={{ 
+                          color: 'text.primary',
+                          fontSize: '1rem',
+                          lineHeight: 1.7,
+                          '& img': {
+                            maxWidth: '100%',
+                            height: 'auto',
+                            borderRadius: 1,
+                            my: 2
+                          },
+                          '& p': {
+                            mb: 2,
+                            '&:last-child': { mb: 0 }
+                          }
+                        }}
+                        dangerouslySetInnerHTML={{ __html: post.content }}
+                      />
+                    </Box>
 
-                    <Divider sx={{ my: 2 }} />
+                    <Divider sx={{ my: 2.5 }} />
 
                     {/* Post Footer */}
-                    <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                    <Typography 
+                      variant="body2" 
+                      color="text.secondary" 
+                      sx={{ 
+                        fontStyle: 'italic',
+                        opacity: 0.8
+                      }}
+                    >
                       Posted {format(new Date(post.created_at), 'PPpp')}
                     </Typography>
                   </CardContent>
