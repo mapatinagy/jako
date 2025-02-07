@@ -171,39 +171,32 @@ const News = () => {
                   }}
                 >
                   <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
-                    {/* Post Header */}
-                    <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2.5 }}>
-                      <Avatar 
+                    {/* Post Header with Title and Date */}
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2.5 }}>
+                      <Typography 
+                        variant="h5" 
                         sx={{ 
-                          bgcolor: 'primary.main',
-                          width: 48,
-                          height: 48
+                          color: 'text.primary',
+                          fontWeight: 500,
+                          lineHeight: 1.3,
+                          flex: 1,
+                          mr: 2
                         }}
                       >
-                        <StoreIcon />
-                      </Avatar>
-                      <Box>
-                        <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary', mb: 0.5 }}>
-                          Fishing Shop
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {format(new Date(post.created_at), 'MMMM d, yyyy')}
-                        </Typography>
-                      </Box>
-                    </Stack>
-
-                    {/* Post Title */}
-                    <Typography 
-                      variant="h5" 
-                      sx={{ 
-                        mb: 2.5,
-                        color: 'text.primary',
-                        fontWeight: 500,
-                        lineHeight: 1.3
-                      }}
-                    >
-                      {post.title}
-                    </Typography>
+                        {post.title}
+                      </Typography>
+                      
+                      <Typography 
+                        variant="body2" 
+                        color="text.secondary" 
+                        sx={{ 
+                          whiteSpace: 'nowrap',
+                          opacity: 0.8
+                        }}
+                      >
+                        {format(new Date(post.created_at), 'yyyy MMM d, HH:mm:ss')}
+                      </Typography>
+                    </Box>
 
                     {/* Post Content */}
                     <Box 
@@ -237,7 +230,7 @@ const News = () => {
 
                     {/* Featured Images */}
                     {post.featured_image && Array.isArray(post.featured_image) && post.featured_image.length > 0 && (
-                      <Box sx={{ mb: 2.5 }}>
+                      <Box sx={{ mb: 0 }}>
                         <Box
                           sx={{
                             display: 'grid',
@@ -306,20 +299,6 @@ const News = () => {
                         </Box>
                       </Box>
                     )}
-
-                    <Divider sx={{ my: 2.5 }} />
-
-                    {/* Post Footer */}
-                    <Typography 
-                      variant="body2" 
-                      color="text.secondary" 
-                      sx={{ 
-                        fontStyle: 'italic',
-                        opacity: 0.8
-                      }}
-                    >
-                      Posted {format(new Date(post.created_at), 'PPpp')}
-                    </Typography>
                   </CardContent>
                 </Card>
               </Fade>
