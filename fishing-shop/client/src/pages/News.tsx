@@ -11,22 +11,31 @@ import {
   Divider,
   Avatar,
   Stack,
-  Paper
+  Paper,
+  Dialog,
+  DialogContent,
+  IconButton
 } from '@mui/material';
 import { format } from 'date-fns';
 import StoreIcon from '@mui/icons-material/Store';
+import CloseIcon from '@mui/icons-material/Close';
+import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 
 interface NewsPost {
   id: number;
   title: string;
   content: string;
   created_at: string;
-  featured_image: string | null;
+  featured_image: string[] | null;
 }
 
 const News = () => {
   const [posts, setPosts] = useState<NewsPost[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [currentPost, setCurrentPost] = useState<NewsPost | null>(null);
+  const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
 
   useEffect(() => {
     fetchPosts();
@@ -64,6 +73,32 @@ const News = () => {
       </CardContent>
     </Card>
   );
+
+  const handleImageClick = (post: NewsPost, imageIndex: number) => {
+    setCurrentPost(post);
+    setCurrentImageIndex(imageIndex);
+    setSelectedImage(post.featured_image?.[imageIndex] || null);
+  };
+
+  const handleCloseLightbox = () => {
+    setSelectedImage(null);
+    setCurrentPost(null);
+    setCurrentImageIndex(0);
+  };
+
+  const handlePrevImage = () => {
+    if (!currentPost?.featured_image) return;
+    const newIndex = (currentImageIndex - 1 + currentPost.featured_image.length) % currentPost.featured_image.length;
+    setCurrentImageIndex(newIndex);
+    setSelectedImage(currentPost.featured_image[newIndex]);
+  };
+
+  const handleNextImage = () => {
+    if (!currentPost?.featured_image) return;
+    const newIndex = (currentImageIndex + 1) % currentPost.featured_image.length;
+    setCurrentImageIndex(newIndex);
+    setSelectedImage(currentPost.featured_image[newIndex]);
+  };
 
   return (
     <Box sx={{ py: 6, bgcolor: 'background.default', minHeight: '100vh' }}>
@@ -208,21 +243,22 @@ const News = () => {
                             display: 'grid',
                             gridTemplateColumns: {
                               xs: 'repeat(2, 1fr)',
-                              sm: 'repeat(3, 1fr)',
-                              md: 'repeat(4, 1fr)'
+                              sm: 'repeat(4, 1fr)'
                             },
                             gap: 1
                           }}
                         >
-                          {post.featured_image.map((image, imageIndex) => (
+                          {post.featured_image?.slice(0, 4).map((image, imageIndex) => (
                             <Box
                               key={imageIndex}
+                              onClick={() => handleImageClick(post, imageIndex)}
                               sx={{
                                 position: 'relative',
-                                paddingTop: '100%', // 1:1 aspect ratio
+                                paddingTop: '75%', // 4:3 aspect ratio for smaller thumbnails
                                 borderRadius: 1,
                                 overflow: 'hidden',
-                                boxShadow: (theme) => theme.shadows[2]
+                                boxShadow: (theme) => theme.shadows[2],
+                                cursor: 'pointer'
                               }}
                             >
                               <CardMedia
@@ -242,6 +278,29 @@ const News = () => {
                                   }
                                 }}
                               />
+                              {imageIndex === 3 && post.featured_image && post.featured_image.length > 4 && (
+                                <Box
+                                  sx={{
+                                    position: 'absolute',
+                                    top: 0,
+                                    left: 0,
+                                    right: 0,
+                                    bottom: 0,
+                                    bgcolor: 'rgba(0, 0, 0, 0.5)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    color: 'white',
+                                    fontSize: '1.5rem',
+                                    fontWeight: 'bold',
+                                    '&:hover': {
+                                      bgcolor: 'rgba(0, 0, 0, 0.6)'
+                                    }
+                                  }}
+                                >
+                                  +{post.featured_image.length - 4}
+                                </Box>
+                              )}
                             </Box>
                           ))}
                         </Box>
@@ -268,6 +327,127 @@ const News = () => {
           )}
         </Box>
       </Container>
+
+      {/* Lightbox Dialog */}
+      <Dialog
+        open={!!selectedImage}
+        onClose={handleCloseLightbox}
+        maxWidth="lg"
+        fullWidth
+        sx={{
+          '& .MuiDialog-paper': {
+            bgcolor: 'transparent',
+            boxShadow: 'none',
+            margin: { xs: 2, sm: 4 }
+          },
+          '& .MuiBackdrop-root': {
+            backgroundColor: 'rgba(0, 0, 0, 0.9)'
+          }
+        }}
+      >
+        <DialogContent 
+          sx={{ 
+            p: 0,
+            position: 'relative',
+            overflow: 'hidden',
+            '&::-webkit-scrollbar': {
+              display: 'none'
+            },
+            bgcolor: 'transparent',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+        >
+          {selectedImage && (
+            <Box
+              sx={{
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                position: 'relative'
+              }}
+              onClick={handleCloseLightbox}
+            >
+              <Box
+                sx={{
+                  position: 'relative',
+                  maxWidth: '100%',
+                  maxHeight: '90vh',
+                  display: 'flex',
+                  justifyContent: 'center'
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <img
+                  src={selectedImage.startsWith('http') ? selectedImage : `http://localhost:3000${selectedImage}`}
+                  alt="Full size"
+                  style={{
+                    maxWidth: '100%',
+                    maxHeight: '90vh',
+                    objectFit: 'contain',
+                    borderRadius: '4px'
+                  }}
+                />
+                <IconButton
+                  onClick={handleCloseLightbox}
+                  sx={{
+                    position: 'absolute',
+                    right: -12,
+                    top: -12,
+                    color: 'white',
+                    bgcolor: 'rgba(0,0,0,0.4)',
+                    '&:hover': {
+                      bgcolor: 'rgba(0,0,0,0.6)'
+                    }
+                  }}
+                >
+                  <CloseIcon />
+                </IconButton>
+                {currentPost?.featured_image && currentPost.featured_image.length > 1 && (
+                  <>
+                    <IconButton
+                      onClick={handlePrevImage}
+                      sx={{
+                        position: 'absolute',
+                        left: 8,
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        color: 'white',
+                        bgcolor: 'rgba(0,0,0,0.4)',
+                        '&:hover': {
+                          bgcolor: 'rgba(0,0,0,0.6)'
+                        }
+                      }}
+                    >
+                      <NavigateBeforeIcon />
+                    </IconButton>
+                    <IconButton
+                      onClick={handleNextImage}
+                      sx={{
+                        position: 'absolute',
+                        right: 8,
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        color: 'white',
+                        bgcolor: 'rgba(0,0,0,0.4)',
+                        '&:hover': {
+                          bgcolor: 'rgba(0,0,0,0.6)'
+                        }
+                      }}
+                    >
+                      <NavigateNextIcon />
+                    </IconButton>
+                  </>
+                )}
+              </Box>
+            </Box>
+          )}
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 };
