@@ -602,64 +602,148 @@ function Home() {
                         cursor: 'pointer',
                         transition: 'all 0.3s ease',
                         '&:hover': {
-                          transform: 'translateY(-8px)',
+                          transform: 'translateY(-4px)',
                           boxShadow: 6
                         }
                       }}
                       onClick={() => navigate(`/news/${post.id}`)}
                     >
                       <CardContent>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                          <Typography variant="h6" sx={{ flex: 1 }}>
+                        {/* Post Header with Title and Date */}
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2.5 }}>
+                          <Typography 
+                            variant="h5" 
+                            sx={{ 
+                              color: 'text.primary',
+                              fontWeight: 500,
+                              lineHeight: 1.3,
+                              flex: 1,
+                              mr: 2
+                            }}
+                          >
                             {post.title}
                           </Typography>
-                          <Typography variant="caption" color="text.secondary">
+                          <Typography 
+                            variant="body2" 
+                            color="text.secondary" 
+                            sx={{ 
+                              whiteSpace: 'nowrap',
+                              opacity: 0.8
+                            }}
+                          >
                             {new Date(post.created_at).toLocaleDateString()}
                           </Typography>
                         </Box>
-                        <Typography 
-                          variant="body2" 
-                          color="text.secondary"
-                          sx={{
-                            mb: 2,
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            display: '-webkit-box',
-                            WebkitLineClamp: 3,
-                            WebkitBoxOrient: 'vertical',
-                          }}
-                        >
-                          {post.content.replace(/<[^>]*>/g, '').slice(0, 200)}...
-                        </Typography>
-                        {post.featured_image && Array.isArray(post.featured_image) && post.featured_image.length > 0 && (
-                          <Box 
+
+                        {/* Post Content */}
+                        <Box sx={{ mb: 2.5 }}>
+                          <Typography 
+                            variant="body1" 
+                            color="text.secondary"
                             sx={{ 
-                              position: 'relative',
-                              width: '100%',
-                              pt: '40%',
-                              overflow: 'hidden',
-                              borderRadius: 1
+                              fontSize: '1rem',
+                              lineHeight: 1.7,
+                              mb: 2
                             }}
                           >
-                            <CardMedia
-                              component="img"
-                              image={post.featured_image[0].toString()}
-                              alt={post.title}
+                            {post.content.length > 200
+                              ? `${post.content.substring(0, 200)}...`
+                              : post.content}
+                          </Typography>
+                        </Box>
+
+                        {/* Featured Images */}
+                        {post.featured_image && post.featured_image.length > 0 && (
+                          <Box sx={{ mb: 2 }}>
+                            <Box
                               sx={{
-                                position: 'absolute',
-                                top: 0,
-                                left: 0,
-                                width: '100%',
-                                height: '100%',
-                                objectFit: 'cover',
-                                transition: 'transform 0.3s ease',
-                                '&:hover': {
-                                  transform: 'scale(1.05)'
-                                }
+                                display: 'grid',
+                                gridTemplateColumns: {
+                                  xs: 'repeat(2, 1fr)',
+                                  sm: 'repeat(4, 1fr)'
+                                },
+                                gap: 1
                               }}
-                            />
+                            >
+                              {post.featured_image?.slice(0, 4).map((image, imageIndex) => (
+                                <Box
+                                  key={imageIndex}
+                                  sx={{
+                                    position: 'relative',
+                                    paddingTop: '75%',
+                                    borderRadius: 1,
+                                    overflow: 'hidden',
+                                    boxShadow: (theme) => theme.shadows[2]
+                                  }}
+                                >
+                                  <CardMedia
+                                    component="img"
+                                    image={image}
+                                    alt={`${post.title} - Image ${imageIndex + 1}`}
+                                    sx={{
+                                      position: 'absolute',
+                                      top: 0,
+                                      left: 0,
+                                      width: '100%',
+                                      height: '100%',
+                                      objectFit: 'cover',
+                                      transition: 'transform 0.3s ease',
+                                      '&:hover': {
+                                        transform: 'scale(1.05)'
+                                      }
+                                    }}
+                                  />
+                                  {imageIndex === 3 && post.featured_image && post.featured_image.length > 4 && (
+                                    <Box
+                                      sx={{
+                                        position: 'absolute',
+                                        top: 0,
+                                        left: 0,
+                                        right: 0,
+                                        bottom: 0,
+                                        bgcolor: 'rgba(0, 0, 0, 0.5)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        color: 'white',
+                                        fontSize: '1.5rem',
+                                        fontWeight: 'bold',
+                                        '&:hover': {
+                                          bgcolor: 'rgba(0, 0, 0, 0.6)'
+                                        }
+                                      }}
+                                    >
+                                      +{post.featured_image.length - 4}
+                                    </Box>
+                                  )}
+                                </Box>
+                              ))}
+                            </Box>
                           </Box>
                         )}
+
+                        {/* Read More Button */}
+                        <Box sx={{ mt: 'auto' }}>
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/news/${post.id}`);
+                            }}
+                            sx={{
+                              borderColor: 'primary.main',
+                              color: 'primary.main',
+                              '&:hover': {
+                                borderColor: 'primary.dark',
+                                backgroundColor: 'primary.light',
+                                color: 'primary.dark',
+                              },
+                            }}
+                          >
+                            Read More
+                          </Button>
+                        </Box>
                       </CardContent>
                     </Card>
                   ))}
