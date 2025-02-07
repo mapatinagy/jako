@@ -61,7 +61,13 @@ function Home() {
       if (data.success) {
         const publishedPosts = data.posts
           .filter((post: NewsPost) => post.is_published)
-          .slice(0, 2);
+          .slice(0, 2)
+          .map((post: NewsPost) => ({
+            ...post,
+            featured_image: post.featured_image?.map(image => 
+              image.startsWith('http') ? image : `http://localhost:3000${image}`
+            )
+          }));
         setLatestNews(publishedPosts);
       }
     } catch (error) {
@@ -470,121 +476,217 @@ function Home() {
 
       {/* Gallery and News Section */}
       <Box sx={{ py: 8, bgcolor: 'background.default' }}>
-        <Container maxWidth="lg">
-          <Grid container spacing={4}>
+        <Box sx={{ width: '100%' }}>
+          <Grid container>
             {/* Gallery Column */}
-            <Grid item xs={12} md={6}>
+            <Grid 
+              item 
+              xs={12} 
+              md={6} 
+              sx={{ 
+                width: '50%',
+                px: 4,
+                borderRight: { md: 1 },
+                borderColor: 'divider'
+              }}
+            >
               <Typography variant="h3" sx={{ mb: 3, color: 'primary.main' }}>
                 Latest Gallery
               </Typography>
-              <Grid container spacing={2}>
-                {latestImages.map((image) => (
-                  <Grid item xs={6} sm={4} key={image.id}>
-                    <Card 
-                      sx={{ 
-                        cursor: 'pointer',
-                        transition: 'all 0.3s ease',
-                        '&:hover': {
-                          transform: 'translateY(-4px)',
-                          boxShadow: 6
-                        }
-                      }}
-                      onClick={() => navigate('/gallery')}
-                    >
-                      <CardMedia
-                        component="img"
-                        height="140"
-                        image={image.url}
-                        alt={image.description || 'Gallery image'}
-                        sx={{ objectFit: 'cover' }}
-                      />
-                    </Card>
-                  </Grid>
-                ))}
-              </Grid>
-              <Box sx={{ mt: 3, textAlign: 'center' }}>
-                <Button 
-                  variant="outlined" 
-                  color="primary"
-                  onClick={() => navigate('/gallery')}
-                  sx={{
-                    borderRadius: 2,
-                    px: 4,
-                    py: 1,
-                    '&:hover': {
-                      transform: 'translateY(-2px)',
-                      boxShadow: 2
-                    }
+              <Box sx={{ 
+                display: 'flex', 
+                flexDirection: 'column',
+                height: '100%'
+              }}>
+                <Paper 
+                  sx={{ 
+                    p: 3, 
+                    mb: 3,
+                    flexGrow: 1,
+                    display: 'flex',
+                    flexDirection: 'column'
                   }}
                 >
-                  View Full Gallery
-                </Button>
+                  <Grid 
+                    container 
+                    spacing={2} 
+                    sx={{ 
+                      flexGrow: 1,
+                      alignContent: 'flex-start'
+                    }}
+                  >
+                    {latestImages.map((image) => (
+                      <Grid item xs={4} key={image.id}>
+                        <Card 
+                          sx={{ 
+                            height: '100%',
+                            transition: 'all 0.3s ease',
+                            cursor: 'pointer',
+                            '&:hover': {
+                              transform: 'translateY(-8px)',
+                              boxShadow: 6,
+                              '& .MuiCardMedia-root': {
+                                transform: 'scale(1.1)'
+                              }
+                            }
+                          }}
+                          onClick={() => navigate('/gallery')}
+                        >
+                          <Box sx={{ position: 'relative', pt: '100%', overflow: 'hidden' }}>
+                            <CardMedia
+                              component="img"
+                              image={image.url}
+                              alt={image.description || 'Gallery image'}
+                              sx={{
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'cover',
+                                transition: 'transform 0.3s ease'
+                              }}
+                            />
+                          </Box>
+                        </Card>
+                      </Grid>
+                    ))}
+                  </Grid>
+                </Paper>
+                <Box sx={{ textAlign: 'center', mt: 'auto' }}>
+                  <Button 
+                    variant="outlined" 
+                    color="primary"
+                    onClick={() => navigate('/gallery')}
+                    sx={{
+                      borderRadius: 2,
+                      px: 4,
+                      py: 1,
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        transform: 'translateY(-2px)',
+                        boxShadow: 2
+                      }
+                    }}
+                  >
+                    View Full Gallery
+                  </Button>
+                </Box>
               </Box>
             </Grid>
 
             {/* News Column */}
-            <Grid item xs={12} md={6}>
+            <Grid 
+              item 
+              xs={12} 
+              md={6} 
+              sx={{ 
+                width: '50%',
+                px: 4
+              }}
+            >
               <Typography variant="h3" sx={{ mb: 3, color: 'primary.main' }}>
                 Latest News
               </Typography>
-              {latestNews.map((post) => (
-                <Card 
-                  key={post.id} 
-                  sx={{ 
-                    mb: 2,
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease',
-                    '&:hover': {
-                      transform: 'translateX(8px)',
-                      boxShadow: 4
-                    }
-                  }}
-                  onClick={() => navigate(`/news/${post.id}`)}
-                >
-                  <CardContent>
-                    <Typography variant="h6" gutterBottom>
-                      {post.title}
-                    </Typography>
-                    <Typography 
-                      variant="body2" 
-                      color="text.secondary"
-                      sx={{
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
+              <Box sx={{ 
+                display: 'flex', 
+                flexDirection: 'column',
+                height: '100%'
+              }}>
+                <Box sx={{ flexGrow: 1 }}>
+                  {latestNews.map((post) => (
+                    <Card 
+                      key={post.id} 
+                      sx={{ 
+                        mb: 3,
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease',
+                        '&:hover': {
+                          transform: 'translateY(-8px)',
+                          boxShadow: 6
+                        }
                       }}
+                      onClick={() => navigate(`/news/${post.id}`)}
                     >
-                      {post.content.replace(/<[^>]*>/g, '').slice(0, 150)}...
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-                      {new Date(post.created_at).toLocaleDateString()}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              ))}
-              <Box sx={{ mt: 3, textAlign: 'center' }}>
-                <Button 
-                  variant="outlined" 
-                  color="primary"
-                  onClick={() => navigate('/news')}
-                  sx={{
-                    borderRadius: 2,
-                    px: 4,
-                    py: 1,
-                    '&:hover': {
-                      transform: 'translateY(-2px)',
-                      boxShadow: 2
-                    }
-                  }}
-                >
-                  View All News
-                </Button>
+                      <CardContent>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                          <Typography variant="h6" sx={{ flex: 1 }}>
+                            {post.title}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {new Date(post.created_at).toLocaleDateString()}
+                          </Typography>
+                        </Box>
+                        <Typography 
+                          variant="body2" 
+                          color="text.secondary"
+                          sx={{
+                            mb: 2,
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            display: '-webkit-box',
+                            WebkitLineClamp: 3,
+                            WebkitBoxOrient: 'vertical',
+                          }}
+                        >
+                          {post.content.replace(/<[^>]*>/g, '').slice(0, 200)}...
+                        </Typography>
+                        {post.featured_image && Array.isArray(post.featured_image) && post.featured_image.length > 0 && (
+                          <Box 
+                            sx={{ 
+                              position: 'relative',
+                              width: '100%',
+                              pt: '40%',
+                              overflow: 'hidden',
+                              borderRadius: 1
+                            }}
+                          >
+                            <CardMedia
+                              component="img"
+                              image={post.featured_image[0].toString()}
+                              alt={post.title}
+                              sx={{
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'cover',
+                                transition: 'transform 0.3s ease',
+                                '&:hover': {
+                                  transform: 'scale(1.05)'
+                                }
+                              }}
+                            />
+                          </Box>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </Box>
+                <Box sx={{ textAlign: 'center', mt: 'auto' }}>
+                  <Button 
+                    variant="outlined" 
+                    color="primary"
+                    onClick={() => navigate('/news')}
+                    sx={{
+                      borderRadius: 2,
+                      px: 4,
+                      py: 1,
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        transform: 'translateY(-2px)',
+                        boxShadow: 2
+                      }
+                    }}
+                  >
+                    View All News
+                  </Button>
+                </Box>
               </Box>
             </Grid>
           </Grid>
-        </Container>
+        </Box>
       </Box>
     </Box>
   );
