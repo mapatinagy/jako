@@ -474,303 +474,236 @@ function Home() {
         </Grid>
       </Box>
 
-      {/* Gallery and News Section */}
+      {/* News Posts Section */}
       <Box sx={{ py: 8, bgcolor: 'background.default' }}>
-        <Box sx={{ width: '100%' }}>
-          <Grid container>
-            {/* Gallery Column */}
-            <Grid 
-              item 
-              xs={12} 
-              md={6} 
-              sx={{ 
-                width: '50%',
-                px: 4,
-                borderRight: { md: 1 },
-                borderColor: 'divider'
-              }}
-            >
-              <Typography variant="h3" sx={{ mb: 3, color: 'primary.main' }}>
-                Latest Gallery
-              </Typography>
-              <Box sx={{ 
-                display: 'flex', 
-                flexDirection: 'column',
-                height: '100%'
-              }}>
-                <Paper 
+        <Container maxWidth="lg">
+          <Typography variant="h3" sx={{ mb: 4, color: 'primary.main', textAlign: 'center' }}>
+            Latest News
+          </Typography>
+          <Grid container spacing={4} sx={{ mb: 4 }}>
+            {latestNews.map((post) => (
+              <Grid item xs={12} md={6} key={post.id}>
+                <Card 
                   sx={{ 
-                    p: 3, 
-                    mb: 3,
-                    flexGrow: 1,
-                    display: 'flex',
-                    flexDirection: 'column'
+                    height: '100%',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      transform: 'translateY(-4px)',
+                      boxShadow: 6
+                    }
                   }}
+                  onClick={() => navigate(`/news/${post.id}`)}
                 >
-                  <Grid 
-                    container 
-                    spacing={2} 
-                    sx={{ 
-                      flexGrow: 1,
-                      alignContent: 'flex-start'
-                    }}
-                  >
-                    {latestImages.map((image) => (
-                      <Grid item xs={4} key={image.id}>
-                        <Card 
-                          sx={{ 
-                            height: '100%',
-                            transition: 'all 0.3s ease',
-                            cursor: 'pointer',
-                            '&:hover': {
-                              transform: 'translateY(-8px)',
-                              boxShadow: 6,
-                              '& .MuiCardMedia-root': {
-                                transform: 'scale(1.1)'
-                              }
-                            }
+                  <CardContent>
+                    {/* Post Header with Title and Date */}
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2.5 }}>
+                      <Typography 
+                        variant="h5" 
+                        sx={{ 
+                          color: 'text.primary',
+                          fontWeight: 500,
+                          lineHeight: 1.3,
+                          flex: 1,
+                          mr: 2
+                        }}
+                      >
+                        {post.title}
+                      </Typography>
+                      <Typography 
+                        variant="body2" 
+                        color="text.secondary" 
+                        sx={{ 
+                          whiteSpace: 'nowrap',
+                          opacity: 0.8
+                        }}
+                      >
+                        {new Date(post.created_at).toLocaleDateString()}
+                      </Typography>
+                    </Box>
+
+                    {/* Post Content */}
+                    <Box sx={{ mb: 2.5 }}>
+                      <Typography 
+                        component="div"
+                        variant="body1" 
+                        color="text.secondary"
+                        sx={{ 
+                          fontSize: '1rem',
+                          lineHeight: 1.7,
+                          mb: 2,
+                          '& p': {
+                            margin: 0,
+                            '&:last-child': { mb: 0 }
+                          }
+                        }}
+                        dangerouslySetInnerHTML={{ 
+                          __html: post.content.length > 200
+                            ? `${post.content.substring(0, 200).replace(/<[^>]*>/g, '')}...`
+                            : post.content 
+                        }}
+                      />
+                    </Box>
+
+                    {/* Featured Images */}
+                    {post.featured_image && post.featured_image.length > 0 && (
+                      <Box sx={{ mb: 2 }}>
+                        <Box
+                          sx={{
+                            display: 'grid',
+                            gridTemplateColumns: {
+                              xs: 'repeat(2, 1fr)',
+                              sm: 'repeat(4, 1fr)'
+                            },
+                            gap: 1
                           }}
-                          onClick={() => navigate('/gallery')}
                         >
-                          <Box sx={{ position: 'relative', pt: '100%', overflow: 'hidden' }}>
-                            <CardMedia
-                              component="img"
-                              image={image.url}
-                              alt={image.description || 'Gallery image'}
-                              sx={{
-                                position: 'absolute',
-                                top: 0,
-                                left: 0,
-                                width: '100%',
-                                height: '100%',
-                                objectFit: 'cover',
-                                transition: 'transform 0.3s ease'
-                              }}
-                            />
-                          </Box>
-                        </Card>
-                      </Grid>
-                    ))}
-                  </Grid>
-                </Paper>
-                <Box sx={{ textAlign: 'center', mt: 'auto' }}>
-                  <Button 
-                    variant="outlined" 
-                    color="primary"
-                    onClick={() => navigate('/gallery')}
-                    sx={{
-                      borderRadius: 2,
-                      px: 4,
-                      py: 1,
-                      transition: 'all 0.3s ease',
-                      '&:hover': {
-                        transform: 'translateY(-2px)',
-                        boxShadow: 2
-                      }
-                    }}
-                  >
-                    View Full Gallery
-                  </Button>
-                </Box>
-              </Box>
-            </Grid>
-
-            {/* News Column */}
-            <Grid 
-              item 
-              xs={12} 
-              md={6} 
-              sx={{ 
-                width: '50%',
-                px: 4
-              }}
-            >
-              <Typography variant="h3" sx={{ mb: 3, color: 'primary.main' }}>
-                Latest News
-              </Typography>
-              <Box sx={{ 
-                display: 'flex', 
-                flexDirection: 'column',
-                height: '100%'
-              }}>
-                <Box sx={{ flexGrow: 1 }}>
-                  {latestNews.map((post) => (
-                    <Card 
-                      key={post.id} 
-                      sx={{ 
-                        mb: 3,
-                        cursor: 'pointer',
-                        transition: 'all 0.3s ease',
-                        '&:hover': {
-                          transform: 'translateY(-4px)',
-                          boxShadow: 6
-                        }
-                      }}
-                      onClick={() => navigate(`/news/${post.id}`)}
-                    >
-                      <CardContent>
-                        {/* Post Header with Title and Date */}
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2.5 }}>
-                          <Typography 
-                            variant="h5" 
-                            sx={{ 
-                              color: 'text.primary',
-                              fontWeight: 500,
-                              lineHeight: 1.3,
-                              flex: 1,
-                              mr: 2
-                            }}
-                          >
-                            {post.title}
-                          </Typography>
-                          <Typography 
-                            variant="body2" 
-                            color="text.secondary" 
-                            sx={{ 
-                              whiteSpace: 'nowrap',
-                              opacity: 0.8
-                            }}
-                          >
-                            {new Date(post.created_at).toLocaleDateString()}
-                          </Typography>
-                        </Box>
-
-                        {/* Post Content */}
-                        <Box sx={{ mb: 2.5 }}>
-                          <Typography 
-                            variant="body1" 
-                            color="text.secondary"
-                            sx={{ 
-                              fontSize: '1rem',
-                              lineHeight: 1.7,
-                              mb: 2
-                            }}
-                          >
-                            {post.content.length > 200
-                              ? `${post.content.substring(0, 200)}...`
-                              : post.content}
-                          </Typography>
-                        </Box>
-
-                        {/* Featured Images */}
-                        {post.featured_image && post.featured_image.length > 0 && (
-                          <Box sx={{ mb: 2 }}>
+                          {post.featured_image?.slice(0, 4).map((image, imageIndex) => (
                             <Box
+                              key={imageIndex}
                               sx={{
-                                display: 'grid',
-                                gridTemplateColumns: {
-                                  xs: 'repeat(2, 1fr)',
-                                  sm: 'repeat(4, 1fr)'
-                                },
-                                gap: 1
+                                position: 'relative',
+                                paddingTop: '75%',
+                                borderRadius: 1,
+                                overflow: 'hidden',
+                                boxShadow: (theme) => theme.shadows[2]
                               }}
                             >
-                              {post.featured_image?.slice(0, 4).map((image, imageIndex) => (
+                              <CardMedia
+                                component="img"
+                                image={image}
+                                alt={`${post.title} - Image ${imageIndex + 1}`}
+                                sx={{
+                                  position: 'absolute',
+                                  top: 0,
+                                  left: 0,
+                                  width: '100%',
+                                  height: '100%',
+                                  objectFit: 'cover',
+                                  transition: 'transform 0.3s ease',
+                                  '&:hover': {
+                                    transform: 'scale(1.05)'
+                                  }
+                                }}
+                              />
+                              {imageIndex === 3 && post.featured_image && post.featured_image.length > 4 && (
                                 <Box
-                                  key={imageIndex}
                                   sx={{
-                                    position: 'relative',
-                                    paddingTop: '75%',
-                                    borderRadius: 1,
-                                    overflow: 'hidden',
-                                    boxShadow: (theme) => theme.shadows[2]
+                                    position: 'absolute',
+                                    top: 0,
+                                    left: 0,
+                                    right: 0,
+                                    bottom: 0,
+                                    bgcolor: 'rgba(0, 0, 0, 0.5)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    color: 'white',
+                                    fontSize: '1.5rem',
+                                    fontWeight: 'bold',
+                                    '&:hover': {
+                                      bgcolor: 'rgba(0, 0, 0, 0.6)'
+                                    }
                                   }}
                                 >
-                                  <CardMedia
-                                    component="img"
-                                    image={image}
-                                    alt={`${post.title} - Image ${imageIndex + 1}`}
-                                    sx={{
-                                      position: 'absolute',
-                                      top: 0,
-                                      left: 0,
-                                      width: '100%',
-                                      height: '100%',
-                                      objectFit: 'cover',
-                                      transition: 'transform 0.3s ease',
-                                      '&:hover': {
-                                        transform: 'scale(1.05)'
-                                      }
-                                    }}
-                                  />
-                                  {imageIndex === 3 && post.featured_image && post.featured_image.length > 4 && (
-                                    <Box
-                                      sx={{
-                                        position: 'absolute',
-                                        top: 0,
-                                        left: 0,
-                                        right: 0,
-                                        bottom: 0,
-                                        bgcolor: 'rgba(0, 0, 0, 0.5)',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        color: 'white',
-                                        fontSize: '1.5rem',
-                                        fontWeight: 'bold',
-                                        '&:hover': {
-                                          bgcolor: 'rgba(0, 0, 0, 0.6)'
-                                        }
-                                      }}
-                                    >
-                                      +{post.featured_image.length - 4}
-                                    </Box>
-                                  )}
+                                  +{post.featured_image.length - 4}
                                 </Box>
-                              ))}
+                              )}
                             </Box>
-                          </Box>
-                        )}
-
-                        {/* Read More Button */}
-                        <Box sx={{ mt: 'auto' }}>
-                          <Button
-                            variant="outlined"
-                            size="small"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              navigate(`/news/${post.id}`);
-                            }}
-                            sx={{
-                              borderColor: 'primary.main',
-                              color: 'primary.main',
-                              '&:hover': {
-                                borderColor: 'primary.dark',
-                                backgroundColor: 'primary.light',
-                                color: 'primary.dark',
-                              },
-                            }}
-                          >
-                            Read More
-                          </Button>
+                          ))}
                         </Box>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </Box>
-                <Box sx={{ textAlign: 'center', mt: 'auto' }}>
-                  <Button 
-                    variant="outlined" 
-                    color="primary"
-                    onClick={() => navigate('/news')}
-                    sx={{
-                      borderRadius: 2,
-                      px: 4,
-                      py: 1,
+                      </Box>
+                    )}
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+          <Box sx={{ textAlign: 'center' }}>
+            <Button 
+              variant="contained" 
+              color="primary"
+              onClick={() => navigate('/news')}
+              sx={{
+                borderRadius: 2,
+                px: 6,
+                py: 1.5,
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  transform: 'translateY(-2px)',
+                  boxShadow: 4
+                }
+              }}
+            >
+              View All News
+            </Button>
+          </Box>
+        </Container>
+      </Box>
+
+      {/* Gallery Section */}
+      <Box sx={{ py: 8, bgcolor: 'background.paper' }}>
+        <Container maxWidth="lg">
+          <Typography variant="h3" sx={{ mb: 4, color: 'primary.main', textAlign: 'center' }}>
+            Latest Gallery
+          </Typography>
+          <Box sx={{ mb: 4 }}>
+            <Grid container spacing={2}>
+              {latestImages.map((image) => (
+                <Grid item xs={12} sm={4} md={2} key={image.id}>
+                  <Card 
+                    sx={{ 
                       transition: 'all 0.3s ease',
                       '&:hover': {
-                        transform: 'translateY(-2px)',
-                        boxShadow: 2
+                        transform: 'translateY(-4px)',
+                        boxShadow: 6,
+                        '& .MuiCardMedia-root': {
+                          transform: 'scale(1.1)'
+                        }
                       }
                     }}
                   >
-                    View All News
-                  </Button>
-                </Box>
-              </Box>
+                    <Box sx={{ position: 'relative', pt: '100%', overflow: 'hidden' }}>
+                      <CardMedia
+                        component="img"
+                        image={image.url}
+                        alt={image.description || 'Gallery image'}
+                        sx={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
+                          transition: 'transform 0.3s ease'
+                        }}
+                      />
+                    </Box>
+                  </Card>
+                </Grid>
+              ))}
             </Grid>
-          </Grid>
-        </Box>
+          </Box>
+          <Box sx={{ textAlign: 'center' }}>
+            <Button 
+              variant="contained" 
+              color="primary"
+              onClick={() => navigate('/gallery')}
+              sx={{
+                borderRadius: 2,
+                px: 6,
+                py: 1.5,
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  transform: 'translateY(-2px)',
+                  boxShadow: 4
+                }
+              }}
+            >
+              View Full Gallery
+            </Button>
+          </Box>
+        </Container>
       </Box>
     </Box>
   );
