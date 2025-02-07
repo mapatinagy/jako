@@ -105,12 +105,11 @@ const News = () => {
 
   return (
     <Box sx={{ py: 6, bgcolor: 'background.default', minHeight: '100vh' }}>
-      <Container maxWidth="md">
-        {/* Hero Section */}
+      {/* Hero Section - Full Width */}
+      <Container maxWidth="xl" sx={{ mb: 6 }}>
         <Paper 
           elevation={0}
           sx={{ 
-            mb: 6, 
             textAlign: 'center',
             p: 4,
             background: 'linear-gradient(to right bottom, #2e7d32, #4caf50)',
@@ -144,169 +143,340 @@ const News = () => {
             Stay updated with our latest products, events, and special offers
           </Typography>
         </Paper>
+      </Container>
 
-        {/* News Feed */}
-        <Box>
-          {loading ? (
-            // Loading skeletons
-            Array.from(new Array(3)).map((_, index) => (
-              <Box key={index}>
-                {renderSkeleton()}
-              </Box>
-            ))
-          ) : (
-            posts.map((post, index) => (
-              <Fade 
-                key={post.id} 
-                in={true} 
-                timeout={500} 
-                style={{ transitionDelay: `${index * 100}ms` }}
-              >
-                <Card 
-                  sx={{ 
-                    mb: 3,
-                    borderRadius: 2,
-                    transition: 'all 0.3s ease',
+      {/* Main Content with Sidebars */}
+      <Container maxWidth="xl">
+        <Box sx={{ display: 'flex', gap: 4 }}>
+          {/* Left Sidebar */}
+          <Box
+            sx={{
+              width: 280,
+              display: { xs: 'none', lg: 'block' },
+              flexShrink: 0,
+              position: 'sticky',
+              top: 88,
+              alignSelf: 'flex-start',
+              maxHeight: 'calc(100vh - 88px)',
+              overflowY: 'auto'
+            }}
+          >
+            <Paper sx={{ p: 3, mb: 3, borderRadius: 2 }}>
+              <Typography variant="h6" sx={{ mb: 2, color: 'primary.main' }}>
+                Opening Hours
+              </Typography>
+              <Stack spacing={1}>
+                <Box sx={{ p: 1.5, borderRadius: 1, bgcolor: 'background.default' }}>
+                  <Typography variant="body2" sx={{ fontWeight: 500 }}>Monday - Friday</Typography>
+                  <Typography variant="body2" color="text.secondary">8:00 - 18:00</Typography>
+                </Box>
+                <Box sx={{ p: 1.5, borderRadius: 1, bgcolor: 'background.default' }}>
+                  <Typography variant="body2" sx={{ fontWeight: 500 }}>Saturday</Typography>
+                  <Typography variant="body2" color="text.secondary">9:00 - 16:00</Typography>
+                </Box>
+                <Box sx={{ p: 1.5, borderRadius: 1, bgcolor: 'background.default' }}>
+                  <Typography variant="body2" sx={{ fontWeight: 500 }}>Sunday</Typography>
+                  <Typography variant="body2" color="text.secondary">Closed</Typography>
+                </Box>
+              </Stack>
+            </Paper>
+
+            <Paper sx={{ p: 3, borderRadius: 2 }}>
+              <Typography variant="h6" sx={{ mb: 2, color: 'primary.main' }}>
+                Follow Us
+              </Typography>
+              <Stack direction="row" spacing={2} justifyContent="center">
+                <IconButton
+                  sx={{
+                    bgcolor: 'background.default',
                     '&:hover': {
-                      transform: 'translateY(-4px)',
-                      boxShadow: (theme) => theme.shadows[8]
+                      bgcolor: 'primary.main',
+                      '& svg': { color: 'white' }
                     }
                   }}
                 >
-                  <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
-                    {/* Post Header with Title and Date */}
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2.5 }}>
-                      <Typography 
-                        variant="h5" 
-                        sx={{ 
-                          color: 'text.primary',
-                          fontWeight: 500,
-                          lineHeight: 1.3,
-                          flex: 1,
-                          mr: 2
-                        }}
-                      >
-                        {post.title}
-                      </Typography>
-                      
-                      <Typography 
-                        variant="body2" 
-                        color="text.secondary" 
-                        sx={{ 
-                          whiteSpace: 'nowrap',
-                          opacity: 0.8
-                        }}
-                      >
-                        {format(new Date(post.created_at), 'yyyy MMM d, HH:mm:ss')}
-                      </Typography>
-                    </Box>
+                  <Box 
+                    component="img"
+                    src="/social/facebook.png"
+                    alt="Facebook"
+                    sx={{ width: 24, height: 24 }}
+                  />
+                </IconButton>
+                <IconButton
+                  sx={{
+                    bgcolor: 'background.default',
+                    '&:hover': {
+                      bgcolor: 'primary.main',
+                      '& svg': { color: 'white' }
+                    }
+                  }}
+                >
+                  <Box 
+                    component="img"
+                    src="/social/instagram.png"
+                    alt="Instagram"
+                    sx={{ width: 24, height: 24 }}
+                  />
+                </IconButton>
+                <IconButton
+                  sx={{
+                    bgcolor: 'background.default',
+                    '&:hover': {
+                      bgcolor: 'primary.main',
+                      '& svg': { color: 'white' }
+                    }
+                  }}
+                >
+                  <Box 
+                    component="img"
+                    src="/social/twitter.png"
+                    alt="Twitter"
+                    sx={{ width: 24, height: 24 }}
+                  />
+                </IconButton>
+              </Stack>
+              <Typography 
+                variant="body2" 
+                color="text.secondary" 
+                align="center" 
+                sx={{ mt: 2 }}
+              >
+                Stay connected with us on social media for the latest updates and fishing tips!
+              </Typography>
+            </Paper>
+          </Box>
 
-                    {/* Post Content */}
-                    <Box 
-                      sx={{ 
-                        mb: 2.5,
-                        '& > div': { 
-                          '&:last-child': { mb: 0 }
-                        }
-                      }}
-                    >
-                      <Typography 
-                        component="div"
+          {/* Main Content */}
+          <Box sx={{ flex: 1, maxWidth: 800, mx: 'auto' }}>
+            {loading ? (
+              Array.from(new Array(3)).map((_, index) => (
+                <Box key={index}>
+                  {renderSkeleton()}
+                </Box>
+              ))
+            ) : (
+              posts.map((post, index) => (
+                <Fade 
+                  key={post.id} 
+                  in={true} 
+                  timeout={500} 
+                  style={{ transitionDelay: `${index * 100}ms` }}
+                >
+                  <Card 
+                    sx={{ 
+                      mb: 3,
+                      borderRadius: 2,
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        transform: 'translateY(-4px)',
+                        boxShadow: (theme) => theme.shadows[8]
+                      }
+                    }}
+                  >
+                    <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+                      {/* Post Header with Title and Date */}
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2.5 }}>
+                        <Typography 
+                          variant="h5" 
+                          sx={{ 
+                            color: 'text.primary',
+                            fontWeight: 500,
+                            lineHeight: 1.3,
+                            flex: 1,
+                            mr: 2
+                          }}
+                        >
+                          {post.title}
+                        </Typography>
+                        
+                        <Typography 
+                          variant="body2" 
+                          color="text.secondary" 
+                          sx={{ 
+                            whiteSpace: 'nowrap',
+                            opacity: 0.8
+                          }}
+                        >
+                          {format(new Date(post.created_at), 'yyyy MMM d, HH:mm:ss')}
+                        </Typography>
+                      </Box>
+
+                      {/* Post Content */}
+                      <Box 
                         sx={{ 
-                          color: 'text.primary',
-                          fontSize: '1rem',
-                          lineHeight: 1.7,
-                          '& img': {
-                            maxWidth: '100%',
-                            height: 'auto',
-                            borderRadius: 1,
-                            my: 2
-                          },
-                          '& p': {
-                            mb: 2,
+                          mb: 2.5,
+                          '& > div': { 
                             '&:last-child': { mb: 0 }
                           }
                         }}
-                        dangerouslySetInnerHTML={{ __html: post.content }}
-                      />
-                    </Box>
-
-                    {/* Featured Images */}
-                    {post.featured_image && Array.isArray(post.featured_image) && post.featured_image.length > 0 && (
-                      <Box sx={{ mb: 0 }}>
-                        <Box
-                          sx={{
-                            display: 'grid',
-                            gridTemplateColumns: {
-                              xs: 'repeat(2, 1fr)',
-                              sm: 'repeat(4, 1fr)'
+                      >
+                        <Typography 
+                          component="div"
+                          sx={{ 
+                            color: 'text.primary',
+                            fontSize: '1rem',
+                            lineHeight: 1.7,
+                            '& img': {
+                              maxWidth: '100%',
+                              height: 'auto',
+                              borderRadius: 1,
+                              my: 2
                             },
-                            gap: 1
+                            '& p': {
+                              mb: 2,
+                              '&:last-child': { mb: 0 }
+                            }
                           }}
-                        >
-                          {post.featured_image?.slice(0, 4).map((image, imageIndex) => (
-                            <Box
-                              key={imageIndex}
-                              onClick={() => handleImageClick(post, imageIndex)}
-                              sx={{
-                                position: 'relative',
-                                paddingTop: '75%', // 4:3 aspect ratio for smaller thumbnails
-                                borderRadius: 1,
-                                overflow: 'hidden',
-                                boxShadow: (theme) => theme.shadows[2],
-                                cursor: 'pointer'
-                              }}
-                            >
-                              <CardMedia
-                                component="img"
-                                image={image.startsWith('http') ? image : `http://localhost:3000${image}`}
-                                alt={`${post.title} - Image ${imageIndex + 1}`}
+                          dangerouslySetInnerHTML={{ __html: post.content }}
+                        />
+                      </Box>
+
+                      {/* Featured Images */}
+                      {post.featured_image && Array.isArray(post.featured_image) && post.featured_image.length > 0 && (
+                        <Box sx={{ mb: 0 }}>
+                          <Box
+                            sx={{
+                              display: 'grid',
+                              gridTemplateColumns: {
+                                xs: 'repeat(2, 1fr)',
+                                sm: 'repeat(4, 1fr)'
+                              },
+                              gap: 1
+                            }}
+                          >
+                            {post.featured_image?.slice(0, 4).map((image, imageIndex) => (
+                              <Box
+                                key={imageIndex}
+                                onClick={() => handleImageClick(post, imageIndex)}
                                 sx={{
-                                  position: 'absolute',
-                                  top: 0,
-                                  left: 0,
-                                  width: '100%',
-                                  height: '100%',
-                                  objectFit: 'cover',
-                                  transition: 'transform 0.3s ease',
-                                  '&:hover': {
-                                    transform: 'scale(1.05)'
-                                  }
+                                  position: 'relative',
+                                  paddingTop: '75%', // 4:3 aspect ratio for smaller thumbnails
+                                  borderRadius: 1,
+                                  overflow: 'hidden',
+                                  boxShadow: (theme) => theme.shadows[2],
+                                  cursor: 'pointer'
                                 }}
-                              />
-                              {imageIndex === 3 && post.featured_image && post.featured_image.length > 4 && (
-                                <Box
+                              >
+                                <CardMedia
+                                  component="img"
+                                  image={image.startsWith('http') ? image : `http://localhost:3000${image}`}
+                                  alt={`${post.title} - Image ${imageIndex + 1}`}
                                   sx={{
                                     position: 'absolute',
                                     top: 0,
                                     left: 0,
-                                    right: 0,
-                                    bottom: 0,
-                                    bgcolor: 'rgba(0, 0, 0, 0.5)',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    color: 'white',
-                                    fontSize: '1.5rem',
-                                    fontWeight: 'bold',
+                                    width: '100%',
+                                    height: '100%',
+                                    objectFit: 'cover',
+                                    transition: 'transform 0.3s ease',
                                     '&:hover': {
-                                      bgcolor: 'rgba(0, 0, 0, 0.6)'
+                                      transform: 'scale(1.05)'
                                     }
                                   }}
-                                >
-                                  +{post.featured_image.length - 4}
-                                </Box>
-                              )}
-                            </Box>
-                          ))}
+                                />
+                                {imageIndex === 3 && post.featured_image && post.featured_image.length > 4 && (
+                                  <Box
+                                    sx={{
+                                      position: 'absolute',
+                                      top: 0,
+                                      left: 0,
+                                      right: 0,
+                                      bottom: 0,
+                                      bgcolor: 'rgba(0, 0, 0, 0.5)',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      color: 'white',
+                                      fontSize: '1.5rem',
+                                      fontWeight: 'bold',
+                                      '&:hover': {
+                                        bgcolor: 'rgba(0, 0, 0, 0.6)'
+                                      }
+                                    }}
+                                  >
+                                    +{post.featured_image.length - 4}
+                                  </Box>
+                                )}
+                              </Box>
+                            ))}
+                          </Box>
                         </Box>
-                      </Box>
-                    )}
-                  </CardContent>
-                </Card>
-              </Fade>
-            ))
-          )}
+                      )}
+                    </CardContent>
+                  </Card>
+                </Fade>
+              ))
+            )}
+          </Box>
+
+          {/* Right Sidebar */}
+          <Box
+            sx={{
+              width: 280,
+              display: { xs: 'none', lg: 'block' },
+              flexShrink: 0,
+              position: 'sticky',
+              top: 88,
+              alignSelf: 'flex-start',
+              maxHeight: 'calc(100vh - 88px)',
+              overflowY: 'auto'
+            }}
+          >
+            <Paper sx={{ p: 3, mb: 3, borderRadius: 2 }}>
+              <Typography variant="h6" sx={{ mb: 2, color: 'primary.main' }}>
+                Contact Information
+              </Typography>
+              <Stack spacing={2}>
+                <Box sx={{ p: 2, borderRadius: 1, bgcolor: 'background.default' }}>
+                  <Typography variant="body2" sx={{ fontWeight: 500, mb: 1 }}>
+                    Address
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    123 Fishing Street
+                    <br />
+                    Fishtown, FT 12345
+                  </Typography>
+                </Box>
+                <Box sx={{ p: 2, borderRadius: 1, bgcolor: 'background.default' }}>
+                  <Typography variant="body2" sx={{ fontWeight: 500, mb: 1 }}>
+                    Phone & Email
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    +1 234 567 890
+                    <br />
+                    info@fishingshop.com
+                  </Typography>
+                </Box>
+              </Stack>
+            </Paper>
+
+            <Paper sx={{ p: 3, borderRadius: 2 }}>
+              <Typography variant="h6" sx={{ mb: 2, color: 'primary.main' }}>
+                Find Us
+              </Typography>
+              <Box 
+                sx={{ 
+                  width: '100%',
+                  height: 200,
+                  borderRadius: 1,
+                  overflow: 'hidden'
+                }}
+              >
+                <Box
+                  component="iframe"
+                  src="https://www.google.com/maps?q=46.77351657480384,21.13216451780124&z=16&output=embed"
+                  sx={{
+                    border: 0,
+                    width: '100%',
+                    height: '100%'
+                  }}
+                  allowFullScreen
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                />
+              </Box>
+            </Paper>
+          </Box>
         </Box>
       </Container>
 
