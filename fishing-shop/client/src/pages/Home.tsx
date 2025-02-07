@@ -1,5 +1,6 @@
 import { Box, Container, Typography, Grid, Paper, Button } from '@mui/material';
 import { useEffect, useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 
 // Images from the hero folder in public directory
 const backgroundImages = [
@@ -34,6 +35,11 @@ function Home() {
 
   return (
     <Box>
+      <Helmet>
+        <title>Fishing Shop - Your One-Stop Shop for Fishing Equipment</title>
+        <meta name="description" content="Premium fishing equipment, quality animal feed, and beautiful plants. Over 28 years of experience serving our community." />
+        <meta name="keywords" content="fishing equipment, animal feed, plants, fishing shop, fishing supplies" />
+      </Helmet>
       {/* Hero Section */}
       <Box 
         sx={{ 

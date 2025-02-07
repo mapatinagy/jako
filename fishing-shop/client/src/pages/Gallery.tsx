@@ -19,6 +19,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import { GalleryImage } from '../types/gallery.types';
+import { Helmet } from 'react-helmet-async';
 
 const Gallery = () => {
   const [images, setImages] = useState<GalleryImage[]>([]);
@@ -77,6 +78,11 @@ const Gallery = () => {
 
   return (
     <Box sx={{ py: 6, bgcolor: 'background.default' }}>
+      <Helmet>
+        <title>Gallery - Fishing Shop Product Showcase</title>
+        <meta name="description" content="Browse our gallery of fishing equipment, animal feed products, and beautiful plants. See our quality products and store images." />
+        <meta name="keywords" content="fishing equipment gallery, fishing shop photos, product showcase, store gallery" />
+      </Helmet>
       <Container maxWidth="lg">
         {/* Hero Section */}
         <Box sx={{ mb: 6, textAlign: 'center' }}>

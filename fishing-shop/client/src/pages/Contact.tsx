@@ -1,3 +1,5 @@
+import { Helmet } from 'react-helmet-async';
+
 const Contact = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -6,6 +8,11 @@ const Contact = () => {
 
   return (
     <div className="max-w-2xl mx-auto">
+      <Helmet>
+        <title>Contact Us - Fishing Shop</title>
+        <meta name="description" content="Get in touch with our fishing shop. Contact us for inquiries about our fishing equipment, animal feed, plants, or any other questions." />
+        <meta name="keywords" content="contact fishing shop, fishing shop contact, customer service, contact form" />
+      </Helmet>
       <h1 className="text-3xl font-bold mb-8">Contact Us</h1>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

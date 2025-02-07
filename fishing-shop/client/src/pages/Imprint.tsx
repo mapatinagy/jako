@@ -1,6 +1,13 @@
+import { Helmet } from 'react-helmet-async';
+
 const Imprint = () => {
   return (
     <div className="max-w-3xl mx-auto prose">
+      <Helmet>
+        <title>Imprint - Fishing Shop Legal Information</title>
+        <meta name="description" content="Legal information and company details for our fishing shop. Find our business registration, contact details, and legal disclaimers." />
+        <meta name="keywords" content="fishing shop imprint, legal information, company details, business registration" />
+      </Helmet>
       <h1 className="text-3xl font-bold mb-8">Imprint</h1>
       
       <section className="mb-8">
