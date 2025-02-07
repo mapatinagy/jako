@@ -170,59 +170,11 @@ const News = () => {
                       {post.title}
                     </Typography>
 
-                    {/* Featured Image */}
-                    {post.featured_image && (
-                      <Box 
-                        sx={{ 
-                          mb: 2.5,
-                          borderRadius: 2,
-                          overflow: 'hidden',
-                          boxShadow: (theme) => theme.shadows[2]
-                        }}
-                      >
-                        <CardMedia
-                          component="img"
-                          image={(() => {
-                            console.log('Processing featured_image:', post.featured_image);
-                            console.log('Type:', typeof post.featured_image);
-                            
-                            if (!post.featured_image) {
-                              return '';
-                            }
-
-                            // Handle array of image paths
-                            if (Array.isArray(post.featured_image) && post.featured_image.length > 0) {
-                              const firstImage = post.featured_image[0];
-                              // If the path already includes the full URL, use it as is
-                              if (firstImage.startsWith('http')) {
-                                return firstImage;
-                              }
-                              // Otherwise, prepend the base URL
-                              return `http://localhost:3000${firstImage}`;
-                            }
-
-                            return '';
-                          })()}
-                          alt={post.title}
-                          sx={{
-                            width: '100%',
-                            height: 'auto',
-                            maxHeight: 500,
-                            objectFit: 'cover',
-                            transition: 'transform 0.3s ease',
-                            '&:hover': {
-                              transform: 'scale(1.02)'
-                            }
-                          }}
-                        />
-                      </Box>
-                    )}
-
                     {/* Post Content */}
                     <Box 
                       sx={{ 
+                        mb: 2.5,
                         '& > div': { 
-                          mb: 2.5,
                           '&:last-child': { mb: 0 }
                         }
                       }}
@@ -247,6 +199,54 @@ const News = () => {
                         dangerouslySetInnerHTML={{ __html: post.content }}
                       />
                     </Box>
+
+                    {/* Featured Images */}
+                    {post.featured_image && Array.isArray(post.featured_image) && post.featured_image.length > 0 && (
+                      <Box sx={{ mb: 2.5 }}>
+                        <Box
+                          sx={{
+                            display: 'grid',
+                            gridTemplateColumns: {
+                              xs: 'repeat(2, 1fr)',
+                              sm: 'repeat(3, 1fr)',
+                              md: 'repeat(4, 1fr)'
+                            },
+                            gap: 1
+                          }}
+                        >
+                          {post.featured_image.map((image, imageIndex) => (
+                            <Box
+                              key={imageIndex}
+                              sx={{
+                                position: 'relative',
+                                paddingTop: '100%', // 1:1 aspect ratio
+                                borderRadius: 1,
+                                overflow: 'hidden',
+                                boxShadow: (theme) => theme.shadows[2]
+                              }}
+                            >
+                              <CardMedia
+                                component="img"
+                                image={image.startsWith('http') ? image : `http://localhost:3000${image}`}
+                                alt={`${post.title} - Image ${imageIndex + 1}`}
+                                sx={{
+                                  position: 'absolute',
+                                  top: 0,
+                                  left: 0,
+                                  width: '100%',
+                                  height: '100%',
+                                  objectFit: 'cover',
+                                  transition: 'transform 0.3s ease',
+                                  '&:hover': {
+                                    transform: 'scale(1.05)'
+                                  }
+                                }}
+                              />
+                            </Box>
+                          ))}
+                        </Box>
+                      </Box>
+                    )}
 
                     <Divider sx={{ my: 2.5 }} />
 
