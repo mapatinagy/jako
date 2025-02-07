@@ -33,6 +33,7 @@ import SessionTimer from '../../../components/session/SessionTimer';
 import { setupActivityTracking, cleanupActivityTracking } from '../../../utils/session';
 import { formatDistanceToNow } from 'date-fns';
 import { DatePicker } from '@mui/x-date-pickers';
+import SettingsIcon from '@mui/icons-material/Settings';
 
 interface UploadedImage {
   url: string;
@@ -420,9 +421,28 @@ const News = () => {
           <Box sx={{ flexGrow: 1 }} />
           <SessionTimer />
           <Button
+            onClick={() => navigate('/admin/settings')}
+            startIcon={<SettingsIcon />}
+            sx={{
+              ml: 2,
+              color: 'white',
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.1)'
+              }
+            }}
+          >
+            Settings
+          </Button>
+          <Button
             onClick={handleLogout}
             startIcon={<LogoutIcon />}
-            sx={{ color: 'white', ml: 2 }}
+            sx={{
+              ml: 2,
+              color: 'white',
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.1)'
+              }
+            }}
           >
             Logout
           </Button>

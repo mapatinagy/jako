@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Box, Paper, TextField, Button, Typography, Container, Alert } from '@mui/material';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { Box, Paper, TextField, Button, Typography, Container, Alert, Link } from '@mui/material';
+import { useNavigate, useLocation, Link as RouterLink } from 'react-router-dom';
 import { getAuthToken } from '../../utils/auth';
 import { initSession } from '../../utils/session';
 
@@ -25,11 +25,35 @@ const Login = () => {
 
   // Check if already logged in with valid token
   useEffect(() => {
-    const token = getAuthToken();
-    if (token) {
-      initSession();
-      navigate(from, { replace: true });
-    }
+    const validateAndRedirect = async () => {
+      const token = getAuthToken();
+      if (!token) return;
+
+      try {
+        // Verify token with server
+        const response = await fetch('http://localhost:3000/api/auth/verify', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (!response.ok) {
+          // Token is invalid, remove it
+          localStorage.removeItem('authToken');
+          return;
+        }
+
+        // Token is valid
+        initSession();
+        navigate(from, { replace: true });
+      } catch (error) {
+        // On error, remove token and stay on login page
+        localStorage.removeItem('authToken');
+        console.error('Token validation error:', error);
+      }
+    };
+
+    validateAndRedirect();
   }, [navigate, from]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -132,6 +156,21 @@ const Login = () => {
             >
               Sign In
             </Button>
+            <Box sx={{ textAlign: 'center' }}>
+              <Link
+                component={RouterLink}
+                to="/admin/recover"
+                variant="body2"
+                sx={{
+                  textDecoration: 'none',
+                  '&:hover': {
+                    textDecoration: 'underline'
+                  }
+                }}
+              >
+                Forgot username or password?
+              </Link>
+            </Box>
           </Box>
         </Paper>
       </Box>

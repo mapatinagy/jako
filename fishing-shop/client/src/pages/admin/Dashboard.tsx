@@ -7,6 +7,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import ImageIcon from '@mui/icons-material/Image';
 import NewspaperIcon from '@mui/icons-material/Newspaper';
+import SettingsIcon from '@mui/icons-material/Settings';
 import SessionTimer from '../../components/session/SessionTimer';
 import { setupActivityTracking, cleanupActivityTracking } from '../../utils/session';
 
@@ -118,6 +119,20 @@ const Dashboard = () => {
           </Stack>
           <Box sx={{ flexGrow: 1 }} />
           <SessionTimer />
+          <Button
+            onClick={() => navigate('/admin/settings')}
+            startIcon={<SettingsIcon sx={{ fontSize: 28 }} />}
+            sx={{
+              ml: 2,
+              color: 'white',
+              fontSize: '1.2rem',
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.1)'
+              }
+            }}
+          >
+            Settings
+          </Button>
           <Button
             onClick={handleLogout}
             startIcon={<LogoutIcon sx={{ fontSize: 28 }} />}

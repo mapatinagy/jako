@@ -25,6 +25,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import LogoutIcon from '@mui/icons-material/Logout';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import SearchIcon from '@mui/icons-material/Search';
+import SettingsIcon from '@mui/icons-material/Settings';
 import { useNavigate } from 'react-router-dom';
 import { useDropzone } from 'react-dropzone';
 import axios from 'axios';
@@ -347,30 +348,35 @@ const Gallery = () => {
             </Typography>
           </Stack>
           <Box sx={{ flexGrow: 1 }} />
-          <Stack 
-            direction="row" 
-            spacing={2} 
-            alignItems="center"
-            sx={{ 
-              width: { xs: '100%', sm: 'auto' },
-              justifyContent: { xs: 'space-between', sm: 'flex-end' }
+          <SessionTimer />
+          <Button
+            onClick={() => navigate('/admin/settings')}
+            startIcon={<SettingsIcon sx={{ fontSize: { xs: 20, sm: 28 } }} />}
+            sx={{
+              ml: 2,
+              color: 'white',
+              fontSize: { xs: '1rem', sm: '1.2rem' },
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.1)'
+              }
             }}
           >
-            <SessionTimer />
-            <Button
-              onClick={handleLogout}
-              startIcon={<LogoutIcon sx={{ fontSize: { xs: 20, sm: 28 } }} />}
-              sx={{
-                color: 'white',
-                fontSize: { xs: '1rem', sm: '1.2rem' },
-                '&:hover': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.1)'
-                }
-              }}
-            >
-              Logout
-            </Button>
-          </Stack>
+            Settings
+          </Button>
+          <Button
+            onClick={handleLogout}
+            startIcon={<LogoutIcon sx={{ fontSize: { xs: 20, sm: 28 } }} />}
+            sx={{
+              ml: 2,
+              color: 'white',
+              fontSize: { xs: '1rem', sm: '1.2rem' },
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.1)'
+              }
+            }}
+          >
+            Logout
+          </Button>
         </Toolbar>
       </AppBar>
 

@@ -9,9 +9,11 @@ import News from './pages/News';
 import Contact from './pages/Contact';
 import Imprint from './pages/Imprint';
 import AdminLogin from './pages/admin/Login';
+import AdminRecover from './pages/admin/Recover';
 import AdminDashboard from './pages/admin/Dashboard';
 import AdminGallery from './pages/admin/gallery/Gallery';
 import AdminNews from './pages/admin/news/News';
+import AdminSettings from './pages/admin/Settings';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 
 const theme = createTheme({
@@ -107,6 +109,7 @@ function App() {
             </Route>
             
             <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/admin/recover" element={<AdminRecover />} />
             <Route
               path="/admin/dashboard"
               element={
@@ -128,6 +131,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <AdminNews />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/settings"
+              element={
+                <ProtectedRoute>
+                  <AdminSettings />
                 </ProtectedRoute>
               }
             />
