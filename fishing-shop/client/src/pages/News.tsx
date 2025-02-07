@@ -28,6 +28,7 @@ interface NewsPost {
   content: string;
   created_at: string;
   featured_image: string[] | null;
+  is_published: boolean;
 }
 
 const News = () => {
@@ -48,7 +49,9 @@ const News = () => {
       
       if (data.success) {
         console.log('Received posts:', data.posts);
-        setPosts(data.posts);
+        // Filter to only show published posts
+        const publishedPosts = data.posts.filter((post: NewsPost) => post.is_published);
+        setPosts(publishedPosts);
       }
     } catch (error) {
       console.error('Error fetching posts:', error);
