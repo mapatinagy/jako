@@ -1,19 +1,19 @@
-import { Router } from 'express';
+import { Router, RequestHandler } from 'express';
 import { authenticateToken } from '../middleware/auth.middleware';
 import { getNewsPosts, getNewsPost, createNewsPost, updateNewsPost, deleteNewsPost, uploadNewsImage, togglePublishStatus } from '../controllers/news.controller';
 import { upload } from '../utils/file.utils';
 
 const router = Router();
 
-// Protected routes (require authentication)
-router.get('/posts', authenticateToken, getNewsPosts);
-router.post('/posts', authenticateToken, createNewsPost);
-router.patch('/posts/:id', authenticateToken, updateNewsPost);
-router.delete('/posts/:id', authenticateToken, deleteNewsPost);
-router.post('/upload-image', authenticateToken, upload.array('images'), uploadNewsImage);
-router.patch('/posts/:id/toggle-publish', authenticateToken, togglePublishStatus);
+// Public routes (no authentication required)
+router.get('/posts', getNewsPosts as RequestHandler);
+router.get('/posts/:id', getNewsPost as RequestHandler);
 
-// Public routes
-router.get('/posts/:id', getNewsPost);
+// Protected routes (require authentication)
+router.post('/posts', authenticateToken as RequestHandler, createNewsPost as RequestHandler);
+router.patch('/posts/:id', authenticateToken as RequestHandler, updateNewsPost as RequestHandler);
+router.delete('/posts/:id', authenticateToken as RequestHandler, deleteNewsPost as RequestHandler);
+router.post('/upload-image', authenticateToken as RequestHandler, upload.array('images'), uploadNewsImage as RequestHandler);
+router.patch('/posts/:id/toggle-publish', authenticateToken as RequestHandler, togglePublishStatus as RequestHandler);
 
 export default router; 

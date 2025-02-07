@@ -176,10 +176,14 @@ const Gallery = () => {
           };
           setImages(current => [...current, newImage]);
           
-          // Remove completed upload after a delay
-          setTimeout(() => {
-            setUploads(current => current.filter(u => u.id !== upload.id));
-          }, 2000);
+          // Update upload status to completed but don't remove it
+          setUploads(current =>
+            current.map(u =>
+              u.id === upload.id
+                ? { ...u, progress: 100, status: 'completed' }
+                : u
+            )
+          );
         }
       } catch (error: any) {
         console.error('Upload failed:', error);
@@ -494,25 +498,99 @@ const Gallery = () => {
           </Box>
 
           {/* Upload Progress */}
-          {uploads.length > 0 && (
-            <Box sx={{ mb: 3 }}>
-              <Typography variant="h6" gutterBottom sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
-                Uploads
-              </Typography>
+          <Box 
+            sx={{ 
+              mb: 3,
+              border: 1,
+              borderColor: 'divider',
+              borderRadius: 1,
+              overflow: 'hidden'
+            }}
+          >
+            <Typography 
+              variant="h6" 
+              gutterBottom 
+              sx={{ 
+                fontSize: { xs: '1rem', sm: '1.25rem' },
+                bgcolor: 'background.default',
+                p: 1,
+                borderBottom: 1,
+                borderColor: 'divider'
+              }}
+            >
+              Upload Log
+            </Typography>
+            <Box 
+              sx={{ 
+                maxHeight: '150px', // Height for 5 lines approximately
+                overflowY: 'auto',
+                p: 1,
+                '&::-webkit-scrollbar': {
+                  width: '8px',
+                },
+                '&::-webkit-scrollbar-track': {
+                  backgroundColor: 'background.default',
+                },
+                '&::-webkit-scrollbar-thumb': {
+                  backgroundColor: 'primary.main',
+                  borderRadius: '4px',
+                },
+              }}
+            >
               {uploads.map(upload => (
-                <Box key={upload.id} sx={{ mb: 1 }}>
-                  <Typography variant="body2">
-                    {upload.file.name} - {upload.status === 'uploading' ? `${upload.progress}%` : upload.status}
+                <Box 
+                  key={upload.id} 
+                  sx={{ 
+                    py: 0.5,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1
+                  }}
+                >
+                  <Box 
+                    sx={{ 
+                      width: '8px',
+                      height: '8px',
+                      borderRadius: '50%',
+                      bgcolor: upload.status === 'completed' 
+                        ? 'success.main' 
+                        : upload.status === 'failed' 
+                          ? 'error.main' 
+                          : 'primary.main',
+                      flexShrink: 0
+                    }} 
+                  />
+                  <Typography 
+                    variant="body2" 
+                    sx={{ 
+                      fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                      flexGrow: 1,
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}
+                  >
+                    {upload.file.name} 
+                    {upload.status === 'uploading' && ` - ${upload.progress}%`}
+                    {upload.status === 'completed' && ' - Completed'}
+                    {upload.status === 'failed' && ' - Failed'}
                   </Typography>
                   {upload.error && (
-                    <Typography variant="body2" color="error">
+                    <Typography 
+                      variant="body2" 
+                      color="error"
+                      sx={{ 
+                        fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                        flexShrink: 0
+                      }}
+                    >
                       {upload.error}
                     </Typography>
                   )}
                 </Box>
               ))}
             </Box>
-          )}
+          </Box>
 
           {/* Select All and Delete */}
           {filteredImages.length > 0 && (
