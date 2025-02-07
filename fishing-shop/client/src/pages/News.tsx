@@ -62,6 +62,8 @@ const News = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
   const [shareAnchorEl, setShareAnchorEl] = useState<null | HTMLElement>(null);
   const [sharePost, setSharePost] = useState<NewsPost | null>(null);
+  const [snackbarMessage, setSnackbarMessage] = useState<string | null>(null);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
 
   useEffect(() => {
     fetchPosts();
@@ -176,40 +178,32 @@ const News = () => {
   };
 
   const handleShare = async (platform: string) => {
-    console.log('Sharing to platform:', platform);
-    if (!sharePost) {
-      console.log('No post selected for sharing');
-      return;
-    }
+    if (!sharePost) return;
 
     const postUrl = `${window.location.origin}/news/${sharePost.id}`;
-    console.log('Sharing URL:', postUrl);
 
-    switch (platform) {
-      case 'facebook':
-        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(postUrl)}&quote=${encodeURIComponent(sharePost.title)}`, '_blank');
-        break;
-      case 'copy':
-        try {
-          await navigator.clipboard.writeText(postUrl);
-          // Show a temporary success message
-          const menuItem = document.querySelector('[data-share="copy"]');
-          if (menuItem) {
-            const originalText = menuItem.textContent;
-            menuItem.textContent = 'Link copied!';
-            setTimeout(() => {
-              if (menuItem) {
-                menuItem.textContent = originalText;
-              }
-            }, 2000);
-          }
-        } catch (err) {
-          console.error('Failed to copy:', err);
+    if (platform === 'facebook') {
+      const fbShareUrl = `https://www.facebook.com/sharer/sharer.php?t=${encodeURIComponent(postUrl)}`;
+      window.open(fbShareUrl, '_blank');
+      handleShareClose();
+    } else if (platform === 'copy') {
+      try {
+        await navigator.clipboard.writeText(postUrl);
+        const menuItem = document.querySelector('[data-share="copy"]');
+        if (menuItem) {
+          const originalText = menuItem.textContent;
+          menuItem.textContent = 'Link copied!';
+          setTimeout(() => {
+            if (menuItem) {
+              menuItem.textContent = originalText;
+            }
+          }, 2000);
         }
-        break;
+      } catch (err) {
+        console.error('Failed to copy:', err);
+      }
+      handleShareClose();
     }
-
-    handleShareClose();
   };
 
   const renderSinglePost = (post: NewsPost) => (

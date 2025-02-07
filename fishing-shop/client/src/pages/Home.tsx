@@ -1,6 +1,7 @@
-import { Box, Container, Typography, Grid, Paper, Button } from '@mui/material';
+import { Box, Container, Typography, Grid, Paper, Button, Card, CardMedia, CardContent } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
+import { useNavigate } from 'react-router-dom';
 
 // Images from the hero folder in public directory
 const backgroundImages = [
@@ -9,10 +10,64 @@ const backgroundImages = [
   '/hero/hero3.jpg',
 ];
 
+interface GalleryImage {
+  id: number;
+  url: string;
+  description: string | null;
+}
+
+interface NewsPost {
+  id: number;
+  title: string;
+  content: string;
+  created_at: string;
+  featured_image: string[] | null;
+  is_published: boolean;
+}
+
 function Home() {
+  const navigate = useNavigate();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [displayedImage, setDisplayedImage] = useState(backgroundImages[0]);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [latestImages, setLatestImages] = useState<GalleryImage[]>([]);
+  const [latestNews, setLatestNews] = useState<NewsPost[]>([]);
+
+  useEffect(() => {
+    fetchLatestImages();
+    fetchLatestNews();
+  }, []);
+
+  const fetchLatestImages = async () => {
+    try {
+      const response = await fetch('http://localhost:3000/api/gallery/images');
+      const data = await response.json();
+      if (data.success) {
+        const images = data.images.slice(0, 6).map((img: any) => ({
+          ...img,
+          url: `http://localhost:3000/uploads/${img.filename}`
+        }));
+        setLatestImages(images);
+      }
+    } catch (error) {
+      console.error('Error fetching gallery images:', error);
+    }
+  };
+
+  const fetchLatestNews = async () => {
+    try {
+      const response = await fetch('http://localhost:3000/api/news/posts');
+      const data = await response.json();
+      if (data.success) {
+        const publishedPosts = data.posts
+          .filter((post: NewsPost) => post.is_published)
+          .slice(0, 2);
+        setLatestNews(publishedPosts);
+      }
+    } catch (error) {
+      console.error('Error fetching news posts:', error);
+    }
+  };
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -411,6 +466,125 @@ function Home() {
             </Paper>
           </Grid>
         </Grid>
+      </Box>
+
+      {/* Gallery and News Section */}
+      <Box sx={{ py: 8, bgcolor: 'background.default' }}>
+        <Container maxWidth="lg">
+          <Grid container spacing={4}>
+            {/* Gallery Column */}
+            <Grid item xs={12} md={6}>
+              <Typography variant="h3" sx={{ mb: 3, color: 'primary.main' }}>
+                Latest Gallery
+              </Typography>
+              <Grid container spacing={2}>
+                {latestImages.map((image) => (
+                  <Grid item xs={6} sm={4} key={image.id}>
+                    <Card 
+                      sx={{ 
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease',
+                        '&:hover': {
+                          transform: 'translateY(-4px)',
+                          boxShadow: 6
+                        }
+                      }}
+                      onClick={() => navigate('/gallery')}
+                    >
+                      <CardMedia
+                        component="img"
+                        height="140"
+                        image={image.url}
+                        alt={image.description || 'Gallery image'}
+                        sx={{ objectFit: 'cover' }}
+                      />
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid>
+              <Box sx={{ mt: 3, textAlign: 'center' }}>
+                <Button 
+                  variant="outlined" 
+                  color="primary"
+                  onClick={() => navigate('/gallery')}
+                  sx={{
+                    borderRadius: 2,
+                    px: 4,
+                    py: 1,
+                    '&:hover': {
+                      transform: 'translateY(-2px)',
+                      boxShadow: 2
+                    }
+                  }}
+                >
+                  View Full Gallery
+                </Button>
+              </Box>
+            </Grid>
+
+            {/* News Column */}
+            <Grid item xs={12} md={6}>
+              <Typography variant="h3" sx={{ mb: 3, color: 'primary.main' }}>
+                Latest News
+              </Typography>
+              {latestNews.map((post) => (
+                <Card 
+                  key={post.id} 
+                  sx={{ 
+                    mb: 2,
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      transform: 'translateX(8px)',
+                      boxShadow: 4
+                    }
+                  }}
+                  onClick={() => navigate(`/news/${post.id}`)}
+                >
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      {post.title}
+                    </Typography>
+                    <Typography 
+                      variant="body2" 
+                      color="text.secondary"
+                      sx={{
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                      }}
+                    >
+                      {post.content.replace(/<[^>]*>/g, '').slice(0, 150)}...
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                      {new Date(post.created_at).toLocaleDateString()}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              ))}
+              <Box sx={{ mt: 3, textAlign: 'center' }}>
+                <Button 
+                  variant="outlined" 
+                  color="primary"
+                  onClick={() => navigate('/news')}
+                  sx={{
+                    borderRadius: 2,
+                    px: 4,
+                    py: 1,
+                    '&:hover': {
+                      transform: 'translateY(-2px)',
+                      boxShadow: 2
+                    }
+                  }}
+                >
+                  View All News
+                </Button>
+              </Box>
+            </Grid>
+          </Grid>
+        </Container>
       </Box>
     </Box>
   );
