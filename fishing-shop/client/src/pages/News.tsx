@@ -74,6 +74,7 @@ const News = () => {
   const [snackbarMessage, setSnackbarMessage] = useState<string | null>(null);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [openLightbox, setOpenLightbox] = useState(false);
+  const [expandedImageGrid, setExpandedImageGrid] = useState(false);
 
   useEffect(() => {
     fetchPosts();
@@ -154,12 +155,19 @@ const News = () => {
     </Card>
   );
 
-  const handleImageClick = (e: React.MouseEvent, postImages: string[], imageIndex: number) => {
-    e.stopPropagation(); // Prevent post navigation when clicking image
+  const handleImageClick = (e: React.MouseEvent, postImages: string[], imageIndex: number, isExpandButton?: boolean) => {
+    e.stopPropagation();
+    
+    if (isExpandButton && id && postImages) {
+      setExpandedImageGrid(true);
+      return;
+    }
+
     if (postImages && postImages.length > 0) {
+      const url = postImages[imageIndex];
       setSelectedImage({
-        url: postImages[imageIndex],
-        postImages,
+        url: url.startsWith('http') ? url : `http://localhost:3000${url}`,
+        postImages: postImages.map(img => img.startsWith('http') ? img : `http://localhost:3000${img}`),
         currentIndex: imageIndex
       });
       setOpenLightbox(true);
@@ -255,16 +263,22 @@ const News = () => {
           <meta property="og:image" content={post.featured_image[0].startsWith('http') ? post.featured_image[0] : `http://localhost:3000${post.featured_image[0]}`} />
         )}
       </Helmet>
-      <Container maxWidth="lg">
-        <Box sx={{ py: 4 }}>
+      
+      {/* Back button outside the main content container */}
+      <Box sx={{ position: 'sticky', top: 0, bgcolor: 'background.default', zIndex: 1, py: 2 }}>
+        <Container maxWidth="lg">
           <Button 
             onClick={() => navigate('/news')}
-            sx={{ mb: 3 }}
             variant="text"
             color="primary"
           >
             ← Back to News
           </Button>
+        </Container>
+      </Box>
+
+      <Container maxWidth="lg">
+        <Box sx={{ py: 2 }}>
           <Card sx={{ borderRadius: 2 }}>
             <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
               {/* Post Header with Title, Date, and Share Button */}
@@ -346,75 +360,38 @@ const News = () => {
                 />
               </Box>
 
-              {/* Featured Images */}
+              {/* Featured Images - Simplified Grid */}
               {post.featured_image && Array.isArray(post.featured_image) && post.featured_image.length > 0 && (
-                <Box sx={{ mb: 0 }}>
-                  <Box
-                    sx={{
-                      display: 'grid',
-                      gridTemplateColumns: {
-                        xs: 'repeat(2, 1fr)',
-                        sm: 'repeat(4, 1fr)'
-                      },
-                      gap: 1
-                    }}
-                  >
-                    {post.featured_image?.slice(0, 4).map((image, imageIndex) => (
-                      <Box
-                        key={imageIndex}
-                        onClick={(e) => post.featured_image && handleImageClick(e, post.featured_image, imageIndex)}
-                        sx={{
-                          position: 'relative',
-                          paddingTop: '75%', // 4:3 aspect ratio for smaller thumbnails
-                          borderRadius: 1,
-                          overflow: 'hidden',
-                          boxShadow: (theme) => theme.shadows[2],
-                          cursor: 'pointer'
-                        }}
-                      >
-                        <CardMedia
-                          component="img"
-                          image={image.startsWith('http') ? image : `http://localhost:3000${image}`}
-                          alt={`${post.title} - Image ${imageIndex + 1}`}
+                <Box sx={{ mt: 3 }}>
+                  <Grid container spacing={2}>
+                    {post.featured_image.map((image, imageIndex) => (
+                      <Grid item xs={12} sm={6} md={4} key={imageIndex}>
+                        <Box
                           sx={{
-                            position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'cover',
-                            transition: 'transform 0.3s ease',
-                            '&:hover': {
-                              transform: 'scale(1.05)'
-                            }
+                            position: 'relative',
+                            paddingTop: '75%',
+                            borderRadius: 1,
+                            overflow: 'hidden',
+                            boxShadow: (theme) => theme.shadows[2]
                           }}
-                        />
-                        {imageIndex === 3 && post.featured_image && post.featured_image.length > 4 && (
-                          <Box
+                        >
+                          <CardMedia
+                            component="img"
+                            image={image.startsWith('http') ? image : `http://localhost:3000${image}`}
+                            alt={`${post.title} - Image ${imageIndex + 1}`}
                             sx={{
                               position: 'absolute',
                               top: 0,
                               left: 0,
-                              right: 0,
-                              bottom: 0,
-                              bgcolor: 'rgba(0, 0, 0, 0.5)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              color: 'white',
-                              fontSize: '1.5rem',
-                              fontWeight: 'bold',
-                              '&:hover': {
-                                bgcolor: 'rgba(0, 0, 0, 0.6)'
-                              }
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'cover'
                             }}
-                          >
-                            +{post.featured_image.length - 4}
-                          </Box>
-                        )}
-                      </Box>
+                          />
+                        </Box>
+                      </Grid>
                     ))}
-                  </Box>
+                  </Grid>
                 </Box>
               )}
             </CardContent>
@@ -429,21 +406,44 @@ const News = () => {
       {posts.map((post) => (
         <Grid item xs={12} key={post.id}>
           <Card 
+            onClick={() => handlePostClick(post.id)}
             sx={{ 
               height: '100%',
               transition: 'transform 0.3s ease',
+              cursor: 'pointer',
               '&:hover': {
                 transform: 'translateY(-4px)'
               }
             }}
           >
-            <CardActionArea onClick={() => handlePostClick(post.id)}>
-              <CardContent>
+            <CardContent>
+              {/* Title and Share Section */}
+              <Box 
+                sx={{ 
+                  '&:hover': {
+                    '& .post-title': {
+                      color: 'primary.main'
+                    }
+                  }
+                }}
+              >
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                  <Typography variant="h5" component="h2" sx={{ flex: 1, mr: 2 }}>
+                  <Typography 
+                    variant="h5" 
+                    component="h2" 
+                    className="post-title"
+                    sx={{ 
+                      flex: 1, 
+                      mr: 2,
+                      transition: 'color 0.2s ease'
+                    }}
+                  >
                     {post.title}
                   </Typography>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Box 
+                    sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <Typography variant="body2" color="text.secondary">
                       {format(new Date(post.created_at), 'yyyy MMM d')}
                     </Typography>
@@ -465,6 +465,8 @@ const News = () => {
                     </Tooltip>
                   </Box>
                 </Box>
+
+                {/* Post Content */}
                 <Typography 
                   variant="body1" 
                   sx={{ 
@@ -479,19 +481,47 @@ const News = () => {
                 >
                   {post.content.replace(/<[^>]*>/g, '')}
                 </Typography>
-                {post.featured_image && Array.isArray(post.featured_image) && (
+              </Box>
+
+              {/* Images Section - Completely Independent */}
+              {post.featured_image && Array.isArray(post.featured_image) && (
+                <Box 
+                  onClick={(e) => e.stopPropagation()}
+                  sx={{ 
+                    position: 'relative',
+                    zIndex: 1
+                  }}
+                >
                   <Grid container spacing={2}>
                     {post.featured_image.slice(0, 3).map((image, index) => (
                       <Grid item xs={12} sm={6} md={4} key={index}>
                         <Box 
-                          onClick={(e) => post.featured_image && handleImageClick(e, post.featured_image, index)}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if (index === 2 && post.featured_image && post.featured_image.length > 3) {
+                              handlePostClick(post.id);
+                            } else if (post.featured_image) {
+                              setSelectedImage({
+                                url: image.startsWith('http') ? image : `http://localhost:3000${image}`,
+                                postImages: post.featured_image.map(img => 
+                                  img.startsWith('http') ? img : `http://localhost:3000${img}`
+                                ),
+                                currentIndex: index
+                              });
+                              setOpenLightbox(true);
+                            }
+                          }}
                           sx={{ 
                             position: 'relative',
-                            paddingTop: '56.25%', // 16:9 aspect ratio
-                            cursor: 'pointer',
+                            paddingTop: '56.25%',
                             borderRadius: 1,
                             overflow: 'hidden',
-                            boxShadow: (theme) => theme.shadows[2]
+                            boxShadow: (theme) => theme.shadows[2],
+                            cursor: 'pointer',
+                            '&:hover img': {
+                              transform: 'scale(1.05)'
+                            }
                           }}
                         >
                           <CardMedia
@@ -505,10 +535,7 @@ const News = () => {
                               width: '100%',
                               height: '100%',
                               objectFit: 'cover',
-                              transition: 'transform 0.3s ease',
-                              '&:hover': {
-                                transform: 'scale(1.05)'
-                              }
+                              transition: 'transform 0.3s ease'
                             }}
                           />
                           {index === 2 && post.featured_image && post.featured_image.length > 3 && (
@@ -526,6 +553,7 @@ const News = () => {
                                 color: 'white',
                                 fontSize: '1.5rem',
                                 fontWeight: 'bold',
+                                zIndex: 3,
                                 '&:hover': {
                                   bgcolor: 'rgba(0, 0, 0, 0.6)'
                                 }
@@ -538,9 +566,9 @@ const News = () => {
                       </Grid>
                     ))}
                   </Grid>
-                )}
-              </CardContent>
-            </CardActionArea>
+                </Box>
+              )}
+            </CardContent>
           </Card>
         </Grid>
       ))}

@@ -1,6 +1,8 @@
-import { Box, Container, Typography, Grid, Paper } from '@mui/material';
+import { Box, Container, Typography, Grid, Paper, Button, Card, CardContent, CardMedia } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
+import { useNavigate } from 'react-router-dom';
+import { format } from 'date-fns';
 
 // Images from the hero folder in public directory
 const backgroundImages = [
@@ -10,9 +12,12 @@ const backgroundImages = [
 ];
 
 const Home = () => {
+  const navigate = useNavigate();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [displayedImage, setDisplayedImage] = useState(backgroundImages[0]);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [latestNews, setLatestNews] = useState<any[]>([]);
+  const [loadingNews, setLoadingNews] = useState(true);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -32,6 +37,30 @@ const Home = () => {
 
     return () => clearTimeout(timer);
   }, [currentIndex]);
+
+  useEffect(() => {
+    fetchLatestNews();
+  }, []);
+
+  const fetchLatestNews = async () => {
+    try {
+      const response = await fetch('http://localhost:3000/api/news/posts');
+      const data = await response.json();
+      
+      if (data.success) {
+        // Filter published posts and take the latest 3
+        const publishedPosts = data.posts
+          .filter((post: any) => post.is_published)
+          .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+          .slice(0, 3);
+        setLatestNews(publishedPosts);
+      }
+    } catch (error) {
+      console.error('Error fetching latest news:', error);
+    } finally {
+      setLoadingNews(false);
+    }
+  };
 
   return (
     <Box>
@@ -411,6 +440,123 @@ const Home = () => {
             </Paper>
           </Grid>
         </Grid>
+      </Box>
+
+      {/* Latest News Section */}
+      <Box sx={{ 
+        py: 8, 
+        px: { xs: 2, sm: 4, md: 6, lg: 8 },
+        bgcolor: 'background.default'
+      }}>
+        <Container maxWidth="lg">
+          <Box sx={{ textAlign: 'center', mb: 6 }}>
+            <Typography 
+              variant="h2" 
+              sx={{ 
+                mb: 2,
+                position: 'relative',
+                display: 'inline-block',
+                '&::after': {
+                  content: '""',
+                  position: 'absolute',
+                  bottom: -8,
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  width: 100,
+                  height: 3,
+                  bgcolor: 'primary.main',
+                  borderRadius: 1
+                }
+              }}
+            >
+              Latest News
+            </Typography>
+            <Typography variant="h5" color="text.secondary" sx={{ maxWidth: 800, mx: 'auto', mt: 3 }}>
+              Stay updated with our latest products, events, and special offers
+            </Typography>
+          </Box>
+
+          <Grid container spacing={4} sx={{ mb: 4 }}>
+            {loadingNews ? (
+              // Loading skeletons
+              Array.from(new Array(3)).map((_, index) => (
+                <Grid item xs={12} md={4} key={index}>
+                  <Paper sx={{ p: 2, height: '100%' }}>
+                    <Box sx={{ pt: '60%', bgcolor: 'grey.200', mb: 2 }} />
+                    <Box sx={{ height: 24, bgcolor: 'grey.200', mb: 1, width: '80%' }} />
+                    <Box sx={{ height: 20, bgcolor: 'grey.200', width: '40%' }} />
+                  </Paper>
+                </Grid>
+              ))
+            ) : (
+              latestNews.map((post) => (
+                <Grid item xs={12} md={4} key={post.id}>
+                  <Card 
+                    sx={{ 
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      cursor: 'pointer',
+                      transition: 'transform 0.3s ease',
+                      '&:hover': {
+                        transform: 'translateY(-8px)'
+                      }
+                    }}
+                    onClick={() => navigate(`/news/${post.id}`)}
+                  >
+                    {post.featured_image && Array.isArray(post.featured_image) && post.featured_image[0] && (
+                      <CardMedia
+                        component="img"
+                        height="200"
+                        image={post.featured_image[0].startsWith('http') ? post.featured_image[0] : `http://localhost:3000${post.featured_image[0]}`}
+                        alt={post.title}
+                        sx={{ objectFit: 'cover' }}
+                      />
+                    )}
+                    <CardContent sx={{ flexGrow: 1 }}>
+                      <Typography variant="h6" gutterBottom>
+                        {post.title}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                        {format(new Date(post.created_at), 'MMMM d, yyyy')}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 3,
+                        WebkitBoxOrient: 'vertical'
+                      }}>
+                        {post.content.replace(/<[^>]*>/g, '')}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))
+            )}
+          </Grid>
+
+          <Box sx={{ textAlign: 'center' }}>
+            <Button
+              variant="contained"
+              size="large"
+              onClick={() => navigate('/news')}
+              sx={{
+                px: 4,
+                py: 1.5,
+                borderRadius: 2,
+                fontSize: '1.1rem',
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  transform: 'translateY(-4px)',
+                  boxShadow: (theme) => theme.shadows[8]
+                }
+              }}
+            >
+              View All News
+            </Button>
+          </Box>
+        </Container>
       </Box>
     </Box>
   );
