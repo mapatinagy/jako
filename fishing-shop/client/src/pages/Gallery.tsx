@@ -226,12 +226,6 @@ const Gallery = () => {
           maxWidth="lg"
           open={openLightbox}
           onClose={handleCloseLightbox}
-          onClick={(e) => {
-            // Close when clicking the backdrop (shaded area)
-            if (e.target === e.currentTarget) {
-              handleCloseLightbox();
-            }
-          }}
           sx={{
             '& .MuiDialog-paper': {
               bgcolor: 'transparent',
@@ -245,6 +239,7 @@ const Gallery = () => {
           }}
         >
           <DialogContent 
+            onClick={handleCloseLightbox}
             sx={{ 
               p: 0,
               position: 'relative',
@@ -266,9 +261,9 @@ const Gallery = () => {
                   justifyContent: 'center',
                   position: 'relative'
                 }}
-                onClick={handleCloseLightbox}
               >
                 <Box
+                  onClick={(e) => e.stopPropagation()}
                   sx={{
                     position: 'relative',
                     maxWidth: '100%',
@@ -276,7 +271,6 @@ const Gallery = () => {
                     display: 'flex',
                     justifyContent: 'center'
                   }}
-                  onClick={(e) => e.stopPropagation()}
                 >
                   <img
                     src={selectedImage.url}

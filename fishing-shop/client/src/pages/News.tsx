@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import {
   Box,
   Container,
@@ -19,7 +19,11 @@ import {
   Menu,
   MenuItem,
   Tooltip,
-  Button
+  Button,
+  Grid,
+  CardActionArea,
+  useTheme,
+  useMediaQuery
 } from '@mui/material';
 import { format } from 'date-fns';
 import StoreIcon from '@mui/icons-material/Store';
@@ -29,6 +33,8 @@ import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import ShareIcon from '@mui/icons-material/Share';
 import FacebookIcon from '@mui/icons-material/Facebook';
 import TwitterIcon from '@mui/icons-material/Twitter';
+import LinkedInIcon from '@mui/icons-material/LinkedIn';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import LinkIcon from '@mui/icons-material/Link';
 import { Helmet } from 'react-helmet-async';
 
@@ -55,15 +61,19 @@ const isNewsPost = (post: any): post is NewsPost => {
 const News = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const theme = useTheme();
+  const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
   const [posts, setPosts] = useState<NewsPost[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<{ url: string; postImages: string[]; currentIndex: number } | null>(null);
   const [currentPost, setCurrentPost] = useState<NewsPost | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
   const [shareAnchorEl, setShareAnchorEl] = useState<null | HTMLElement>(null);
   const [sharePost, setSharePost] = useState<NewsPost | null>(null);
   const [snackbarMessage, setSnackbarMessage] = useState<string | null>(null);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [openLightbox, setOpenLightbox] = useState(false);
 
   useEffect(() => {
     fetchPosts();
@@ -81,6 +91,13 @@ const News = () => {
       setCurrentPost(null);
     }
   }, [id, posts]);
+
+  useEffect(() => {
+    // Scroll to top when navigating to a single post
+    if (id) {
+      window.scrollTo(0, 0);
+    }
+  }, [id]);
 
   const fetchPosts = async () => {
     try {
@@ -137,42 +154,56 @@ const News = () => {
     </Card>
   );
 
-  const handleImageClick = (post: NewsPost, imageIndex: number) => {
-    setCurrentPost(post);
-    setCurrentImageIndex(imageIndex);
-    setSelectedImage(post.featured_image?.[imageIndex] || null);
+  const handleImageClick = (e: React.MouseEvent, postImages: string[], imageIndex: number) => {
+    e.stopPropagation(); // Prevent post navigation when clicking image
+    if (postImages && postImages.length > 0) {
+      setSelectedImage({
+        url: postImages[imageIndex],
+        postImages,
+        currentIndex: imageIndex
+      });
+      setOpenLightbox(true);
+    }
   };
 
   const handleCloseLightbox = () => {
+    setOpenLightbox(false);
     setSelectedImage(null);
-    setCurrentPost(null);
-    setCurrentImageIndex(0);
   };
 
   const handlePrevImage = () => {
-    if (!currentPost?.featured_image) return;
-    const newIndex = (currentImageIndex - 1 + currentPost.featured_image.length) % currentPost.featured_image.length;
-    setCurrentImageIndex(newIndex);
-    setSelectedImage(currentPost.featured_image[newIndex]);
+    if (selectedImage) {
+      const newIndex = (selectedImage.currentIndex - 1 + selectedImage.postImages.length) % selectedImage.postImages.length;
+      setSelectedImage({
+        ...selectedImage,
+        url: selectedImage.postImages[newIndex],
+        currentIndex: newIndex
+      });
+    }
   };
 
   const handleNextImage = () => {
-    if (!currentPost?.featured_image) return;
-    const newIndex = (currentImageIndex + 1) % currentPost.featured_image.length;
-    setCurrentImageIndex(newIndex);
-    setSelectedImage(currentPost.featured_image[newIndex]);
+    if (selectedImage) {
+      const newIndex = (selectedImage.currentIndex + 1) % selectedImage.postImages.length;
+      setSelectedImage({
+        ...selectedImage,
+        url: selectedImage.postImages[newIndex],
+        currentIndex: newIndex
+      });
+    }
+  };
+
+  const handlePostClick = (postId: number) => {
+    navigate(`/news/${postId}`);
   };
 
   const handleShareClick = (event: React.MouseEvent<HTMLElement>, post: NewsPost) => {
-    console.log('Share button clicked', { post });
-    event.preventDefault();
     event.stopPropagation();
     setShareAnchorEl(event.currentTarget);
     setSharePost(post);
   };
 
   const handleShareClose = () => {
-    console.log('Share menu closing');
     setShareAnchorEl(null);
     setSharePost(null);
   };
@@ -182,28 +213,33 @@ const News = () => {
 
     const postUrl = `${window.location.origin}/news/${sharePost.id}`;
 
-    if (platform === 'facebook') {
-      const fbShareUrl = `https://www.facebook.com/sharer/sharer.php?t=${encodeURIComponent(postUrl)}`;
-      window.open(fbShareUrl, '_blank');
-      handleShareClose();
-    } else if (platform === 'copy') {
+    if (platform === 'copy') {
       try {
         await navigator.clipboard.writeText(postUrl);
-        const menuItem = document.querySelector('[data-share="copy"]');
-        if (menuItem) {
-          const originalText = menuItem.textContent;
-          menuItem.textContent = 'Link copied!';
-          setTimeout(() => {
-            if (menuItem) {
-              menuItem.textContent = originalText;
-            }
-          }, 2000);
-        }
+        // You could add a snackbar notification here to show success
+        console.log('Link copied to clipboard');
       } catch (err) {
         console.error('Failed to copy:', err);
       }
       handleShareClose();
+      return;
     }
+
+    let shareUrl = '';
+    switch (platform) {
+      case 'facebook':
+        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(postUrl)}`;
+        break;
+      case 'twitter':
+        shareUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(postUrl)}&text=${encodeURIComponent(sharePost.title)}`;
+        break;
+      case 'linkedin':
+        shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(postUrl)}`;
+        break;
+    }
+
+    window.open(shareUrl, '_blank', 'width=600,height=400');
+    handleShareClose();
   };
 
   const renderSinglePost = (post: NewsPost) => (
@@ -326,7 +362,7 @@ const News = () => {
                     {post.featured_image?.slice(0, 4).map((image, imageIndex) => (
                       <Box
                         key={imageIndex}
-                        onClick={() => handleImageClick(post, imageIndex)}
+                        onClick={(e) => post.featured_image && handleImageClick(e, post.featured_image, imageIndex)}
                         sx={{
                           position: 'relative',
                           paddingTop: '75%', // 4:3 aspect ratio for smaller thumbnails
@@ -388,6 +424,129 @@ const News = () => {
     </Box>
   );
 
+  const renderPosts = () => (
+    <Grid container spacing={4}>
+      {posts.map((post) => (
+        <Grid item xs={12} key={post.id}>
+          <Card 
+            sx={{ 
+              height: '100%',
+              transition: 'transform 0.3s ease',
+              '&:hover': {
+                transform: 'translateY(-4px)'
+              }
+            }}
+          >
+            <CardActionArea onClick={() => handlePostClick(post.id)}>
+              <CardContent>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                  <Typography variant="h5" component="h2" sx={{ flex: 1, mr: 2 }}>
+                    {post.title}
+                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Typography variant="body2" color="text.secondary">
+                      {format(new Date(post.created_at), 'yyyy MMM d')}
+                    </Typography>
+                    <Tooltip title="Share">
+                      <IconButton
+                        size="small"
+                        onClick={(e) => handleShareClick(e, post)}
+                        sx={{
+                          ml: 1,
+                          color: 'primary.main',
+                          '&:hover': {
+                            bgcolor: 'primary.main',
+                            color: 'white'
+                          }
+                        }}
+                      >
+                        <ShareIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  </Box>
+                </Box>
+                <Typography 
+                  variant="body1" 
+                  sx={{ 
+                    mt: 2,
+                    mb: 3,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    display: '-webkit-box',
+                    WebkitLineClamp: 3,
+                    WebkitBoxOrient: 'vertical'
+                  }}
+                >
+                  {post.content.replace(/<[^>]*>/g, '')}
+                </Typography>
+                {post.featured_image && Array.isArray(post.featured_image) && (
+                  <Grid container spacing={2}>
+                    {post.featured_image.slice(0, 3).map((image, index) => (
+                      <Grid item xs={12} sm={6} md={4} key={index}>
+                        <Box 
+                          onClick={(e) => post.featured_image && handleImageClick(e, post.featured_image, index)}
+                          sx={{ 
+                            position: 'relative',
+                            paddingTop: '56.25%', // 16:9 aspect ratio
+                            cursor: 'pointer',
+                            borderRadius: 1,
+                            overflow: 'hidden',
+                            boxShadow: (theme) => theme.shadows[2]
+                          }}
+                        >
+                          <CardMedia
+                            component="img"
+                            image={image.startsWith('http') ? image : `http://localhost:3000${image}`}
+                            alt={`Image ${index + 1} for ${post.title}`}
+                            sx={{
+                              position: 'absolute',
+                              top: 0,
+                              left: 0,
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'cover',
+                              transition: 'transform 0.3s ease',
+                              '&:hover': {
+                                transform: 'scale(1.05)'
+                              }
+                            }}
+                          />
+                          {index === 2 && post.featured_image && post.featured_image.length > 3 && (
+                            <Box
+                              sx={{
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                right: 0,
+                                bottom: 0,
+                                bgcolor: 'rgba(0, 0, 0, 0.5)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: 'white',
+                                fontSize: '1.5rem',
+                                fontWeight: 'bold',
+                                '&:hover': {
+                                  bgcolor: 'rgba(0, 0, 0, 0.6)'
+                                }
+                              }}
+                            >
+                              +{post.featured_image.length - 3}
+                            </Box>
+                          )}
+                        </Box>
+                      </Grid>
+                    ))}
+                  </Grid>
+                )}
+              </CardContent>
+            </CardActionArea>
+          </Card>
+        </Grid>
+      ))}
+    </Grid>
+  );
+
   return (
     <Box>
       <Helmet>
@@ -400,24 +559,16 @@ const News = () => {
         )}
       </Helmet>
       
-      {/* Share Menu - Moved outside of post content */}
+      {/* Share Menu */}
       <Menu
-        id="share-menu"
         anchorEl={shareAnchorEl}
         open={Boolean(shareAnchorEl)}
         onClose={handleShareClose}
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'right',
-        }}
-        transformOrigin={{
-          vertical: 'top',
-          horizontal: 'right',
-        }}
+        onClick={(e) => e.stopPropagation()}
         sx={{
           '& .MuiPaper-root': {
             borderRadius: 2,
-            minWidth: 180,
+            minWidth: 200,
             boxShadow: 'rgb(255, 255, 255) 0px 0px 0px 0px, rgba(0, 0, 0, 0.05) 0px 0px 0px 1px, rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.05) 0px 4px 6px -2px'
           }
         }}
@@ -426,8 +577,16 @@ const News = () => {
           <FacebookIcon sx={{ mr: 1.5, color: '#1877F2' }} />
           Share on Facebook
         </MenuItem>
-        <MenuItem onClick={() => handleShare('copy')} data-share="copy" sx={{ py: 1.5 }}>
-          <LinkIcon sx={{ mr: 1.5 }} />
+        <MenuItem onClick={() => handleShare('twitter')} sx={{ py: 1.5 }}>
+          <TwitterIcon sx={{ mr: 1.5, color: '#1DA1F2' }} />
+          Share on Twitter
+        </MenuItem>
+        <MenuItem onClick={() => handleShare('linkedin')} sx={{ py: 1.5 }}>
+          <LinkedInIcon sx={{ mr: 1.5, color: '#0A66C2' }} />
+          Share on LinkedIn
+        </MenuItem>
+        <MenuItem onClick={() => handleShare('copy')} sx={{ py: 1.5 }}>
+          <ContentCopyIcon sx={{ mr: 1.5 }} />
           Copy Link
         </MenuItem>
       </Menu>
@@ -586,179 +745,7 @@ const News = () => {
                     </Box>
                   ))
                 ) : (
-                  posts.map((post, index) => (
-                    <Fade 
-                      key={post.id} 
-                      in={true} 
-                      timeout={500} 
-                      style={{ transitionDelay: `${index * 100}ms` }}
-                    >
-                      <Card 
-                        sx={{ 
-                          mb: 3,
-                          borderRadius: 2,
-                          transition: 'all 0.3s ease',
-                          '&:hover': {
-                            transform: 'translateY(-4px)',
-                            boxShadow: (theme) => theme.shadows[8]
-                          }
-                        }}
-                      >
-                        <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
-                          {/* Post Header with Title, Date, and Share Button */}
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2.5 }}>
-                            <Typography 
-                              variant="h5" 
-                              sx={{ 
-                                color: 'text.primary',
-                                fontWeight: 500,
-                                lineHeight: 1.3,
-                                flex: 1,
-                                mr: 2
-                              }}
-                            >
-                              {post.title}
-                            </Typography>
-                            
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                              <Typography 
-                                variant="body2" 
-                                color="text.secondary" 
-                                sx={{ 
-                                  whiteSpace: 'nowrap',
-                                  opacity: 0.8
-                                }}
-                              >
-                                {format(new Date(post.created_at), 'yyyy MMM d, HH:mm:ss')}
-                              </Typography>
-                              
-                              <Tooltip title="Share">
-                                <IconButton
-                                  size="small"
-                                  onClick={(e) => {
-                                    console.log('Share icon clicked');
-                                    handleShareClick(e, post);
-                                  }}
-                                  sx={{
-                                    ml: 1,
-                                    color: 'primary.main',
-                                    '&:hover': {
-                                      bgcolor: 'primary.main',
-                                      color: 'white'
-                                    }
-                                  }}
-                                >
-                                  <ShareIcon fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
-                            </Box>
-                          </Box>
-
-                          {/* Post Content */}
-                          <Box 
-                            sx={{ 
-                              mb: 2.5,
-                              '& > div': { 
-                                '&:last-child': { mb: 0 }
-                              }
-                            }}
-                          >
-                            <Typography 
-                              component="div"
-                              sx={{ 
-                                color: 'text.primary',
-                                fontSize: '1rem',
-                                lineHeight: 1.7,
-                                '& img': {
-                                  maxWidth: '100%',
-                                  height: 'auto',
-                                  borderRadius: 1,
-                                  my: 2
-                                },
-                                '& p': {
-                                  mb: 2,
-                                  '&:last-child': { mb: 0 }
-                                }
-                              }}
-                              dangerouslySetInnerHTML={{ __html: post.content }}
-                            />
-                          </Box>
-
-                          {/* Featured Images */}
-                          {post.featured_image && Array.isArray(post.featured_image) && post.featured_image.length > 0 && (
-                            <Box sx={{ mb: 0 }}>
-                              <Box
-                                sx={{
-                                  display: 'grid',
-                                  gridTemplateColumns: {
-                                    xs: 'repeat(2, 1fr)',
-                                    sm: 'repeat(4, 1fr)'
-                                  },
-                                  gap: 1
-                                }}
-                              >
-                                {post.featured_image?.slice(0, 4).map((image, imageIndex) => (
-                                  <Box
-                                    key={imageIndex}
-                                    onClick={() => handleImageClick(post, imageIndex)}
-                                    sx={{
-                                      position: 'relative',
-                                      paddingTop: '75%', // 4:3 aspect ratio for smaller thumbnails
-                                      borderRadius: 1,
-                                      overflow: 'hidden',
-                                      boxShadow: (theme) => theme.shadows[2],
-                                      cursor: 'pointer'
-                                    }}
-                                  >
-                                    <CardMedia
-                                      component="img"
-                                      image={image.startsWith('http') ? image : `http://localhost:3000${image}`}
-                                      alt={`${post.title} - Image ${imageIndex + 1}`}
-                                      sx={{
-                                        position: 'absolute',
-                                        top: 0,
-                                        left: 0,
-                                        width: '100%',
-                                        height: '100%',
-                                        objectFit: 'cover',
-                                        transition: 'transform 0.3s ease',
-                                        '&:hover': {
-                                          transform: 'scale(1.05)'
-                                        }
-                                      }}
-                                    />
-                                    {imageIndex === 3 && post.featured_image && post.featured_image.length > 4 && (
-                                      <Box
-                                        sx={{
-                                          position: 'absolute',
-                                          top: 0,
-                                          left: 0,
-                                          right: 0,
-                                          bottom: 0,
-                                          bgcolor: 'rgba(0, 0, 0, 0.5)',
-                                          display: 'flex',
-                                          alignItems: 'center',
-                                          justifyContent: 'center',
-                                          color: 'white',
-                                          fontSize: '1.5rem',
-                                          fontWeight: 'bold',
-                                          '&:hover': {
-                                            bgcolor: 'rgba(0, 0, 0, 0.6)'
-                                          }
-                                        }}
-                                      >
-                                        +{post.featured_image.length - 4}
-                                      </Box>
-                                    )}
-                                  </Box>
-                                ))}
-                              </Box>
-                            </Box>
-                          )}
-                        </CardContent>
-                      </Card>
-                    </Fade>
-                  ))
+                  renderPosts()
                 )}
               </Box>
 
@@ -835,22 +822,24 @@ const News = () => {
 
           {/* Lightbox Dialog */}
           <Dialog
-            open={!!selectedImage}
-            onClose={handleCloseLightbox}
+            fullScreen={fullScreen}
             maxWidth="lg"
-            fullWidth
+            open={openLightbox}
+            onClose={handleCloseLightbox}
             sx={{
               '& .MuiDialog-paper': {
                 bgcolor: 'transparent',
+                backgroundImage: 'none',
                 boxShadow: 'none',
                 margin: { xs: 2, sm: 4 }
               },
               '& .MuiBackdrop-root': {
-                backgroundColor: 'rgba(0, 0, 0, 0.9)'
+                backgroundColor: 'rgba(0, 0, 0, 0.8)'
               }
             }}
           >
             <DialogContent 
+              onClick={handleCloseLightbox}
               sx={{ 
                 p: 0,
                 position: 'relative',
@@ -859,10 +848,7 @@ const News = () => {
                   display: 'none'
                 },
                 bgcolor: 'transparent',
-                height: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
+                height: '100%'
               }}
             >
               {selectedImage && (
@@ -875,9 +861,9 @@ const News = () => {
                     justifyContent: 'center',
                     position: 'relative'
                   }}
-                  onClick={handleCloseLightbox}
                 >
                   <Box
+                    onClick={(e) => e.stopPropagation()}
                     sx={{
                       position: 'relative',
                       maxWidth: '100%',
@@ -885,11 +871,10 @@ const News = () => {
                       display: 'flex',
                       justifyContent: 'center'
                     }}
-                    onClick={(e) => e.stopPropagation()}
                   >
                     <img
-                      src={selectedImage.startsWith('http') ? selectedImage : `http://localhost:3000${selectedImage}`}
-                      alt="Full size"
+                      src={selectedImage.url.startsWith('http') ? selectedImage.url : `http://localhost:3000${selectedImage.url}`}
+                      alt="News image"
                       style={{
                         maxWidth: '100%',
                         maxHeight: '90vh',
@@ -907,50 +892,48 @@ const News = () => {
                         bgcolor: 'rgba(0,0,0,0.4)',
                         '&:hover': {
                           bgcolor: 'rgba(0,0,0,0.6)'
-                        }
+                        },
+                        zIndex: 1
                       }}
                     >
                       <CloseIcon />
                     </IconButton>
-                    {(() => {
-                      const post = currentPost as NewsPost | null;
-                      return post && post.featured_image && post.featured_image.length > 1 && (
-                        <>
-                          <IconButton
-                            onClick={handlePrevImage}
-                            sx={{
-                              position: 'absolute',
-                              left: 8,
-                              top: '50%',
-                              transform: 'translateY(-50%)',
-                              color: 'white',
-                              bgcolor: 'rgba(0,0,0,0.4)',
-                              '&:hover': {
-                                bgcolor: 'rgba(0,0,0,0.6)'
-                              }
-                            }}
-                          >
-                            <NavigateBeforeIcon />
-                          </IconButton>
-                          <IconButton
-                            onClick={handleNextImage}
-                            sx={{
-                              position: 'absolute',
-                              right: 8,
-                              top: '50%',
-                              transform: 'translateY(-50%)',
-                              color: 'white',
-                              bgcolor: 'rgba(0,0,0,0.4)',
-                              '&:hover': {
-                                bgcolor: 'rgba(0,0,0,0.6)'
-                              }
-                            }}
-                          >
-                            <NavigateNextIcon />
-                          </IconButton>
-                        </>
-                      );
-                    })()}
+                    {selectedImage.postImages.length > 1 && (
+                      <>
+                        <IconButton
+                          onClick={handlePrevImage}
+                          sx={{
+                            position: 'absolute',
+                            left: 8,
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            color: 'white',
+                            bgcolor: 'rgba(0,0,0,0.4)',
+                            '&:hover': {
+                              bgcolor: 'rgba(0,0,0,0.6)'
+                            }
+                          }}
+                        >
+                          <NavigateBeforeIcon />
+                        </IconButton>
+                        <IconButton
+                          onClick={handleNextImage}
+                          sx={{
+                            position: 'absolute',
+                            right: 8,
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            color: 'white',
+                            bgcolor: 'rgba(0,0,0,0.4)',
+                            '&:hover': {
+                              bgcolor: 'rgba(0,0,0,0.6)'
+                            }
+                          }}
+                        >
+                          <NavigateNextIcon />
+                        </IconButton>
+                      </>
+                    )}
                   </Box>
                 </Box>
               )}
