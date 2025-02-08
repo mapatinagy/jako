@@ -368,7 +368,7 @@ const Home = () => {
       </Box>
 
       {/* Categories Section */}
-      <Box sx={{ py: 8, px: { xs: 2, sm: 4, md: 6, lg: 8 } }}>
+      <Box sx={{ py: 4, px: { xs: 2, sm: 4, md: 6, lg: 8 } }}>
         <Typography variant="h2" sx={{ mb: 4 }}>
           Our Categories
         </Typography>
@@ -509,172 +509,146 @@ const Home = () => {
       </Box>
 
       {/* Latest News Section */}
-      <Box sx={{ 
-        pt: 2,
-        pb: 8,
-        px: 0,
-        bgcolor: 'background.default'
-      }}>
-        <Box sx={{ textAlign: 'center', mb: 4, px: { xs: 2, sm: 4, md: 6, lg: 8 } }}>
-          <Typography 
-            variant="h2" 
-            sx={{ 
-              mb: 2,
-              position: 'relative',
-              display: 'inline-block',
-              '&::after': {
-                content: '""',
-                position: 'absolute',
-                bottom: -8,
-                left: '50%',
-                transform: 'translateX(-50%)',
-                width: 100,
-                height: 3,
-                bgcolor: 'primary.main',
-                borderRadius: 1
-              }
-            }}
-          >
-            Latest News
-          </Typography>
-          <Typography variant="h5" color="text.secondary" sx={{ maxWidth: 800, mx: 'auto', mt: 3 }}>
-            Stay updated with our latest products, events, and special offers
-          </Typography>
-        </Box>
+      <Box sx={{ pt: 2, pb: 8 }}>
+        <Container maxWidth={false} sx={{ px: { xs: 2, sm: 4, md: 6, lg: 8 } }}>
+          <Box sx={{ mb: 4, textAlign: 'center' }}>
+            <Typography variant="h2" gutterBottom>
+              Latest News
+            </Typography>
+          </Box>
 
-        <Box sx={{ mb: 4 }}>
-          <Grid container spacing={0}>
-            {loadingNews ? (
-              // Loading skeletons
-              Array.from(new Array(3)).map((_, index) => (
-                <Grid item xs={12} md={4} key={index}>
-                  <Paper sx={{ m: 1, p: 2, height: '100%' }}>
-                    <Box sx={{ pt: '60%', bgcolor: 'grey.200', mb: 2 }} />
-                    <Box sx={{ height: 24, bgcolor: 'grey.200', mb: 1, width: '80%' }} />
-                    <Box sx={{ height: 20, bgcolor: 'grey.200', width: '40%' }} />
-                  </Paper>
-                </Grid>
-              ))
-            ) : (
-              latestNews.map((post) => (
-                <Grid item xs={12} md={4} key={post.id}>
-                  <Card 
-                    onClick={() => navigate(`/news/${post.id}`)}
-                    sx={{ 
-                      m: 1,
-                      height: '100%',
-                      transition: 'transform 0.3s ease',
-                      cursor: 'pointer',
-                      '&:hover': {
-                        transform: 'translateY(-4px)'
-                      }
-                    }}
-                  >
-                    <Box sx={{ p: 2 }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                        <Typography variant="h6">
-                          {post.title}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {format(new Date(post.created_at), 'yyyy-MM-dd')}
-                        </Typography>
-                      </Box>
+          <Box sx={{ mb: 4 }}>
+            <Grid container spacing={3}>
+              {loadingNews ? (
+                // Loading skeletons
+                Array.from(new Array(3)).map((_, index) => (
+                  <Grid item xs={12} sm={6} lg={4} key={index}>
+                    <Paper sx={{ p: 2, height: '100%' }}>
+                      <Box sx={{ pt: '60%', bgcolor: 'grey.200', mb: 2 }} />
+                      <Box sx={{ height: 24, bgcolor: 'grey.200', mb: 1, width: '80%' }} />
+                      <Box sx={{ height: 20, bgcolor: 'grey.200', width: '40%' }} />
+                    </Paper>
+                  </Grid>
+                ))
+              ) : (
+                latestNews.map((post) => (
+                  <Grid item xs={12} sm={6} lg={4} key={post.id}>
+                    <Card 
+                      onClick={() => navigate(`/news/${post.id}`)}
+                      sx={{ 
+                        height: '100%',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        transition: 'transform 0.3s ease',
+                        cursor: 'pointer',
+                        '&:hover': {
+                          transform: 'translateY(-4px)'
+                        }
+                      }}
+                    >
+                      <Box sx={{ p: 2 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                          <Typography variant="h6" sx={{ flexGrow: 1 }}>
+                            {post.title}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary" sx={{ ml: 2, whiteSpace: 'nowrap' }}>
+                            {format(new Date(post.created_at), 'yyyy-MM-dd')}
+                          </Typography>
+                        </Box>
 
-                      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                        {post.content.length > 200 
-                          ? `${post.content.replace(/<[^>]*>/g, '').substring(0, 200)}...` 
-                          : post.content.replace(/<[^>]*>/g, '')}
-                      </Typography>
-                      
-                      {/* Images row */}
-                      <Box sx={{ display: 'flex', gap: 1 }}>
-                        {post.featured_image && post.featured_image.length > 0 ? (
-                          post.featured_image.slice(0, 3).map((image: string, index: number) => (
-                            <Box
-                              key={index}
-                              sx={{
-                                position: 'relative',
-                                width: '33.33%',
-                                paddingTop: '33.33%',
-                                borderRadius: 1,
-                                overflow: 'hidden',
-                              }}
-                            >
-                              <CardMedia
-                                component="img"
-                                image={image.startsWith('http') ? image : `http://localhost:3000${image}`}
-                                alt={`Image ${index + 1}`}
-                                sx={{
-                                  position: 'absolute',
-                                  top: 0,
-                                  left: 0,
-                                  width: '100%',
-                                  height: '100%',
-                                  objectFit: 'cover'
-                                }}
-                              />
-                              {index === 2 && post.featured_image.length > 3 && (
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                          {post.content.length > 200 
+                            ? `${post.content.replace(/<[^>]*>/g, '').substring(0, 200)}...` 
+                            : post.content.replace(/<[^>]*>/g, '')}
+                        </Typography>
+
+                        <Box sx={{ mt: 'auto' }}>
+                          {post.featured_image ? (
+                            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'nowrap', overflowX: 'auto' }}>
+                              {post.featured_image.slice(0, 3).map((image: string, index: number) => (
                                 <Box
+                                  key={index}
                                   sx={{
-                                    position: 'absolute',
-                                    top: 0,
-                                    left: 0,
-                                    right: 0,
-                                    bottom: 0,
-                                    bgcolor: 'rgba(0, 0, 0, 0.5)',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    color: 'white',
-                                    fontSize: '1.25rem',
-                                    fontWeight: 'bold'
+                                    position: 'relative',
+                                    width: index === 2 && post.featured_image.length > 3 ? '33.33%' : '33.33%',
+                                    pt: '25%',
+                                    flexShrink: 0
                                   }}
                                 >
-                                  +{post.featured_image.length - 3}
+                                  <Box
+                                    component="img"
+                                    src={`http://localhost:3000${image}`}
+                                    alt={`News image ${index + 1}`}
+                                    sx={{
+                                      position: 'absolute',
+                                      top: 0,
+                                      left: 0,
+                                      width: '100%',
+                                      height: '100%',
+                                      objectFit: 'cover',
+                                      borderRadius: 1
+                                    }}
+                                  />
+                                  {index === 2 && post.featured_image.length > 3 && (
+                                    <Box
+                                      sx={{
+                                        position: 'absolute',
+                                        top: 0,
+                                        left: 0,
+                                        width: '100%',
+                                        height: '100%',
+                                        bgcolor: 'rgba(0,0,0,0.5)',
+                                        color: 'white',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        borderRadius: 1
+                                      }}
+                                    >
+                                      <Typography variant="h6">+{post.featured_image.length - 3}</Typography>
+                                    </Box>
+                                  )}
                                 </Box>
-                              )}
+                              ))}
                             </Box>
-                          ))
-                        ) : (
-                          // Placeholder when no images
-                          <Box
-                            sx={{
-                              width: '100%',
-                              paddingTop: '33.33%',
-                              bgcolor: 'grey.200',
-                              borderRadius: 1
-                            }}
-                          />
-                        )}
+                          ) : (
+                            <Box
+                              sx={{
+                                width: '100%',
+                                pt: '56.25%',
+                                bgcolor: 'grey.200',
+                                borderRadius: 1,
+                                position: 'relative'
+                              }}
+                            />
+                          )}
+                        </Box>
                       </Box>
-                    </Box>
-                  </Card>
-                </Grid>
-              ))
-            )}
-          </Grid>
-        </Box>
+                    </Card>
+                  </Grid>
+                ))
+              )}
+            </Grid>
+          </Box>
 
-        <Box sx={{ textAlign: 'center', mt: 6, px: { xs: 2, sm: 4, md: 6, lg: 8 } }}>
-          <Button
-            variant="contained"
-            size="large"
-            onClick={() => navigate('/news')}
-            sx={{
-              px: 4,
-              py: 1.5,
-              borderRadius: 2,
-              fontSize: '1.1rem',
-              transition: 'all 0.3s ease',
-              '&:hover': {
-                transform: 'translateY(-4px)',
-                boxShadow: (theme) => theme.shadows[8]
-              }
-            }}
-          >
-            View All News
-          </Button>
-        </Box>
+          <Box sx={{ textAlign: 'center' }}>
+            <Button
+              variant="contained"
+              onClick={() => navigate('/news')}
+              sx={{
+                px: 4,
+                py: 1.5,
+                fontSize: '1.1rem',
+                transition: 'transform 0.3s ease',
+                '&:hover': {
+                  transform: 'translateY(-2px)'
+                }
+              }}
+            >
+              View All News
+            </Button>
+          </Box>
+        </Container>
       </Box>
 
       {/* Lightbox Dialog */}
