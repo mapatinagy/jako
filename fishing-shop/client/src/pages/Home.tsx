@@ -1,8 +1,11 @@
-import { Box, Container, Typography, Grid, Paper, Button, Card, CardContent, CardMedia } from '@mui/material';
+import { Box, Container, Typography, Grid, Paper, Button, Card, CardContent, CardMedia, Dialog, DialogContent, IconButton, useTheme, useMediaQuery } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
+import CloseIcon from '@mui/icons-material/Close';
+import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 
 // Images from the hero folder in public directory
 const backgroundImages = [
@@ -13,11 +16,15 @@ const backgroundImages = [
 
 const Home = () => {
   const navigate = useNavigate();
+  const theme = useTheme();
+  const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
   const [currentIndex, setCurrentIndex] = useState(0);
   const [displayedImage, setDisplayedImage] = useState(backgroundImages[0]);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [latestNews, setLatestNews] = useState<any[]>([]);
   const [loadingNews, setLoadingNews] = useState(true);
+  const [selectedImage, setSelectedImage] = useState<{ url: string; postImages: string[]; currentIndex: number } | null>(null);
+  const [openLightbox, setOpenLightbox] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -52,13 +59,72 @@ const Home = () => {
         const publishedPosts = data.posts
           .filter((post: any) => post.is_published)
           .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-          .slice(0, 3);
+          .slice(0, 3)
+          .map((post: any) => {
+            console.log('Raw featured_image:', post.featured_image);
+            const processedImage = Array.isArray(post.featured_image) ? post.featured_image : 
+              (post.featured_image ? JSON.parse(post.featured_image) : []);
+            console.log('Processed featured_image:', processedImage);
+            return {
+              ...post,
+              featured_image: processedImage
+            };
+          });
+        
+        console.log('Processed news posts:', publishedPosts);
         setLatestNews(publishedPosts);
       }
     } catch (error) {
       console.error('Error fetching latest news:', error);
     } finally {
       setLoadingNews(false);
+    }
+  };
+
+  const handleImageClick = (e: React.MouseEvent, postImages: string[], imageIndex: number) => {
+    e.stopPropagation();
+    e.preventDefault();
+    
+    if (postImages && postImages.length > 0) {
+      const url = postImages[imageIndex];
+      const formattedUrl = url.startsWith('http') ? url : `http://localhost:3000${url}`;
+      const formattedImages = postImages.map(img => 
+        img.startsWith('http') ? img : `http://localhost:3000${img}`
+      );
+      
+      setSelectedImage({
+        url: formattedUrl,
+        postImages: formattedImages,
+        currentIndex: imageIndex
+      });
+      setOpenLightbox(true);
+    }
+  };
+
+  const handleCloseLightbox = () => {
+    setOpenLightbox(false);
+    setSelectedImage(null);
+  };
+
+  const handlePrevImage = () => {
+    if (selectedImage) {
+      const newIndex = (selectedImage.currentIndex - 1 + selectedImage.postImages.length) % selectedImage.postImages.length;
+      setSelectedImage({
+        ...selectedImage,
+        url: selectedImage.postImages[newIndex],
+        currentIndex: newIndex
+      });
+    }
+  };
+
+  const handleNextImage = () => {
+    if (selectedImage) {
+      const newIndex = (selectedImage.currentIndex + 1) % selectedImage.postImages.length;
+      setSelectedImage({
+        ...selectedImage,
+        url: selectedImage.postImages[newIndex],
+        currentIndex: newIndex
+      });
     }
   };
 
@@ -445,119 +511,294 @@ const Home = () => {
       {/* Latest News Section */}
       <Box sx={{ 
         py: 8, 
-        px: { xs: 2, sm: 4, md: 6, lg: 8 },
+        px: 0,
         bgcolor: 'background.default'
       }}>
-        <Container maxWidth="lg">
-          <Box sx={{ textAlign: 'center', mb: 6 }}>
-            <Typography 
-              variant="h2" 
-              sx={{ 
-                mb: 2,
-                position: 'relative',
-                display: 'inline-block',
-                '&::after': {
-                  content: '""',
-                  position: 'absolute',
-                  bottom: -8,
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  width: 100,
-                  height: 3,
-                  bgcolor: 'primary.main',
-                  borderRadius: 1
-                }
-              }}
-            >
-              Latest News
-            </Typography>
-            <Typography variant="h5" color="text.secondary" sx={{ maxWidth: 800, mx: 'auto', mt: 3 }}>
-              Stay updated with our latest products, events, and special offers
-            </Typography>
-          </Box>
+        <Box sx={{ textAlign: 'center', mb: 6, px: { xs: 2, sm: 4, md: 6, lg: 8 } }}>
+          <Typography 
+            variant="h2" 
+            sx={{ 
+              mb: 2,
+              position: 'relative',
+              display: 'inline-block',
+              '&::after': {
+                content: '""',
+                position: 'absolute',
+                bottom: -8,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                width: 100,
+                height: 3,
+                bgcolor: 'primary.main',
+                borderRadius: 1
+              }
+            }}
+          >
+            Latest News
+          </Typography>
+          <Typography variant="h5" color="text.secondary" sx={{ maxWidth: 800, mx: 'auto', mt: 3 }}>
+            Stay updated with our latest products, events, and special offers
+          </Typography>
+        </Box>
 
-          <Grid container spacing={4} sx={{ mb: 4 }}>
-            {loadingNews ? (
-              // Loading skeletons
-              Array.from(new Array(3)).map((_, index) => (
-                <Grid item xs={12} md={4} key={index}>
-                  <Paper sx={{ p: 2, height: '100%' }}>
-                    <Box sx={{ pt: '60%', bgcolor: 'grey.200', mb: 2 }} />
-                    <Box sx={{ height: 24, bgcolor: 'grey.200', mb: 1, width: '80%' }} />
-                    <Box sx={{ height: 20, bgcolor: 'grey.200', width: '40%' }} />
-                  </Paper>
-                </Grid>
-              ))
-            ) : (
-              latestNews.map((post) => (
-                <Grid item xs={12} md={4} key={post.id}>
-                  <Card 
-                    sx={{ 
-                      height: '100%',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      cursor: 'pointer',
-                      transition: 'transform 0.3s ease',
-                      '&:hover': {
-                        transform: 'translateY(-8px)'
-                      }
-                    }}
-                    onClick={() => navigate(`/news/${post.id}`)}
-                  >
-                    {post.featured_image && Array.isArray(post.featured_image) && post.featured_image[0] && (
-                      <CardMedia
-                        component="img"
-                        height="200"
-                        image={post.featured_image[0].startsWith('http') ? post.featured_image[0] : `http://localhost:3000${post.featured_image[0]}`}
-                        alt={post.title}
-                        sx={{ objectFit: 'cover' }}
-                      />
-                    )}
-                    <CardContent sx={{ flexGrow: 1 }}>
-                      <Typography variant="h6" gutterBottom>
+        <Grid container spacing={0}>
+          {loadingNews ? (
+            // Loading skeletons
+            Array.from(new Array(3)).map((_, index) => (
+              <Grid item xs={12} md={4} key={index}>
+                <Paper sx={{ m: 1, p: 2, height: '100%' }}>
+                  <Box sx={{ pt: '60%', bgcolor: 'grey.200', mb: 2 }} />
+                  <Box sx={{ height: 24, bgcolor: 'grey.200', mb: 1, width: '80%' }} />
+                  <Box sx={{ height: 20, bgcolor: 'grey.200', width: '40%' }} />
+                </Paper>
+              </Grid>
+            ))
+          ) : (
+            latestNews.map((post) => (
+              <Grid item xs={12} md={4} key={post.id}>
+                <Card 
+                  onClick={() => navigate(`/news/${post.id}`)}
+                  sx={{ 
+                    m: 1,
+                    height: '100%',
+                    transition: 'transform 0.3s ease',
+                    cursor: 'pointer',
+                    '&:hover': {
+                      transform: 'translateY(-4px)'
+                    }
+                  }}
+                >
+                  <Box sx={{ p: 2 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                      <Typography variant="h6">
                         {post.title}
                       </Typography>
-                      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                        {format(new Date(post.created_at), 'MMMM d, yyyy')}
+                      <Typography variant="body2" color="text.secondary">
+                        {format(new Date(post.created_at), 'yyyy-MM-dd')}
                       </Typography>
-                      <Typography variant="body2" color="text.secondary" sx={{
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        display: '-webkit-box',
-                        WebkitLineClamp: 3,
-                        WebkitBoxOrient: 'vertical'
-                      }}>
-                        {post.content.replace(/<[^>]*>/g, '')}
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              ))
-            )}
-          </Grid>
+                    </Box>
 
-          <Box sx={{ textAlign: 'center' }}>
-            <Button
-              variant="contained"
-              size="large"
-              onClick={() => navigate('/news')}
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                      {post.content.length > 200 
+                        ? `${post.content.replace(/<[^>]*>/g, '').substring(0, 200)}...` 
+                        : post.content.replace(/<[^>]*>/g, '')}
+                    </Typography>
+                    
+                    {/* Images row */}
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      {post.featured_image && post.featured_image.length > 0 ? (
+                        post.featured_image.slice(0, 3).map((image: string, index: number) => (
+                          <Box
+                            key={index}
+                            sx={{
+                              position: 'relative',
+                              width: '33.33%',
+                              paddingTop: '33.33%',
+                              borderRadius: 1,
+                              overflow: 'hidden',
+                            }}
+                          >
+                            <CardMedia
+                              component="img"
+                              image={image.startsWith('http') ? image : `http://localhost:3000${image}`}
+                              alt={`Image ${index + 1}`}
+                              sx={{
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'cover'
+                              }}
+                            />
+                            {index === 2 && post.featured_image.length > 3 && (
+                              <Box
+                                sx={{
+                                  position: 'absolute',
+                                  top: 0,
+                                  left: 0,
+                                  right: 0,
+                                  bottom: 0,
+                                  bgcolor: 'rgba(0, 0, 0, 0.5)',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  color: 'white',
+                                  fontSize: '1.25rem',
+                                  fontWeight: 'bold'
+                                }}
+                              >
+                                +{post.featured_image.length - 3}
+                              </Box>
+                            )}
+                          </Box>
+                        ))
+                      ) : (
+                        // Placeholder when no images
+                        <Box
+                          sx={{
+                            width: '100%',
+                            paddingTop: '33.33%',
+                            bgcolor: 'grey.200',
+                            borderRadius: 1
+                          }}
+                        />
+                      )}
+                    </Box>
+                  </Box>
+                </Card>
+              </Grid>
+            ))
+          )}
+        </Grid>
+
+        <Box sx={{ textAlign: 'center' }}>
+          <Button
+            variant="contained"
+            size="large"
+            onClick={() => navigate('/news')}
+            sx={{
+              px: 4,
+              py: 1.5,
+              borderRadius: 2,
+              fontSize: '1.1rem',
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                transform: 'translateY(-4px)',
+                boxShadow: (theme) => theme.shadows[8]
+              }
+            }}
+          >
+            View All News
+          </Button>
+        </Box>
+      </Box>
+
+      {/* Lightbox Dialog */}
+      <Dialog
+        fullScreen={fullScreen}
+        maxWidth="lg"
+        open={openLightbox}
+        onClose={handleCloseLightbox}
+        onClick={handleCloseLightbox}
+        sx={{
+          '& .MuiDialog-paper': {
+            bgcolor: 'transparent',
+            backgroundImage: 'none',
+            boxShadow: 'none',
+            margin: { xs: 2, sm: 4 }
+          },
+          '& .MuiBackdrop-root': {
+            backgroundColor: 'rgba(0, 0, 0, 0.9)'
+          }
+        }}
+      >
+        <DialogContent 
+          sx={{ 
+            p: 0,
+            position: 'relative',
+            overflow: 'hidden',
+            '&::-webkit-scrollbar': {
+              display: 'none'
+            },
+            bgcolor: 'transparent',
+            height: '100%'
+          }}
+        >
+          {selectedImage && (
+            <Box
               sx={{
-                px: 4,
-                py: 1.5,
-                borderRadius: 2,
-                fontSize: '1.1rem',
-                transition: 'all 0.3s ease',
-                '&:hover': {
-                  transform: 'translateY(-4px)',
-                  boxShadow: (theme) => theme.shadows[8]
-                }
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                position: 'relative'
               }}
             >
-              View All News
-            </Button>
-          </Box>
-        </Container>
-      </Box>
+              <Box
+                onClick={(e) => e.stopPropagation()}
+                sx={{
+                  position: 'relative',
+                  maxWidth: '100%',
+                  maxHeight: '90vh',
+                  display: 'flex',
+                  justifyContent: 'center'
+                }}
+              >
+                <img
+                  src={selectedImage.url}
+                  alt="News image"
+                  style={{
+                    maxWidth: '100%',
+                    maxHeight: '90vh',
+                    objectFit: 'contain',
+                    borderRadius: '4px'
+                  }}
+                />
+                <IconButton
+                  onClick={handleCloseLightbox}
+                  sx={{
+                    position: 'absolute',
+                    right: -12,
+                    top: -12,
+                    color: 'white',
+                    bgcolor: 'rgba(0,0,0,0.4)',
+                    '&:hover': {
+                      bgcolor: 'rgba(0,0,0,0.6)'
+                    },
+                    zIndex: 1
+                  }}
+                >
+                  <CloseIcon />
+                </IconButton>
+                {selectedImage.postImages.length > 1 && (
+                  <>
+                    <IconButton
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handlePrevImage();
+                      }}
+                      sx={{
+                        position: 'absolute',
+                        left: -20,
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        color: 'white',
+                        bgcolor: 'rgba(0,0,0,0.4)',
+                        '&:hover': {
+                          bgcolor: 'rgba(0,0,0,0.6)'
+                        }
+                      }}
+                    >
+                      <NavigateBeforeIcon />
+                    </IconButton>
+                    <IconButton
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleNextImage();
+                      }}
+                      sx={{
+                        position: 'absolute',
+                        right: -20,
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        color: 'white',
+                        bgcolor: 'rgba(0,0,0,0.4)',
+                        '&:hover': {
+                          bgcolor: 'rgba(0,0,0,0.6)'
+                        }
+                      }}
+                    >
+                      <NavigateNextIcon />
+                    </IconButton>
+                  </>
+                )}
+              </Box>
+            </Box>
+          )}
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 };
