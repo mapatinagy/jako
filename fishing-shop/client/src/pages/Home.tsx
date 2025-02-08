@@ -510,11 +510,12 @@ const Home = () => {
 
       {/* Latest News Section */}
       <Box sx={{ 
-        py: 8, 
+        pt: 2,
+        pb: 8,
         px: 0,
         bgcolor: 'background.default'
       }}>
-        <Box sx={{ textAlign: 'center', mb: 6, px: { xs: 2, sm: 4, md: 6, lg: 8 } }}>
+        <Box sx={{ textAlign: 'center', mb: 4, px: { xs: 2, sm: 4, md: 6, lg: 8 } }}>
           <Typography 
             variant="h2" 
             sx={{ 
@@ -541,118 +542,120 @@ const Home = () => {
           </Typography>
         </Box>
 
-        <Grid container spacing={0}>
-          {loadingNews ? (
-            // Loading skeletons
-            Array.from(new Array(3)).map((_, index) => (
-              <Grid item xs={12} md={4} key={index}>
-                <Paper sx={{ m: 1, p: 2, height: '100%' }}>
-                  <Box sx={{ pt: '60%', bgcolor: 'grey.200', mb: 2 }} />
-                  <Box sx={{ height: 24, bgcolor: 'grey.200', mb: 1, width: '80%' }} />
-                  <Box sx={{ height: 20, bgcolor: 'grey.200', width: '40%' }} />
-                </Paper>
-              </Grid>
-            ))
-          ) : (
-            latestNews.map((post) => (
-              <Grid item xs={12} md={4} key={post.id}>
-                <Card 
-                  onClick={() => navigate(`/news/${post.id}`)}
-                  sx={{ 
-                    m: 1,
-                    height: '100%',
-                    transition: 'transform 0.3s ease',
-                    cursor: 'pointer',
-                    '&:hover': {
-                      transform: 'translateY(-4px)'
-                    }
-                  }}
-                >
-                  <Box sx={{ p: 2 }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                      <Typography variant="h6">
-                        {post.title}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {format(new Date(post.created_at), 'yyyy-MM-dd')}
-                      </Typography>
-                    </Box>
+        <Box sx={{ mb: 4 }}>
+          <Grid container spacing={0}>
+            {loadingNews ? (
+              // Loading skeletons
+              Array.from(new Array(3)).map((_, index) => (
+                <Grid item xs={12} md={4} key={index}>
+                  <Paper sx={{ m: 1, p: 2, height: '100%' }}>
+                    <Box sx={{ pt: '60%', bgcolor: 'grey.200', mb: 2 }} />
+                    <Box sx={{ height: 24, bgcolor: 'grey.200', mb: 1, width: '80%' }} />
+                    <Box sx={{ height: 20, bgcolor: 'grey.200', width: '40%' }} />
+                  </Paper>
+                </Grid>
+              ))
+            ) : (
+              latestNews.map((post) => (
+                <Grid item xs={12} md={4} key={post.id}>
+                  <Card 
+                    onClick={() => navigate(`/news/${post.id}`)}
+                    sx={{ 
+                      m: 1,
+                      height: '100%',
+                      transition: 'transform 0.3s ease',
+                      cursor: 'pointer',
+                      '&:hover': {
+                        transform: 'translateY(-4px)'
+                      }
+                    }}
+                  >
+                    <Box sx={{ p: 2 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                        <Typography variant="h6">
+                          {post.title}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {format(new Date(post.created_at), 'yyyy-MM-dd')}
+                        </Typography>
+                      </Box>
 
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                      {post.content.length > 200 
-                        ? `${post.content.replace(/<[^>]*>/g, '').substring(0, 200)}...` 
-                        : post.content.replace(/<[^>]*>/g, '')}
-                    </Typography>
-                    
-                    {/* Images row */}
-                    <Box sx={{ display: 'flex', gap: 1 }}>
-                      {post.featured_image && post.featured_image.length > 0 ? (
-                        post.featured_image.slice(0, 3).map((image: string, index: number) => (
-                          <Box
-                            key={index}
-                            sx={{
-                              position: 'relative',
-                              width: '33.33%',
-                              paddingTop: '33.33%',
-                              borderRadius: 1,
-                              overflow: 'hidden',
-                            }}
-                          >
-                            <CardMedia
-                              component="img"
-                              image={image.startsWith('http') ? image : `http://localhost:3000${image}`}
-                              alt={`Image ${index + 1}`}
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                        {post.content.length > 200 
+                          ? `${post.content.replace(/<[^>]*>/g, '').substring(0, 200)}...` 
+                          : post.content.replace(/<[^>]*>/g, '')}
+                      </Typography>
+                      
+                      {/* Images row */}
+                      <Box sx={{ display: 'flex', gap: 1 }}>
+                        {post.featured_image && post.featured_image.length > 0 ? (
+                          post.featured_image.slice(0, 3).map((image: string, index: number) => (
+                            <Box
+                              key={index}
                               sx={{
-                                position: 'absolute',
-                                top: 0,
-                                left: 0,
-                                width: '100%',
-                                height: '100%',
-                                objectFit: 'cover'
+                                position: 'relative',
+                                width: '33.33%',
+                                paddingTop: '33.33%',
+                                borderRadius: 1,
+                                overflow: 'hidden',
                               }}
-                            />
-                            {index === 2 && post.featured_image.length > 3 && (
-                              <Box
+                            >
+                              <CardMedia
+                                component="img"
+                                image={image.startsWith('http') ? image : `http://localhost:3000${image}`}
+                                alt={`Image ${index + 1}`}
                                 sx={{
                                   position: 'absolute',
                                   top: 0,
                                   left: 0,
-                                  right: 0,
-                                  bottom: 0,
-                                  bgcolor: 'rgba(0, 0, 0, 0.5)',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  color: 'white',
-                                  fontSize: '1.25rem',
-                                  fontWeight: 'bold'
+                                  width: '100%',
+                                  height: '100%',
+                                  objectFit: 'cover'
                                 }}
-                              >
-                                +{post.featured_image.length - 3}
-                              </Box>
-                            )}
-                          </Box>
-                        ))
-                      ) : (
-                        // Placeholder when no images
-                        <Box
-                          sx={{
-                            width: '100%',
-                            paddingTop: '33.33%',
-                            bgcolor: 'grey.200',
-                            borderRadius: 1
-                          }}
-                        />
-                      )}
+                              />
+                              {index === 2 && post.featured_image.length > 3 && (
+                                <Box
+                                  sx={{
+                                    position: 'absolute',
+                                    top: 0,
+                                    left: 0,
+                                    right: 0,
+                                    bottom: 0,
+                                    bgcolor: 'rgba(0, 0, 0, 0.5)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    color: 'white',
+                                    fontSize: '1.25rem',
+                                    fontWeight: 'bold'
+                                  }}
+                                >
+                                  +{post.featured_image.length - 3}
+                                </Box>
+                              )}
+                            </Box>
+                          ))
+                        ) : (
+                          // Placeholder when no images
+                          <Box
+                            sx={{
+                              width: '100%',
+                              paddingTop: '33.33%',
+                              bgcolor: 'grey.200',
+                              borderRadius: 1
+                            }}
+                          />
+                        )}
+                      </Box>
                     </Box>
-                  </Box>
-                </Card>
-              </Grid>
-            ))
-          )}
-        </Grid>
+                  </Card>
+                </Grid>
+              ))
+            )}
+          </Grid>
+        </Box>
 
-        <Box sx={{ textAlign: 'center' }}>
+        <Box sx={{ textAlign: 'center', mt: 6, px: { xs: 2, sm: 4, md: 6, lg: 8 } }}>
           <Button
             variant="contained"
             size="large"
