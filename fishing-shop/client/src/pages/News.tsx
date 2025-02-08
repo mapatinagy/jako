@@ -23,7 +23,9 @@ import {
   Grid,
   CardActionArea,
   useTheme,
-  useMediaQuery
+  useMediaQuery,
+  Snackbar,
+  Alert
 } from '@mui/material';
 import { format } from 'date-fns';
 import StoreIcon from '@mui/icons-material/Store';
@@ -32,10 +34,7 @@ import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import ShareIcon from '@mui/icons-material/Share';
 import FacebookIcon from '@mui/icons-material/Facebook';
-import TwitterIcon from '@mui/icons-material/Twitter';
-import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import LinkIcon from '@mui/icons-material/Link';
 import { Helmet } from 'react-helmet-async';
 
 interface NewsPost {
@@ -224,10 +223,12 @@ const News = () => {
     if (platform === 'copy') {
       try {
         await navigator.clipboard.writeText(postUrl);
-        // You could add a snackbar notification here to show success
-        console.log('Link copied to clipboard');
+        setSnackbarMessage('Link copied to clipboard');
+        setSnackbarOpen(true);
       } catch (err) {
         console.error('Failed to copy:', err);
+        setSnackbarMessage('Failed to copy link');
+        setSnackbarOpen(true);
       }
       handleShareClose();
       return;
@@ -238,15 +239,11 @@ const News = () => {
       case 'facebook':
         shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(postUrl)}`;
         break;
-      case 'twitter':
-        shareUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(postUrl)}&text=${encodeURIComponent(sharePost.title)}`;
-        break;
-      case 'linkedin':
-        shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(postUrl)}`;
-        break;
     }
 
-    window.open(shareUrl, '_blank', 'width=600,height=400');
+    if (shareUrl) {
+      window.open(shareUrl, '_blank', 'width=600,height=400');
+    }
     handleShareClose();
   };
 
@@ -596,28 +593,37 @@ const News = () => {
         sx={{
           '& .MuiPaper-root': {
             borderRadius: 2,
-            minWidth: 200,
+            minWidth: 250,
             boxShadow: 'rgb(255, 255, 255) 0px 0px 0px 0px, rgba(0, 0, 0, 0.05) 0px 0px 0px 1px, rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.05) 0px 4px 6px -2px'
           }
         }}
       >
         <MenuItem onClick={() => handleShare('facebook')} sx={{ py: 1.5 }}>
           <FacebookIcon sx={{ mr: 1.5, color: '#1877F2' }} />
-          Share on Facebook
-        </MenuItem>
-        <MenuItem onClick={() => handleShare('twitter')} sx={{ py: 1.5 }}>
-          <TwitterIcon sx={{ mr: 1.5, color: '#1DA1F2' }} />
-          Share on Twitter
-        </MenuItem>
-        <MenuItem onClick={() => handleShare('linkedin')} sx={{ py: 1.5 }}>
-          <LinkedInIcon sx={{ mr: 1.5, color: '#0A66C2' }} />
-          Share on LinkedIn
+          <Typography variant="body2">Share on Facebook</Typography>
         </MenuItem>
         <MenuItem onClick={() => handleShare('copy')} sx={{ py: 1.5 }}>
           <ContentCopyIcon sx={{ mr: 1.5 }} />
-          Copy Link
+          <Typography variant="body2">Copy Link</Typography>
         </MenuItem>
       </Menu>
+      
+      {/* Snackbar Notification */}
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={3000}
+        onClose={() => setSnackbarOpen(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert 
+          onClose={() => setSnackbarOpen(false)} 
+          severity="success" 
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
       
       {currentPost ? (
         renderSinglePost(currentPost)

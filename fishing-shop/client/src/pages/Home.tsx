@@ -558,8 +558,14 @@ const Home = () => {
 
                         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                           {post.content.length > 200 
-                            ? `${post.content.replace(/<[^>]*>/g, '').substring(0, 200)}...` 
-                            : post.content.replace(/<[^>]*>/g, '')}
+                            ? `${post.content.replace(/<a\s+(?:[^>]*?\s+)?href="([^"]*)"([^>]*)>/g, (match: string, href: string) => {
+                                const url = href.startsWith('http://') || href.startsWith('https://') ? href : `https://${href}`;
+                                return `<a href="${url}"${match.slice(match.indexOf('"', match.indexOf('href') + 6) + 1)}>`
+                              }).replace(/<[^>]*>/g, '').substring(0, 200)}...` 
+                            : post.content.replace(/<a\s+(?:[^>]*?\s+)?href="([^"]*)"([^>]*)>/g, (match: string, href: string) => {
+                                const url = href.startsWith('http://') || href.startsWith('https://') ? href : `https://${href}`;
+                                return `<a href="${url}"${match.slice(match.indexOf('"', match.indexOf('href') + 6) + 1)}>`
+                              }).replace(/<[^>]*>/g, '')}
                         </Typography>
 
                         <Box sx={{ mt: 'auto' }}>
