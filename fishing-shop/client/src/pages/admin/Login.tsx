@@ -73,7 +73,7 @@ const Login = () => {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
+        throw new Error(data.message || 'Bejelentkezés sikertelen');
       }
 
       // Store the token and initialize session
@@ -83,7 +83,7 @@ const Login = () => {
       // Redirect to the previous attempted URL or dashboard
       navigate(from, { replace: true });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed');
+      setError(err instanceof Error ? err.message : 'Bejelentkezés sikertelen');
     }
   };
 
@@ -108,7 +108,7 @@ const Login = () => {
           }}
         >
           <Typography component="h1" variant="h5" sx={{ mb: 3 }}>
-            Admin Login
+            Admin belépés
           </Typography>
 
           {message && (
@@ -129,7 +129,7 @@ const Login = () => {
               required
               fullWidth
               id="username"
-              label="Username"
+              label="Felhasználónév"
               name="username"
               autoComplete="username"
               autoFocus
@@ -141,7 +141,7 @@ const Login = () => {
               required
               fullWidth
               name="password"
-              label="Password"
+              label="Jelszó"
               type="password"
               id="password"
               autoComplete="current-password"
@@ -154,7 +154,7 @@ const Login = () => {
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
             >
-              Sign In
+              Belépés
             </Button>
             <Box sx={{ textAlign: 'center' }}>
               <Link
@@ -168,7 +168,7 @@ const Login = () => {
                   }
                 }}
               >
-                Forgot username or password?
+                Elfelejtetted a felhasználónevedet vagy a jelszavadat?
               </Link>
             </Box>
           </Box>

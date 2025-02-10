@@ -101,7 +101,7 @@ const Settings = () => {
     setSuccess('');
 
     if (!formData.currentPassword) {
-      setError('Current password is required');
+      setError('A jelenlegi jelszó megadása kötelező');
       return;
     }
 
@@ -119,10 +119,10 @@ const Settings = () => {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Failed to update settings');
+        throw new Error(data.message || 'Beállítások frissítése sikertelen');
       }
 
-      setSuccess('Settings updated successfully');
+      setSuccess('Beállítások sikeresen frissítve');
       setFormData(prev => ({
         ...prev,
         currentPassword: '',
@@ -130,7 +130,7 @@ const Settings = () => {
         newPassword: ''
       }));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update settings');
+      setError(err instanceof Error ? err.message : 'Beállítások frissítése sikertelen');
     }
   };
 
@@ -189,7 +189,7 @@ const Settings = () => {
               }
             }}
           >
-            Settings
+            Beállítások
           </Button>
           <Button
             onClick={handleLogout}
@@ -203,27 +203,27 @@ const Settings = () => {
               }
             }}
           >
-            Logout
+            Kijelentkezés
           </Button>
         </Toolbar>
       </AppBar>
 
       <Container maxWidth="md" sx={{ py: 4 }}>
         <Typography variant="h4" gutterBottom color="primary">
-          Account Settings
+          Fiók beállítások
         </Typography>
 
         <Paper sx={{ p: 4, mt: 4 }}>
           <Box component="form" onSubmit={handleSubmit}>
             <Typography variant="h6" gutterBottom>
-              Change Credentials
+              Hitelesítési adatok módosítása
             </Typography>
             
             <TextField
               margin="normal"
               fullWidth
               type={showCurrentPassword ? 'text' : 'password'}
-              label="Current Password"
+              label="Jelenlegi jelszó"
               value={formData.currentPassword}
               onChange={handleInputChange('currentPassword')}
               InputProps={{
@@ -243,7 +243,7 @@ const Settings = () => {
             <TextField
               margin="normal"
               fullWidth
-              label="New Username (optional)"
+              label="Új felhasználónév (opcionális)"
               value={formData.newUsername}
               onChange={handleInputChange('newUsername')}
             />
@@ -252,17 +252,17 @@ const Settings = () => {
               margin="normal"
               fullWidth
               type="email"
-              label="Email Address"
+              label="Email cím"
               value={formData.newEmail}
               onChange={handleInputChange('newEmail')}
-              helperText="Used for account recovery"
+              helperText="Fiók helyreállításhoz használható"
             />
 
             <TextField
               margin="normal"
               fullWidth
               type={showNewPassword ? 'text' : 'password'}
-              label="New Password (optional)"
+              label="Új jelszó (opcionális)"
               value={formData.newPassword}
               onChange={handleInputChange('newPassword')}
               InputProps={{
@@ -282,24 +282,24 @@ const Settings = () => {
             <Divider sx={{ my: 4 }} />
 
             <Typography variant="h6" gutterBottom>
-              Security Questions
+              Biztonsági kérdések
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-              Set up security questions to help recover your account if you forget your credentials.
+              Állítsd be a biztonsági kérdéseket a fiókod helyreállításához, ha elfelejtenéd a belépési adataidat.
             </Typography>
 
             <TextField
               margin="normal"
               fullWidth
-              label="Security Question 1"
+              label="1. Biztonsági kérdés"
               value={formData.securityQuestion1}
               onChange={handleInputChange('securityQuestion1')}
-              placeholder="e.g., What was your first pet's name?"
+              placeholder="pl.: Mi volt az első háziállatod neve?"
             />
             <TextField
               margin="normal"
               fullWidth
-              label="Answer 1"
+              label="1. Válasz"
               value={formData.securityAnswer1}
               onChange={handleInputChange('securityAnswer1')}
             />
@@ -307,15 +307,15 @@ const Settings = () => {
             <TextField
               margin="normal"
               fullWidth
-              label="Security Question 2"
+              label="2. Biztonsági kérdés"
               value={formData.securityQuestion2}
               onChange={handleInputChange('securityQuestion2')}
-              placeholder="e.g., What city were you born in?"
+              placeholder="pl.: Melyik városban születtél?"
             />
             <TextField
               margin="normal"
               fullWidth
-              label="Answer 2"
+              label="2. Válasz"
               value={formData.securityAnswer2}
               onChange={handleInputChange('securityAnswer2')}
             />
@@ -323,15 +323,15 @@ const Settings = () => {
             <TextField
               margin="normal"
               fullWidth
-              label="Security Question 3"
+              label="3. Biztonsági kérdés"
               value={formData.securityQuestion3}
               onChange={handleInputChange('securityQuestion3')}
-              placeholder="e.g., What was your childhood nickname?"
+              placeholder="pl.: Mi volt a beceneved gyerekkorodban?"
             />
             <TextField
               margin="normal"
               fullWidth
-              label="Answer 3"
+              label="3. Válasz"
               value={formData.securityAnswer3}
               onChange={handleInputChange('securityAnswer3')}
             />
@@ -352,7 +352,7 @@ const Settings = () => {
                 variant="contained"
                 fullWidth
               >
-                Save Changes
+                Módosítások mentése
               </Button>
             </Box>
           </Box>

@@ -79,7 +79,7 @@ const News = () => {
     try {
       const token = localStorage.getItem('authToken');
       if (!token) {
-        throw new Error('No authentication token found');
+        throw new Error('Nem található hitelesítési token');
       }
 
       const response = await fetch('http://localhost:3000/api/news/posts', {
@@ -92,7 +92,7 @@ const News = () => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to fetch posts');
+        throw new Error(errorData.message || 'A hírek betöltése sikertelen');
       }
 
       const data = await response.json();
@@ -106,11 +106,11 @@ const News = () => {
           featured_image_originals: post.featured_image_originals || []
         })));
       } else {
-        throw new Error(data.message || 'Failed to fetch posts');
+        throw new Error(data.message || 'A hírek betöltése sikertelen');
       }
     } catch (error) {
       console.error('Error fetching posts:', error);
-      setError(error instanceof Error ? error.message : 'Failed to fetch posts');
+      setError(error instanceof Error ? error.message : 'A hírek betöltése sikertelen');
     } finally {
       setIsLoading(false);
     }
@@ -129,8 +129,8 @@ const News = () => {
     const invalidFiles = files.filter(file => !file.type.match(/^image\/(jpeg|jpg|png|gif|webp|svg\+xml)$/));
     if (invalidFiles.length > 0) {
       setError(
-        `Invalid file type(s): ${invalidFiles.map(f => f.name).join(', ')}. \n` +
-        'Only the following image formats are allowed: JPEG, JPG, PNG, GIF, WebP, SVG.'
+        `Érvénytelen fájltípus(ok): ${invalidFiles.map(f => f.name).join(', ')}. \n` +
+        'Csak a következő képformátumok engedélyezettek: JPEG, JPG, PNG, GIF, WebP, SVG.'
       );
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
@@ -155,7 +155,7 @@ const News = () => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to upload images');
+        throw new Error(errorData.message || 'A képek feltöltése sikertelen');
       }
 
       const data = await response.json();
@@ -166,12 +166,12 @@ const News = () => {
         }));
         
         setUploadedImages(prev => [...prev, ...newImages]);
-        setSuccess(`Successfully uploaded ${files.length} image${files.length > 1 ? 's' : ''}`);
+        setSuccess(`${files.length} kép sikeresen feltöltve`);
       }
     } catch (error) {
       console.error('Error uploading images:', error);
       setError(
-        'Failed to upload images. Please try again. ' + 
+        'A képek feltöltése sikertelen. Kérjük, próbáld újra. ' + 
         (error instanceof Error ? error.message : '')
       );
     } finally {
@@ -223,15 +223,15 @@ const News = () => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || `Failed to ${isEditing ? 'update' : 'create'} news post`);
+        throw new Error(errorData.message || `A hír ${isEditing ? 'frissítése' : 'létrehozása'} sikertelen`);
       }
 
-      setSuccess(`News post ${isEditing ? 'updated' : 'created'} successfully!`);
+      setSuccess(`A hír sikeresen ${isEditing ? 'frissítve' : 'létrehozva'}!`);
       resetForm();
       fetchPosts();
     } catch (error) {
       console.error(`Error ${editingPost ? 'updating' : 'creating'} news post:`, error);
-      setError(`Failed to ${editingPost ? 'update' : 'create'} news post. Please try again.`);
+      setError(`A hír ${editingPost ? 'frissítése' : 'létrehozása'} sikertelen. Kérjük, próbáld újra.`);
     } finally {
       setIsSubmitting(false);
     }
@@ -249,18 +249,18 @@ const News = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to delete post');
+        throw new Error('A hír törlése sikertelen');
       }
 
       const data = await response.json();
       if (data.success) {
         setPosts(posts.filter(post => post.id !== postId));
-        setSuccess('Post deleted successfully');
+        setSuccess('A hír sikeresen törölve');
         setDeleteConfirmPost(null);
       }
     } catch (error) {
       console.error('Error deleting post:', error);
-      setError('Failed to delete post');
+      setError('A hír törlése sikertelen');
     }
   };
 
@@ -276,12 +276,11 @@ const News = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to toggle publish status');
+        throw new Error('A publikálási státusz módosítása sikertelen');
       }
 
       const data = await response.json();
       if (data.success) {
-        // Update the post in the local state
         setPosts(posts.map(post => 
           post.id === postId 
             ? { ...post, is_published: !post.is_published }
@@ -291,7 +290,7 @@ const News = () => {
       }
     } catch (error) {
       console.error('Error toggling publish status:', error);
-      setError('Failed to toggle publish status');
+      setError('A publikálási státusz módosítása sikertelen');
     }
   };
 
@@ -345,8 +344,8 @@ const News = () => {
 
   // Update the Create Post button text
   const submitButtonText = isSubmitting 
-    ? (editingPost ? 'Updating...' : 'Creating...') 
-    : (editingPost ? 'Update Post' : 'Create Post');
+    ? (editingPost ? 'Frissítés folyamatban...' : 'Közzététel folyamatban...') 
+    : (editingPost ? 'Poszt frissítése' : 'Közzététel');
 
   const handleCloseError = () => {
     setError(null);
@@ -431,7 +430,7 @@ const News = () => {
               }
             }}
           >
-            Settings
+            Beállítások
           </Button>
           <Button
             onClick={handleLogout}
@@ -444,7 +443,7 @@ const News = () => {
               }
             }}
           >
-            Logout
+            Kijelentkezés
           </Button>
         </Toolbar>
       </AppBar>
@@ -452,17 +451,17 @@ const News = () => {
       <Container maxWidth="lg" sx={{ py: 4 }}>
         <Paper sx={{ p: 3 }}>
           <Typography variant="h5" gutterBottom>
-            Create News Post
+            Új poszt létrehozása
           </Typography>
           
           <Box sx={{ mt: 3 }}>
             <TextField
               fullWidth
-              label="Title"
+              label="Cím"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               sx={{ mb: 3 }}
-              placeholder="What's on your mind?"
+              placeholder="Mi jár a fejedben?"
             />
 
             <Box sx={{ 
@@ -482,7 +481,7 @@ const News = () => {
                 onChange={setContent}
                 modules={modules}
                 formats={formats}
-                placeholder="Write your post content here..."
+                placeholder="Írd ide a poszt tartalmát..."
                 style={{ height: 'auto' }}
               />
             </Box>
@@ -490,7 +489,7 @@ const News = () => {
             {uploadedImages.length > 0 && (
               <Box sx={{ mb: 3 }}>
                 <Typography variant="subtitle1" gutterBottom>
-                  Uploaded Images
+                  Feltöltött képek
                 </Typography>
                 <ImageList sx={{ width: '100%', maxHeight: 200 }} cols={4} rowHeight={100} gap={8}>
                   {uploadedImages.map((img, index) => (
@@ -561,18 +560,18 @@ const News = () => {
       <Container maxWidth="lg" sx={{ pb: 4 }}>
         <Paper sx={{ p: 3 }}>
           <Typography variant="h6" gutterBottom>
-            Filter Posts
+            Posztok szűrése
           </Typography>
           <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
             <TextField
-              label="Search in titles and content"
+              label="Cím és tartalom szerinti keresés"
               variant="outlined"
               size="small"
               fullWidth
               sx={{ flex: 1, minWidth: '200px' }}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Enter search terms..."
+              placeholder="Írd ide a keresési kifejezéseket..."
             />
             <Box sx={{ 
               display: 'flex', 
@@ -582,7 +581,7 @@ const News = () => {
               minWidth: '200px'
             }}>
               <DatePicker
-                label="From Date"
+                label="Dátum kezdete"
                 value={fromDate}
                 onChange={(newValue) => setFromDate(newValue)}
                 maxDate={toDate || undefined}
@@ -594,7 +593,7 @@ const News = () => {
                 }}
               />
               <DatePicker
-                label="To Date"
+                label="Dátum vége"
                 value={toDate}
                 onChange={(newValue) => setToDate(newValue)}
                 minDate={fromDate || undefined}
@@ -614,17 +613,17 @@ const News = () => {
       <Container maxWidth="lg" sx={{ pb: 4 }}>
         <Paper sx={{ p: 3 }}>
           <Typography variant="h5" gutterBottom>
-            Created Posts
+            Létrehozott posztok
           </Typography>
 
           {isLoading ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
-              <Typography>Loading posts...</Typography>
+              <Typography>Posztok betöltése...</Typography>
             </Box>
           ) : filteredPosts.length === 0 ? (
             <Box sx={{ p: 3, textAlign: 'center' }}>
               <Typography color="text.secondary">
-                No posts created yet. Create your first post above!
+                Még nincs létrehozva poszt. Kérlek hozd létre az elsőt fent!
               </Typography>
             </Box>
           ) : (
@@ -653,7 +652,7 @@ const News = () => {
                           sx={{ mr: 1 }}
                           onClick={() => handleTogglePublish(post.id)}
                         >
-                          {post.is_published ? "Published" : "Draft"}
+                          {post.is_published ? "Publikált" : "Piszkozat"}
                         </Button>
                         <Button
                           size="small"
@@ -662,7 +661,7 @@ const News = () => {
                           sx={{ mr: 1 }}
                           onClick={() => populateForm(post)}
                         >
-                          Edit
+                          Szerkesztés
                         </Button>
                         <Button
                           size="small"
@@ -670,7 +669,7 @@ const News = () => {
                           color="error"
                           onClick={() => setDeleteConfirmPost(post)}
                         >
-                          Delete
+                          Törlés
                         </Button>
                       </Box>
                     </Box>
@@ -722,7 +721,7 @@ const News = () => {
                     )}
 
                     <Typography variant="caption" color="text.secondary">
-                      Created {formatDistanceToNow(new Date(post.created_at))} ago
+                      Létrehozva {formatDistanceToNow(new Date(post.created_at))} ezelőtt
                     </Typography>
                   </Box>
                 </Paper>
@@ -736,20 +735,20 @@ const News = () => {
         open={!!deleteConfirmPost}
         onClose={() => setDeleteConfirmPost(null)}
       >
-        <DialogTitle>Confirm Delete</DialogTitle>
+        <DialogTitle>Biztosan törlöni szeretnéd a posztot?</DialogTitle>
         <DialogContent>
           <Typography>
-            Are you sure you want to delete the post "{deleteConfirmPost?.title}"? This action cannot be undone.
+            Biztosan törlöd a posztot "{deleteConfirmPost?.title}"? Ez az művelet nem visszafordítható.
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDeleteConfirmPost(null)}>Cancel</Button>
+          <Button onClick={() => setDeleteConfirmPost(null)}>Mégsem</Button>
           <Button 
             onClick={() => deleteConfirmPost && handleDelete(deleteConfirmPost.id)} 
             color="error" 
             variant="contained"
           >
-            Delete
+            Törlés
           </Button>
         </DialogActions>
       </Dialog>

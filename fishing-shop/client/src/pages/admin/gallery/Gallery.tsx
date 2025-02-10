@@ -18,7 +18,8 @@ import {
   Stack,
   InputAdornment,
   useTheme,
-  useMediaQuery
+  useMediaQuery,
+  LinearProgress
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
@@ -125,7 +126,7 @@ const Gallery = () => {
       }));
       setImages(imagesWithUrls);
     } catch (error) {
-      console.error('Failed to fetch images:', error);
+      console.error('Képek betöltése sikertelen:', error);
     }
   };
 
@@ -176,7 +177,6 @@ const Gallery = () => {
           };
           setImages(current => [...current, newImage]);
           
-          // Update upload status to completed but don't remove it
           setUploads(current =>
             current.map(u =>
               u.id === upload.id
@@ -186,14 +186,14 @@ const Gallery = () => {
           );
         }
       } catch (error: any) {
-        console.error('Upload failed:', error);
+        console.error('Feltöltés sikertelen:', error);
         setUploads(current =>
           current.map(u =>
             u.id === upload.id
               ? { 
                   ...u, 
                   status: 'failed', 
-                  error: error.response?.data?.message || 'Upload failed' 
+                  error: error.response?.data?.message || 'Feltöltés sikertelen. Kérjük, próbáld újra.' 
                 }
               : u
           )
@@ -217,7 +217,7 @@ const Gallery = () => {
         file: rejected.file,
         progress: 0,
         status: 'failed' as const,
-        error: 'Only image files (JPEG, JPG, JFIF, PNG, GIF, WebP, SVG) are allowed.'
+        error: 'Csak képfájlok (JPEG, JPG, JFIF, PNG, GIF, WebP, SVG) feltöltése engedélyezett.'
       }));
       setUploads(current => [...current, ...newUploads]);
     }
@@ -242,7 +242,7 @@ const Gallery = () => {
   const handleDelete = async () => {
     if (selectedImages.length === 0) return;
 
-    if (window.confirm(`Are you sure you want to delete ${selectedImages.length} image(s)?`)) {
+    if (window.confirm(`Biztosan törölni szeretnéd a kiválasztott ${selectedImages.length} képet?`)) {
       try {
         const token = localStorage.getItem('authToken');
         await axios.delete('http://localhost:3000/api/gallery/images', {
@@ -254,7 +254,7 @@ const Gallery = () => {
         setSelectedImages([]);
       } catch (error) {
         console.error('Failed to delete images:', error);
-        alert('Failed to delete images. Please try again.');
+        alert('A képek törlése sikertelen. Kérjük, próbáld újra.');
       }
     }
   };
@@ -298,8 +298,8 @@ const Gallery = () => {
 
       handleEditClose();
     } catch (error) {
-      console.error('Failed to update image description:', error);
-      alert('Failed to update image description. Please try again.');
+      console.error('Kép leírásának frissítése sikertelen:', error);
+      alert('A kép leírásának frissítése sikertelen. Kérjük, próbáld újra.');
     }
   };
 
@@ -365,7 +365,7 @@ const Gallery = () => {
               }
             }}
           >
-            Settings
+            Beállítások
           </Button>
           <Button
             onClick={handleLogout}
@@ -379,7 +379,7 @@ const Gallery = () => {
               }
             }}
           >
-            Logout
+            Kijelentkezés
           </Button>
         </Toolbar>
       </AppBar>
@@ -393,14 +393,14 @@ const Gallery = () => {
             color="primary"
             sx={{ fontSize: { xs: '1.75rem', sm: '2.5rem' } }}
           >
-            Gallery Management
+            Galéria kezelése
           </Typography>
           <Typography 
             variant="subtitle1" 
             color="text.secondary"
             sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}
           >
-            Upload, manage, and organize your gallery images
+            Képek feltöltése, kezelése és rendszerezése
           </Typography>
         </Box>
 
@@ -421,7 +421,7 @@ const Gallery = () => {
           >
             <input {...getInputProps()} />
             <Typography sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
-              {isDragActive ? 'Drop the images here' : 'Drag & drop images here, or click to select files'}
+              {isDragActive ? 'Húzd ide a képeket' : 'Húzd ide a képeket, vagy kattints a fájlok kiválasztásához'}
             </Typography>
           </Box>
 
@@ -434,7 +434,7 @@ const Gallery = () => {
             flexWrap: 'wrap' 
           }}>
             <TextField
-              placeholder="Search images..."
+              placeholder="Képek keresése..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               sx={{ 
@@ -456,7 +456,7 @@ const Gallery = () => {
                 sx={{ width: { xs: '100%', sm: 'auto' } }}
               >
                 <DatePicker
-                  label="From Date"
+                  label="Kezdő dátum"
                   value={dateRange.from}
                   onChange={(newValue) => setDateRange(prev => ({ ...prev, from: newValue }))}
                   slotProps={{ 
@@ -469,7 +469,7 @@ const Gallery = () => {
                   maxDate={dateRange.to || undefined}
                 />
                 <DatePicker
-                  label="To Date"
+                  label="Záró dátum"
                   value={dateRange.to}
                   onChange={(newValue) => setDateRange(prev => ({ ...prev, to: newValue }))}
                   slotProps={{ 
@@ -492,7 +492,7 @@ const Gallery = () => {
                 }}
                 sx={{ width: { xs: '100%', sm: 'auto' } }}
               >
-                Clear Filters
+                Szűrők törlése
               </Button>
             )}
           </Box>
@@ -518,7 +518,7 @@ const Gallery = () => {
                 borderColor: 'divider'
               }}
             >
-              Upload Log
+              Feltöltési napló
             </Typography>
             <Box 
               sx={{ 
@@ -571,21 +571,12 @@ const Gallery = () => {
                     }}
                   >
                     {upload.file.name} 
-                    {upload.status === 'uploading' && ` - ${upload.progress}%`}
-                    {upload.status === 'completed' && ' - Completed'}
-                    {upload.status === 'failed' && ' - Failed'}
+                    {upload.status === 'uploading' && ` - Feltöltés: ${upload.progress}%`}
+                    {upload.status === 'completed' && ' - Feltöltés sikeres'}
+                    {upload.status === 'failed' && ` - Feltöltés sikertelen: ${upload.error}`}
                   </Typography>
-                  {upload.error && (
-                    <Typography 
-                      variant="body2" 
-                      color="error"
-                      sx={{ 
-                        fontSize: { xs: '0.75rem', sm: '0.875rem' },
-                        flexShrink: 0
-                      }}
-                    >
-                      {upload.error}
-                    </Typography>
+                  {upload.status === 'uploading' && (
+                    <LinearProgress variant="determinate" value={upload.progress} />
                   )}
                 </Box>
               ))}
@@ -613,7 +604,7 @@ const Gallery = () => {
                   onChange={handleSelectAll}
                 />
                 <Typography variant="body2" sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
-                  Select All ({selectedImages.length} of {filteredImages.length} selected)
+                  {selectedImages.length === images.length ? 'Kijelölés törlése' : 'Összes kijelölése'}
                 </Typography>
               </Box>
               {selectedImages.length > 0 && (
@@ -624,7 +615,7 @@ const Gallery = () => {
                   onClick={handleDelete}
                   sx={{ width: { xs: '100%', sm: 'auto' } }}
                 >
-                  Delete Selected
+                  Kijelölt képek törlése
                 </Button>
               )}
             </Box>
@@ -746,8 +737,8 @@ const Gallery = () => {
               sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}
             >
               {images.length === 0 
-                ? 'No images uploaded yet. Start by dropping some images above.'
-                : 'No images match your search criteria.'}
+                ? 'Még nincsenek feltöltött képek. Kezdj el képeket feltölteni a fenti területre.'
+                : 'Nincs a keresési feltételeknek megfelelő kép.'}
             </Typography>
           )}
         </Paper>
@@ -760,12 +751,12 @@ const Gallery = () => {
           fullWidth
           fullScreen={isMobile}
         >
-          <DialogTitle>Edit Image Description</DialogTitle>
+          <DialogTitle>Kép leírás szerkesztése</DialogTitle>
           <DialogContent>
             <TextField
               autoFocus
               margin="dense"
-              label="Description"
+              label="Leírás"
               fullWidth
               multiline
               rows={4}
@@ -779,7 +770,7 @@ const Gallery = () => {
               color="error"
               fullWidth={isMobile}
             >
-              Clear
+              Leírás törlése
             </Button>
             <Box sx={{ flex: { xs: 0, sm: 1 } }} />
             <Stack 
@@ -791,7 +782,7 @@ const Gallery = () => {
                 onClick={handleEditClose}
                 fullWidth={isMobile}
               >
-                Cancel
+                Mégse
               </Button>
               <Button 
                 onClick={handleEditSave} 
@@ -799,7 +790,7 @@ const Gallery = () => {
                 color="primary"
                 fullWidth={isMobile}
               >
-                Save
+                Mentés
               </Button>
             </Stack>
           </DialogActions>

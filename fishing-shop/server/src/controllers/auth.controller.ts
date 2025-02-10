@@ -10,7 +10,7 @@ export const login = async (req: Request, res: Response) => {
     const { username, password }: LoginRequest = req.body;
 
     if (!username || !password) {
-      return res.status(400).json({ message: 'Username and password are required' });
+      return res.status(400).json({ message: 'Felhasználónév és jelszó megadása kötelező' });
     }
 
     const [users] = await pool.execute(
@@ -21,7 +21,7 @@ export const login = async (req: Request, res: Response) => {
     const user = (users as any[])[0];
 
     if (!user) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+      return res.status(401).json({ message: 'Érvénytelen bejelentkezési adatok' });
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password_hash);
@@ -36,7 +36,7 @@ export const login = async (req: Request, res: Response) => {
         [user.id]
       );
 
-      return res.status(401).json({ message: 'Invalid credentials' });
+      return res.status(401).json({ message: 'Érvénytelen bejelentkezési adatok' });
     }
 
     // Reset failed login attempts and update last login
@@ -67,7 +67,7 @@ export const login = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Belső szerverhiba' });
   }
 };
 
@@ -76,7 +76,7 @@ export const createInitialAdmin = async (req: Request, res: Response) => {
     const { username, password } = req.body;
 
     if (!username || !password) {
-      return res.status(400).json({ message: 'Username and password are required' });
+      return res.status(400).json({ message: 'Felhasználónév és jelszó megadása kötelező' });
     }
 
     // Check if admin already exists
@@ -85,7 +85,7 @@ export const createInitialAdmin = async (req: Request, res: Response) => {
     );
     
     if ((existingUsers as any[])[0].count > 0) {
-      return res.status(400).json({ message: 'Admin user already exists' });
+      return res.status(400).json({ message: 'Az admin felhasználó már létezik' });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -96,16 +96,16 @@ export const createInitialAdmin = async (req: Request, res: Response) => {
       [username, hashedPassword]
     );
 
-    res.status(201).json({ message: 'Admin user created successfully' });
+    res.status(201).json({ message: 'Admin felhasználó sikeresen létrehozva' });
   } catch (error) {
     console.error('Create admin error:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Belső szerverhiba' });
   }
 };
 
 export const verifyToken = async (req: Request, res: Response) => {
   // If we reach here, it means the token is valid (authenticateToken middleware passed)
-  res.json({ success: true, message: 'Token is valid' });
+  res.json({ success: true, message: 'A token érvényes' });
 };
 
 export const getSecurityQuestions = async (req: Request, res: Response) => {
@@ -119,7 +119,7 @@ export const getSecurityQuestions = async (req: Request, res: Response) => {
 
     const user = (users as any[])[0];
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: 'Felhasználó nem található' });
     }
 
     res.json({
@@ -129,7 +129,7 @@ export const getSecurityQuestions = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error('Error fetching security questions:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Belső szerverhiba' });
   }
 };
 
@@ -157,12 +157,12 @@ export const updateSettings = async (req: Request, res: Response) => {
 
     const user = (users as any[])[0];
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: 'Felhasználó nem található' });
     }
 
     const isPasswordValid = await bcrypt.compare(currentPassword, user.password_hash);
     if (!isPasswordValid) {
-      return res.status(401).json({ message: 'Current password is incorrect' });
+      return res.status(401).json({ message: 'A jelenlegi jelszó helytelen' });
     }
 
     // Build update query dynamically
@@ -176,7 +176,7 @@ export const updateSettings = async (req: Request, res: Response) => {
         [newUsername, userId]
       );
       if ((existingUsers as any[]).length > 0) {
-        return res.status(400).json({ message: 'Username is already taken' });
+        return res.status(400).json({ message: 'A felhasználónév már foglalt' });
       }
       updates.push('username = ?');
       values.push(newUsername);
@@ -189,7 +189,7 @@ export const updateSettings = async (req: Request, res: Response) => {
         [newEmail, userId]
       );
       if ((existingEmails as any[]).length > 0) {
-        return res.status(400).json({ message: 'Email is already taken' });
+        return res.status(400).json({ message: 'Az email cím már foglalt' });
       }
       updates.push('email = ?');
       values.push(newEmail);
@@ -221,7 +221,7 @@ export const updateSettings = async (req: Request, res: Response) => {
     }
 
     if (updates.length === 0) {
-      return res.status(400).json({ message: 'No updates provided' });
+      return res.status(400).json({ message: 'Nincs módosítandó adat' });
     }
 
     // Add user ID to values array
@@ -233,10 +233,10 @@ export const updateSettings = async (req: Request, res: Response) => {
       values
     );
 
-    res.json({ message: 'Settings updated successfully' });
+    res.json({ message: 'Beállítások sikeresen frissítve' });
   } catch (error) {
     console.error('Error updating settings:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Belső szerverhiba' });
   }
 };
 
@@ -245,7 +245,7 @@ export const getRecoveryQuestions = async (req: Request, res: Response) => {
     const { username, email } = req.body;
 
     if (!username && !email) {
-      return res.status(400).json({ message: 'Either username or email is required' });
+      return res.status(400).json({ message: 'Felhasználónév vagy email cím megadása kötelező' });
     }
 
     // Build query based on provided credentials
@@ -258,7 +258,7 @@ export const getRecoveryQuestions = async (req: Request, res: Response) => {
 
     const user = (users as any[])[0];
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: 'Felhasználó nem található' });
     }
 
     // Only return the questions, not the answers
@@ -278,7 +278,7 @@ export const verifySecurityAnswers = async (req: Request, res: Response) => {
     const { username, email, answers } = req.body;
 
     if ((!username && !email) || !answers || answers.length !== 3) {
-      return res.status(400).json({ message: 'Identification (username or email) and all answers are required' });
+      return res.status(400).json({ message: 'Azonosító (felhasználónév vagy email) és minden válasz megadása kötelező' });
     }
 
     // Build query based on provided credentials
@@ -291,7 +291,7 @@ export const verifySecurityAnswers = async (req: Request, res: Response) => {
 
     const user = (users as any[])[0];
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: 'Felhasználó nem található' });
     }
 
     // Verify all answers
@@ -300,12 +300,12 @@ export const verifySecurityAnswers = async (req: Request, res: Response) => {
     const isAnswer3Valid = await bcrypt.compare(answers[2], user.security_answer3);
 
     if (!isAnswer1Valid || !isAnswer2Valid || !isAnswer3Valid) {
-      return res.status(401).json({ message: 'Incorrect answers' });
+      return res.status(401).json({ message: 'Helytelen válasz(ok)' });
     }
 
     res.json({ 
-      message: 'Answers verified successfully',
-      username: user.username // Return username after successful verification
+      message: 'Válaszok sikeresen ellenőrizve',
+      username: user.username
     });
   } catch (error) {
     console.error('Error verifying security answers:', error);
@@ -318,7 +318,7 @@ export const resetPassword = async (req: Request, res: Response) => {
     const { username, newPassword, answers } = req.body;
 
     if (!username || !newPassword || !answers || answers.length !== 3) {
-      return res.status(400).json({ message: 'All fields are required' });
+      return res.status(400).json({ message: 'Minden mező kitöltése kötelező' });
     }
 
     // Verify answers again for security
@@ -329,7 +329,7 @@ export const resetPassword = async (req: Request, res: Response) => {
 
     const user = (users as any[])[0];
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: 'Felhasználó nem található' });
     }
 
     // Verify all answers
@@ -350,10 +350,10 @@ export const resetPassword = async (req: Request, res: Response) => {
       [hashedPassword, username]
     );
 
-    res.json({ message: 'Password reset successfully' });
+    res.json({ message: 'Jelszó sikeresen visszaállítva' });
   } catch (error) {
     console.error('Error resetting password:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Belső szerverhiba' });
   }
 };
 
@@ -368,7 +368,7 @@ export const getUserData = async (req: Request, res: Response) => {
 
     const user = (users as any[])[0];
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: 'Felhasználó nem található' });
     }
 
     res.json({

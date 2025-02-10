@@ -30,7 +30,7 @@ const SessionTimer = () => {
             } 
           }}
         >
-          Session expires in: {formatTimeLeft(timeLeft)}
+          Munkamenet lejár: {formatTimeLeft(timeLeft)}
         </Alert>
       ) : (
         <Typography 
@@ -42,7 +42,7 @@ const SessionTimer = () => {
             opacity: 0.9
           }}
         >
-          Session time: {formatTimeLeft(timeLeft)}
+          Munkamenet idő: {formatTimeLeft(timeLeft)}
         </Typography>
       )}
     </Box>

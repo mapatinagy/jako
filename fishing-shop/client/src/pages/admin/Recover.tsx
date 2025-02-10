@@ -38,7 +38,7 @@ const Recover = () => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  const steps = ['Verify Identity', 'Answer Security Questions', 'Reset Password'];
+  const steps = ['Identitás ellenőrzése', 'Biztonsági kérdések megválaszolása', 'Jelszó visszaállítás'];
 
   const handleIdentifierSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,7 +58,7 @@ const Recover = () => {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'User not found');
+        throw new Error(data.message || 'Felhasználó nem található');
       }
 
       setSecurityQuestions({
@@ -68,7 +68,7 @@ const Recover = () => {
       });
       setActiveStep(1);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to verify identity');
+      setError(err instanceof Error ? err.message : 'Identitás ellenőrzés sikertelen');
     }
   };
 
@@ -91,13 +91,13 @@ const Recover = () => {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Incorrect answers');
+        throw new Error(data.message || 'Hibás válaszok');
       }
 
       setRecoveredUsername(data.username);
       setActiveStep(2);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to verify answers');
+      setError(err instanceof Error ? err.message : 'Válaszok ellenőrzése sikertelen');
     }
   };
 
@@ -106,7 +106,7 @@ const Recover = () => {
     setError('');
 
     if (newPassword !== confirmPassword) {
-      setError('Passwords do not match');
+      setError('A jelszavak nem egyeznek');
       return;
     }
 
@@ -126,15 +126,15 @@ const Recover = () => {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Failed to reset password');
+        throw new Error(data.message || 'Jelszó visszaállítás sikertelen');
       }
 
       // Success! Redirect to login
       navigate('/admin/login', { 
-        state: { message: 'Password reset successful. Please log in with your new password.' }
+        state: { message: 'Jelszó visszaállítás sikeres. Kérlek, lépj be új jelszóval.' }
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to reset password');
+      setError(err instanceof Error ? err.message : 'Jelszó visszaállítás sikertelen');
     }
   };
 
@@ -143,7 +143,7 @@ const Recover = () => {
       <Box sx={{ mt: 8, mb: 4 }}>
         <Paper sx={{ p: 4 }}>
           <Typography variant="h4" component="h1" align="center" gutterBottom>
-            Account Recovery
+            Fiók helyreállítás
           </Typography>
 
           <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
@@ -163,22 +163,22 @@ const Recover = () => {
           {activeStep === 0 && (
             <Box component="form" onSubmit={handleIdentifierSubmit}>
               <Typography variant="body1" sx={{ mb: 2 }}>
-                Please enter your username or email to start the recovery process.
+                Kérlek, add meg a felhasználónevedet vagy email címedet a helyreállítás folytatásához.
               </Typography>
               <FormControl fullWidth sx={{ mb: 2 }}>
-                <InputLabel>Identify with</InputLabel>
+                <InputLabel>Identitás ellenőrzése</InputLabel>
                 <Select
                   value={identifierType}
-                  label="Identify with"
+                  label="Identitás ellenőrzése"
                   onChange={(e) => setIdentifierType(e.target.value)}
                 >
-                  <MenuItem value="username">Username</MenuItem>
+                  <MenuItem value="username">Felhasználónév</MenuItem>
                   <MenuItem value="email">Email</MenuItem>
                 </Select>
               </FormControl>
               <TextField
                 fullWidth
-                label={identifierType === 'username' ? 'Username' : 'Email'}
+                label={identifierType === 'username' ? 'Felhasználónév' : 'Email'}
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
                 type={identifierType === 'email' ? 'email' : 'text'}
@@ -190,7 +190,7 @@ const Recover = () => {
                 variant="contained"
                 fullWidth
               >
-                Continue
+                Folytatás
               </Button>
             </Box>
           )}
@@ -198,7 +198,7 @@ const Recover = () => {
           {activeStep === 1 && (
             <Box component="form" onSubmit={handleAnswersSubmit}>
               <Typography variant="body1" sx={{ mb: 2 }}>
-                Please answer your security questions.
+                Kérlek, válaszd ki a biztonsági kérdéseket és add meg a válaszait.
               </Typography>
               {securityQuestions.question1 && (
                 <TextField
@@ -235,7 +235,7 @@ const Recover = () => {
                 variant="contained"
                 fullWidth
               >
-                Verify Answers
+                Válaszok ellenőrzése
               </Button>
             </Box>
           )}
@@ -243,15 +243,15 @@ const Recover = () => {
           {activeStep === 2 && (
             <Box component="form" onSubmit={handlePasswordReset}>
               <Alert severity="info" sx={{ mb: 3 }}>
-                Your username is: <strong>{recoveredUsername}</strong>
+                A felhasználóneved: <strong>{recoveredUsername}</strong>
               </Alert>
               <Typography variant="body1" sx={{ mb: 2 }}>
-                Please enter your new password.
+                Kérlek, add meg az új jelszavad.
               </Typography>
               <TextField
                 fullWidth
                 type="password"
-                label="New Password"
+                label="Új jelszó"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 required
@@ -260,7 +260,7 @@ const Recover = () => {
               <TextField
                 fullWidth
                 type="password"
-                label="Confirm New Password"
+                label="Új jelszó megerősítése"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
@@ -271,7 +271,7 @@ const Recover = () => {
                 variant="contained"
                 fullWidth
               >
-                Reset Password
+                Jelszó visszaállítás
               </Button>
             </Box>
           )}
@@ -288,7 +288,7 @@ const Recover = () => {
                 }
               }}
             >
-              Back to Login
+              Vissza a belépéshez
             </Link>
           </Box>
         </Paper>

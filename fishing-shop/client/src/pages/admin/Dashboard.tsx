@@ -131,7 +131,7 @@ const Dashboard = () => {
               }
             }}
           >
-            Settings
+            Beállítások
           </Button>
           <Button
             onClick={handleLogout}
@@ -145,7 +145,7 @@ const Dashboard = () => {
               }
             }}
           >
-            Logout
+            Kijelentkezés
           </Button>
         </Toolbar>
       </AppBar>
@@ -154,10 +154,10 @@ const Dashboard = () => {
         {/* Welcome Section */}
         <Paper sx={{ p: 3, mb: 4 }}>
           <Typography variant="h4" gutterBottom color="primary">
-            Welcome to Admin Dashboard
+            Üdvözöllek az Admin irányítópulton!
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            Manage your gallery images and news posts from this central dashboard.
+            Kezeld a galériád képeit és a híreket ebből a központi irányítópultból.
           </Typography>
         </Paper>
 
@@ -169,7 +169,7 @@ const Dashboard = () => {
               <Typography variant="h4" color="primary">
                 {isLoading ? '...' : stats.totalImages}
               </Typography>
-              <Typography variant="body2" color="text.secondary">Total Images</Typography>
+              <Typography variant="body2" color="text.secondary">Összes feltöltött kép</Typography>
             </Paper>
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
@@ -178,7 +178,7 @@ const Dashboard = () => {
               <Typography variant="h4" color="primary">
                 {isLoading ? '...' : stats.newImages}
               </Typography>
-              <Typography variant="body2" color="text.secondary">New Images (Last 7 Days)</Typography>
+              <Typography variant="body2" color="text.secondary">Új képek (utolsó 7 nap)</Typography>
             </Paper>
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
@@ -187,7 +187,7 @@ const Dashboard = () => {
               <Typography variant="h4" color="primary">
                 {isLoading ? '...' : stats.totalNews}
               </Typography>
-              <Typography variant="body2" color="text.secondary">Total News</Typography>
+              <Typography variant="body2" color="text.secondary">Összes poszt</Typography>
             </Paper>
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
@@ -196,14 +196,14 @@ const Dashboard = () => {
               <Typography variant="h4" color="primary">
                 {isLoading ? '...' : stats.draftNews}
               </Typography>
-              <Typography variant="body2" color="text.secondary">Draft News</Typography>
+              <Typography variant="body2" color="text.secondary">Vázlatok száma</Typography>
             </Paper>
           </Grid>
         </Grid>
 
         {/* Quick Actions */}
         <Typography variant="h5" gutterBottom sx={{ mb: 3 }}>
-          Quick Actions
+          Gyorsgombok
         </Typography>
 
         <Grid container spacing={4}>
@@ -230,14 +230,14 @@ const Dashboard = () => {
             >
               <CollectionsIcon sx={{ fontSize: 80, mb: 2 }} />
               <Typography variant="h5" component="h2" align="center">
-                Gallery Management
+                Galéria kezelés
               </Typography>
               <Divider sx={{ my: 2, width: '60%', borderColor: 'rgba(255,255,255,0.2)' }} />
               <Typography variant="body1" align="center">
-                Upload, edit, and manage gallery images
+                Feltöltés, szerkesztés és galéria képek kezelése
               </Typography>
               <Typography variant="body2" sx={{ mt: 1, opacity: 0.8 }}>
-                {stats.totalImages} images in gallery
+                {stats.totalImages} kép a galériában
               </Typography>
             </Paper>
           </Grid>
@@ -265,14 +265,14 @@ const Dashboard = () => {
             >
               <ArticleIcon sx={{ fontSize: 80, mb: 2 }} />
               <Typography variant="h5" component="h2" align="center">
-                News Management
+                Újdonság-, posztkezelés
               </Typography>
               <Divider sx={{ my: 2, width: '60%', borderColor: 'rgba(255,255,255,0.2)' }} />
               <Typography variant="body1" align="center">
-                Create, edit, and publish news articles
+                Újdonság-, poszt létrehozása, szerkesztése és közzététele
               </Typography>
               <Typography variant="body2" sx={{ mt: 1, opacity: 0.8 }}>
-                {stats.draftNews} drafts pending
+                {stats.draftNews} vázlat függőben
               </Typography>
             </Paper>
           </Grid>

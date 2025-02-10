@@ -37,7 +37,7 @@ export const uploadImage = async (req: Request, res: Response) => {
       console.log(`[${new Date().toISOString()}] Upload rejected: ${originalname} - File already exists`);
       return res.status(400).json({
         success: false,
-        message: 'A file with this name already exists. Please rename the file before uploading.'
+        message: 'Ilyen nevű fájl már létezik. Kérjük, nevezd át a fájlt feltöltés előtt.'
       });
     }
 
