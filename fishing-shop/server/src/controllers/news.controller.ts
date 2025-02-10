@@ -266,7 +266,7 @@ export const togglePublishStatus = async (req: Request, res: Response) => {
 
     res.json({
       success: true,
-      message: `Post ${newStatus ? 'published' : 'unpublished'} successfully`,
+      message: `Poszt sikeresen ${newStatus ? 'publikálva' : 'visszavonva'} `,
       post: {
         ...(updatedPost as any[])[0],
         is_published: Boolean(newStatus)
@@ -274,6 +274,6 @@ export const togglePublishStatus = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error('Error toggling publish status:', error);
-    res.status(500).json({ success: false, message: 'Failed to toggle publish status' });
+    res.status(500).json({ success: false, message: 'Publikálás állapotának módosítása sikertelen' });
   }
 }; 

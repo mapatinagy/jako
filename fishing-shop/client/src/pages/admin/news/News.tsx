@@ -578,29 +578,31 @@ const News = () => {
               gap: 2, 
               flexWrap: 'wrap',
               flex: 1,
-              minWidth: '200px'
+              minWidth: { xs: '100%', sm: '200px' }
             }}>
               <DatePicker
-                label="Dátum kezdete"
+                label="Kezdő dátum"
                 value={fromDate}
                 onChange={(newValue) => setFromDate(newValue)}
                 maxDate={toDate || undefined}
                 slotProps={{
                   textField: {
                     size: 'small',
-                    fullWidth: true
+                    fullWidth: true,
+                    sx: { minWidth: { xs: '100%', sm: 'auto' } }
                   }
                 }}
               />
               <DatePicker
-                label="Dátum vége"
+                label="Záró dátum"
                 value={toDate}
                 onChange={(newValue) => setToDate(newValue)}
                 minDate={fromDate || undefined}
                 slotProps={{
                   textField: {
                     size: 'small',
-                    fullWidth: true
+                    fullWidth: true,
+                    sx: { minWidth: { xs: '100%', sm: 'auto' } }
                   }
                 }}
               />
@@ -633,7 +635,7 @@ const News = () => {
                   key={post.id} 
                   elevation={2}
                   sx={{ 
-                    p: 2,
+                    p: { xs: 1.5, sm: 2 },
                     transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
                     '&:hover': {
                       transform: 'translateY(-2px)',
@@ -642,14 +644,27 @@ const News = () => {
                   }}
                 >
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                      <Typography variant="h6">{post.title}</Typography>
-                      <Box>
+                    <Box sx={{ 
+                      display: 'flex', 
+                      flexDirection: { xs: 'column-reverse', sm: 'row' },
+                      gap: { xs: 1, sm: 0 },
+                      justifyContent: 'space-between', 
+                      alignItems: { xs: 'flex-start', sm: 'center' }, 
+                      mb: 1 
+                    }}>
+                      <Typography variant="h6" sx={{ fontSize: { xs: '1.1rem', sm: '1.25rem' } }}>
+                        {post.title}
+                      </Typography>
+                      <Box sx={{ 
+                        display: 'flex', 
+                        flexWrap: 'wrap',
+                        gap: 1,
+                        width: { xs: '100%', sm: 'auto' }
+                      }}>
                         <Button
                           size="small"
                           variant={post.is_published ? "contained" : "outlined"}
                           color={post.is_published ? "success" : "primary"}
-                          sx={{ mr: 1 }}
                           onClick={() => handleTogglePublish(post.id)}
                         >
                           {post.is_published ? "Publikált" : "Piszkozat"}
@@ -658,7 +673,6 @@ const News = () => {
                           size="small"
                           variant="outlined"
                           color="primary"
-                          sx={{ mr: 1 }}
                           onClick={() => populateForm(post)}
                         >
                           Szerkesztés
@@ -687,7 +701,7 @@ const News = () => {
                           sx={{ 
                             display: 'flex',
                             flexWrap: 'wrap',
-                            gap: 2,
+                            gap: 1,
                             m: 0
                           }} 
                           cols={3} 
@@ -697,9 +711,9 @@ const News = () => {
                             <ImageListItem 
                               key={index}
                               sx={{
-                                width: '200px !important',
-                                height: '200px !important',
-                                flexGrow: 0,
+                                width: { xs: 'calc(50% - 4px) !important', sm: '200px !important' },
+                                height: { xs: '150px !important', sm: '200px !important' },
+                                flexGrow: { xs: 0, sm: 0 },
                                 flexShrink: 0
                               }}
                             >
