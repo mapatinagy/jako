@@ -98,11 +98,11 @@ const News = () => {
         })));
       } else {
         console.error('Unexpected API response structure:', response);
-        setError('Invalid response format from server');
+        setError('Failed to load posts');
       }
     } catch (err) {
       console.error('Error fetching posts:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load posts');
+      setError('Failed to load posts');
     }
   };
 
