@@ -19,6 +19,13 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Grid,
+  Card,
+  CardMedia,
+  CardContent,
+  CardActions,
+  Switch,
+  FormControlLabel
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import ReactQuill from 'react-quill';
@@ -29,41 +36,43 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import ImageIcon from '@mui/icons-material/Image';
 import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
 import SessionTimer from '../../../components/session/SessionTimer';
 import { setupActivityTracking, cleanupActivityTracking } from '../../../utils/session';
 import { formatDistanceToNow } from 'date-fns';
 import { DatePicker } from '@mui/x-date-pickers';
 import SettingsIcon from '@mui/icons-material/Settings';
+import { api, getUploadUrl } from '../../../utils/api';
 
 interface UploadedImage {
   url: string;
   index: number;
 }
 
-interface NewsPost {
+interface Post {
   id: number;
   title: string;
   content: string;
+  image: string;
+  isPublished: boolean;
   created_at: string;
-  is_published: boolean;
-  featured_image: string | null;
-  featured_image_originals?: string[];
 }
 
 const News = () => {
   const navigate = useNavigate();
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
-  const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const quillRef = useRef<ReactQuill>(null);
-  const [posts, setPosts] = useState<NewsPost[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [editingPost, setEditingPost] = useState<NewsPost | null>(null);
-  const [deleteConfirmPost, setDeleteConfirmPost] = useState<NewsPost | null>(null);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editContent, setEditContent] = useState('');
+  const [editIsPublished, setEditIsPublished] = useState(true);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [newTitle, setNewTitle] = useState('');
+  const [newContent, setNewContent] = useState('');
+  const [newIsPublished, setNewIsPublished] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [fromDate, setFromDate] = useState<Date | null>(null);
   const [toDate, setToDate] = useState<Date | null>(null);
@@ -75,285 +84,133 @@ const News = () => {
   }, []);
 
   const fetchPosts = async () => {
-    setIsLoading(true);
     try {
-      const token = localStorage.getItem('authToken');
-      if (!token) {
-        throw new Error('No authentication token found');
-      }
-
-      const response = await fetch('http://localhost:3000/api/news/posts', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to fetch posts');
-      }
-
-      const data = await response.json();
-      if (data.success) {
-        setPosts(data.posts.map((post: any) => ({
-          ...post,
-          featured_image: post.featured_image ? 
-            post.featured_image.map((url: string) => 
-              url.startsWith('http') ? url : `http://localhost:3000${url}`
-            ) : null,
-          featured_image_originals: post.featured_image_originals || []
+      const response = await api.getPosts();
+      console.log('API Response:', response);
+      if (response.success && Array.isArray(response.posts)) {
+        setPosts(response.posts.map(post => ({
+          id: post.id,
+          title: post.title,
+          content: post.content,
+          image: post.featured_image,
+          isPublished: Boolean(post.is_published),
+          created_at: post.created_at
         })));
       } else {
-        throw new Error(data.message || 'Failed to fetch posts');
+        console.error('Unexpected API response structure:', response);
+        setError('Invalid response format from server');
       }
-    } catch (error) {
-      console.error('Error fetching posts:', error);
-      setError(error instanceof Error ? error.message : 'Failed to fetch posts');
-    } finally {
-      setIsLoading(false);
+    } catch (err) {
+      console.error('Error fetching posts:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load posts');
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('authToken');
-    navigate('/admin/login');
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files[0]) {
+      setSelectedFile(event.target.files[0]);
+    }
   };
 
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files || []);
-    if (files.length === 0) return;
-
-    // Validate file types
-    const invalidFiles = files.filter(file => !file.type.match(/^image\/(jpeg|jpg|png|gif|webp|svg\+xml)$/));
-    if (invalidFiles.length > 0) {
-      setError(
-        `Invalid file type(s): ${invalidFiles.map(f => f.name).join(', ')}. \n` +
-        'Only the following image formats are allowed: JPEG, JPG, PNG, GIF, WebP, SVG.'
-      );
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
+  const handleUpload = async () => {
+    if (!selectedFile) {
+      setError('Please select a file to upload');
       return;
     }
 
-    const token = localStorage.getItem('authToken');
-    const formData = new FormData();
-    files.forEach(file => {
-      formData.append('images', file);
-    });
+    try {
+      const formData = new FormData();
+      formData.append('image', selectedFile);
+
+      const response = await api.uploadNewsImage(formData);
+      setSuccess('Image uploaded successfully');
+      setSelectedFile(null);
+      return response.data.filename;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to upload image');
+      return null;
+    }
+  };
+
+  const handleEdit = (post: Post) => {
+    setSelectedPost(post);
+    setEditTitle(post.title);
+    setEditContent(post.content);
+    setEditIsPublished(post.isPublished);
+    setEditDialogOpen(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!selectedPost) return;
 
     try {
-      const response = await fetch('http://localhost:3000/api/news/upload-image', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
-        body: formData
+      let imageFilename = null;
+      if (selectedFile) {
+        imageFilename = await handleUpload();
+        if (!imageFilename) return;
+      }
+
+      await api.updatePost(selectedPost.id, {
+        title: editTitle,
+        content: editContent,
+        isPublished: editIsPublished,
+        image: imageFilename || selectedPost.image
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to upload images');
-      }
-
-      const data = await response.json();
-      if (data.success) {
-        const newImages = data.images.map((image: { url: string }, idx: number) => ({
-          url: `http://localhost:3000${image.url}`,
-          index: uploadedImages.length + idx
-        }));
-        
-        setUploadedImages(prev => [...prev, ...newImages]);
-        setSuccess(`Successfully uploaded ${files.length} image${files.length > 1 ? 's' : ''}`);
-      }
-    } catch (error) {
-      console.error('Error uploading images:', error);
-      setError(
-        'Failed to upload images. Please try again. ' + 
-        (error instanceof Error ? error.message : '')
-      );
-    } finally {
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-    }
-  };
-
-  const handleRemoveImage = (imageToRemove: UploadedImage) => {
-    setUploadedImages(prev => prev.filter(img => img.url !== imageToRemove.url));
-  };
-
-  const handleSubmit = async () => {
-    if (!title.trim() || !content.trim()) {
-      return;
-    }
-
-    setIsSubmitting(true);
-    setError(null);
-    setSuccess(null);
-
-    try {
-      const token = localStorage.getItem('authToken');
-      const isEditing = !!editingPost;
-      
-      // Remove duplicate URLs and format the image URLs as a JSON string
-      const uniqueUrls = Array.from(new Set(
-        uploadedImages.map(img => img.url.replace('http://localhost:3000', ''))
-      ));
-      const imageUrls = uniqueUrls.length > 0 ? JSON.stringify(uniqueUrls) : null;
-
-      const response = await fetch(
-        `http://localhost:3000/api/news/posts${isEditing ? `/${editingPost.id}` : ''}`, 
-        {
-          method: isEditing ? 'PATCH' : 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({
-            title: title.trim(),
-            content: content.trim(),
-            is_published: isEditing ? editingPost.is_published : false,
-            featured_image: imageUrls
-          })
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || `Failed to ${isEditing ? 'update' : 'create'} news post`);
-      }
-
-      setSuccess(`News post ${isEditing ? 'updated' : 'created'} successfully!`);
-      resetForm();
+      setSuccess('Post updated successfully');
+      setEditDialogOpen(false);
+      setSelectedFile(null);
       fetchPosts();
-    } catch (error) {
-      console.error(`Error ${editingPost ? 'updating' : 'creating'} news post:`, error);
-      setError(`Failed to ${editingPost ? 'update' : 'create'} news post. Please try again.`);
-    } finally {
-      setIsSubmitting(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update post');
+    }
+  };
+
+  const handleCreate = async () => {
+    try {
+      let imageFilename = null;
+      if (selectedFile) {
+        imageFilename = await handleUpload();
+        if (!imageFilename) return;
+      }
+
+      await api.createPost({
+        title: newTitle,
+        content: newContent,
+        isPublished: newIsPublished,
+        image: imageFilename
+      });
+
+      setSuccess('Post created successfully');
+      setCreateDialogOpen(false);
+      setNewTitle('');
+      setNewContent('');
+      setNewIsPublished(true);
+      setSelectedFile(null);
+      fetchPosts();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create post');
     }
   };
 
   const handleDelete = async (postId: number) => {
     try {
-      const token = localStorage.getItem('authToken');
-      const response = await fetch(`http://localhost:3000/api/news/posts/${postId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete post');
-      }
-
-      const data = await response.json();
-      if (data.success) {
-        setPosts(posts.filter(post => post.id !== postId));
-        setSuccess('Post deleted successfully');
-        setDeleteConfirmPost(null);
-      }
-    } catch (error) {
-      console.error('Error deleting post:', error);
-      setError('Failed to delete post');
+      await api.deletePost(postId);
+      setSuccess('Post deleted successfully');
+      fetchPosts();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete post');
     }
   };
 
   const handleTogglePublish = async (postId: number) => {
     try {
-      const token = localStorage.getItem('authToken');
-      const response = await fetch(`http://localhost:3000/api/news/posts/${postId}/toggle-publish`, {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to toggle publish status');
-      }
-
-      const data = await response.json();
-      if (data.success) {
-        // Update the post in the local state
-        setPosts(posts.map(post => 
-          post.id === postId 
-            ? { ...post, is_published: !post.is_published }
-            : post
-        ));
-        setSuccess(data.message);
-      }
-    } catch (error) {
-      console.error('Error toggling publish status:', error);
-      setError('Failed to toggle publish status');
+      await api.togglePostPublish(postId);
+      setSuccess('Post status updated successfully');
+      fetchPosts();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update post status');
     }
-  };
-
-  const modules = {
-    toolbar: [
-      [{ 'header': [1, 2, false] }],
-      ['bold', 'italic', 'underline'],
-      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-      ['link'],
-      ['emoji'],
-      ['clean']
-    ],
-    'emoji-toolbar': {
-      buttonIcon: '😀'
-    },
-    'emoji-shortname': true,
-    'emoji-textarea': false
-  };
-
-  const formats = [
-    'header',
-    'bold', 'italic', 'underline',
-    'list', 'bullet',
-    'link', 'image',
-    'emoji'
-  ];
-
-  // Reset form function
-  const resetForm = () => {
-    setTitle('');
-    setContent('');
-    setUploadedImages([]);
-    setEditingPost(null);
-  };
-
-  // Function to populate form with post data
-  const populateForm = (post: NewsPost) => {
-    setTitle(post.title);
-    setContent(post.content);
-    if (post.featured_image && Array.isArray(post.featured_image)) {
-      setUploadedImages(post.featured_image.map((url, index) => ({
-        url,
-        index,
-      })));
-    } else {
-      setUploadedImages([]);
-    }
-    setEditingPost(post);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  // Update the Create Post button text
-  const submitButtonText = isSubmitting 
-    ? (editingPost ? 'Updating...' : 'Creating...') 
-    : (editingPost ? 'Update Post' : 'Create Post');
-
-  const handleCloseError = () => {
-    setError(null);
-  };
-
-  const handleCloseSuccess = () => {
-    setSuccess(null);
   };
 
   const filteredPosts = posts.filter(post => {
@@ -384,10 +241,9 @@ const News = () => {
       <Snackbar
         open={!!error}
         autoHideDuration={6000}
-        onClose={handleCloseError}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        onClose={() => setError('')}
       >
-        <Alert onClose={handleCloseError} severity="error" sx={{ width: '100%' }}>
+        <Alert onClose={() => setError('')} severity="error" sx={{ width: '100%' }}>
           {error}
         </Alert>
       </Snackbar>
@@ -395,10 +251,9 @@ const News = () => {
       <Snackbar
         open={!!success}
         autoHideDuration={6000}
-        onClose={handleCloseSuccess}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        onClose={() => setSuccess('')}
       >
-        <Alert onClose={handleCloseSuccess} severity="success" sx={{ width: '100%' }}>
+        <Alert onClose={() => setSuccess('')} severity="success" sx={{ width: '100%' }}>
           {success}
         </Alert>
       </Snackbar>
@@ -434,7 +289,7 @@ const News = () => {
             Settings
           </Button>
           <Button
-            onClick={handleLogout}
+            onClick={() => navigate('/admin/login')}
             startIcon={<LogoutIcon />}
             sx={{
               ml: 2,
@@ -459,8 +314,8 @@ const News = () => {
             <TextField
               fullWidth
               label="Title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              value={newTitle}
+              onChange={(e) => setNewTitle(e.target.value)}
               sx={{ mb: 3 }}
               placeholder="What's on your mind?"
             />
@@ -476,64 +331,21 @@ const News = () => {
               }
             }}>
               <ReactQuill
-                ref={quillRef}
-                theme="snow"
-                value={content}
-                onChange={setContent}
-                modules={modules}
-                formats={formats}
-                placeholder="Write your post content here..."
+                value={newContent}
+                onChange={setNewContent}
                 style={{ height: 'auto' }}
               />
             </Box>
 
-            {uploadedImages.length > 0 && (
-              <Box sx={{ mb: 3 }}>
-                <Typography variant="subtitle1" gutterBottom>
-                  Uploaded Images
-                </Typography>
-                <ImageList sx={{ width: '100%', maxHeight: 200 }} cols={4} rowHeight={100} gap={8}>
-                  {uploadedImages.map((img, index) => (
-                    <ImageListItem key={index} sx={{ position: 'relative' }}>
-                      <img
-                        src={img.url}
-                        alt={`Uploaded ${index + 1}`}
-                        loading="lazy"
-                        style={{ height: '100px', width: '100%', objectFit: 'cover', borderRadius: '4px' }}
-                      />
-                      <MuiIconButton
-                        sx={{
-                          position: 'absolute',
-                          top: 4,
-                          right: 4,
-                          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                          color: 'white',
-                          '&:hover': {
-                            backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                          },
-                          padding: '4px',
-                        }}
-                        onClick={() => handleRemoveImage(img)}
-                      >
-                        <DeleteIcon sx={{ fontSize: '1.2rem' }} />
-                      </MuiIconButton>
-                    </ImageListItem>
-                  ))}
-                </ImageList>
-              </Box>
-            )}
-
             <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
               <input
                 type="file"
-                multiple
-                accept="image/jpeg,image/jpg,image/jfif,image/png,image/gif,image/webp,image/svg+xml"
-                onChange={handleImageUpload}
+                accept="image/*"
+                onChange={handleFileChange}
                 style={{ display: 'none' }}
-                ref={fileInputRef}
               />
               <IconButton 
-                onClick={() => fileInputRef.current?.click()}
+                onClick={() => document.getElementById('create-image-upload')?.click()}
                 sx={{ 
                   bgcolor: 'primary.main',
                   color: 'white',
@@ -547,10 +359,10 @@ const News = () => {
               <Box sx={{ flex: 1 }} />
               <Button
                 variant="contained"
-                onClick={handleSubmit}
-                disabled={isSubmitting || !title.trim() || !content.trim()}
+                onClick={handleCreate}
+                disabled={!newTitle.trim() || !newContent.trim()}
               >
-                {submitButtonText}
+                Create Post
               </Button>
             </Box>
           </Box>
@@ -617,11 +429,7 @@ const News = () => {
             Created Posts
           </Typography>
 
-          {isLoading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
-              <Typography>Loading posts...</Typography>
-            </Box>
-          ) : filteredPosts.length === 0 ? (
+          {filteredPosts.length === 0 ? (
             <Box sx={{ p: 3, textAlign: 'center' }}>
               <Typography color="text.secondary">
                 No posts created yet. Create your first post above!
@@ -648,19 +456,19 @@ const News = () => {
                       <Box>
                         <Button
                           size="small"
-                          variant={post.is_published ? "contained" : "outlined"}
-                          color={post.is_published ? "success" : "primary"}
+                          variant={post.isPublished ? "contained" : "outlined"}
+                          color={post.isPublished ? "success" : "primary"}
                           sx={{ mr: 1 }}
                           onClick={() => handleTogglePublish(post.id)}
                         >
-                          {post.is_published ? "Published" : "Draft"}
+                          {post.isPublished ? "Published" : "Draft"}
                         </Button>
                         <Button
                           size="small"
                           variant="outlined"
                           color="primary"
                           sx={{ mr: 1 }}
-                          onClick={() => populateForm(post)}
+                          onClick={() => handleEdit(post)}
                         >
                           Edit
                         </Button>
@@ -668,7 +476,7 @@ const News = () => {
                           size="small"
                           variant="outlined"
                           color="error"
-                          onClick={() => setDeleteConfirmPost(post)}
+                          onClick={() => handleDelete(post.id)}
                         >
                           Delete
                         </Button>
@@ -682,42 +490,13 @@ const News = () => {
                       dangerouslySetInnerHTML={{ __html: post.content }}
                     />
 
-                    {post.featured_image && Array.isArray(post.featured_image) && post.featured_image.length > 0 && (
+                    {post.image && (
                       <Box sx={{ mb: 2 }}>
-                        <ImageList 
-                          sx={{ 
-                            display: 'flex',
-                            flexWrap: 'wrap',
-                            gap: 2,
-                            m: 0
-                          }} 
-                          cols={3} 
-                          rowHeight={200}
-                        >
-                          {post.featured_image.map((image: string, index: number) => (
-                            <ImageListItem 
-                              key={index}
-                              sx={{
-                                width: '200px !important',
-                                height: '200px !important',
-                                flexGrow: 0,
-                                flexShrink: 0
-                              }}
-                            >
-                              <img
-                                src={image}
-                                alt={`${post.title} - Image ${index + 1}`}
-                                loading="lazy"
-                                style={{ 
-                                  height: '100%',
-                                  width: '100%',
-                                  objectFit: 'cover',
-                                  borderRadius: '4px'
-                                }}
-                              />
-                            </ImageListItem>
-                          ))}
-                        </ImageList>
+                        <img
+                          src={getUploadUrl(post.image)}
+                          alt={post.title}
+                          style={{ width: '100%', height: '200px', objectFit: 'cover', borderRadius: '4px' }}
+                        />
                       </Box>
                     )}
 
@@ -732,24 +511,65 @@ const News = () => {
         </Paper>
       </Container>
 
+      {/* Edit Dialog */}
       <Dialog
-        open={!!deleteConfirmPost}
-        onClose={() => setDeleteConfirmPost(null)}
+        open={editDialogOpen}
+        onClose={() => setEditDialogOpen(false)}
+        maxWidth="md"
+        fullWidth
       >
-        <DialogTitle>Confirm Delete</DialogTitle>
+        <DialogTitle>Edit Post</DialogTitle>
         <DialogContent>
-          <Typography>
-            Are you sure you want to delete the post "{deleteConfirmPost?.title}"? This action cannot be undone.
-          </Typography>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Title"
+            fullWidth
+            value={editTitle}
+            onChange={(e) => setEditTitle(e.target.value)}
+          />
+          <Box sx={{ mt: 2, mb: 2 }}>
+            <Typography variant="subtitle1" gutterBottom>
+              Content
+            </Typography>
+            <ReactQuill
+              value={editContent}
+              onChange={setEditContent}
+              style={{ height: '300px', marginBottom: '50px' }}
+            />
+          </Box>
+          <input
+            accept="image/*"
+            style={{ display: 'none' }}
+            id="edit-image-upload"
+            type="file"
+            onChange={handleFileChange}
+          />
+          <label htmlFor="edit-image-upload">
+            <Button variant="contained" component="span">
+              {selectedPost?.image ? 'Change Image' : 'Add Image'}
+            </Button>
+          </label>
+          {selectedFile && (
+            <Typography variant="body2" sx={{ mt: 1 }}>
+              Selected file: {selectedFile.name}
+            </Typography>
+          )}
+          <FormControlLabel
+            control={
+              <Switch
+                checked={editIsPublished}
+                onChange={(e) => setEditIsPublished(e.target.checked)}
+              />
+            }
+            label={editIsPublished ? 'Published' : 'Draft'}
+            sx={{ mt: 2 }}
+          />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDeleteConfirmPost(null)}>Cancel</Button>
-          <Button 
-            onClick={() => deleteConfirmPost && handleDelete(deleteConfirmPost.id)} 
-            color="error" 
-            variant="contained"
-          >
-            Delete
+          <Button onClick={() => setEditDialogOpen(false)}>Cancel</Button>
+          <Button onClick={handleSaveEdit} variant="contained">
+            Save
           </Button>
         </DialogActions>
       </Dialog>

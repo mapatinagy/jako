@@ -17,6 +17,7 @@ import {
   MenuItem
 } from '@mui/material';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { api } from '../../utils/api';
 
 const Recover = () => {
   const navigate = useNavigate();
@@ -45,26 +46,14 @@ const Recover = () => {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:3000/api/auth/get-recovery-questions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          [identifierType]: identifier
-        })
+      const response = await api.getRecoveryQuestions({
+        [identifierType]: identifier
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'User not found');
-      }
-
       setSecurityQuestions({
-        question1: data.securityQuestion1,
-        question2: data.securityQuestion2,
-        question3: data.securityQuestion3
+        question1: response.securityQuestion1,
+        question2: response.securityQuestion2,
+        question3: response.securityQuestion3
       });
       setActiveStep(1);
     } catch (err) {
@@ -77,24 +66,12 @@ const Recover = () => {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:3000/api/auth/verify-security-answers', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          [identifierType]: identifier,
-          answers: [answers.answer1, answers.answer2, answers.answer3]
-        })
+      const response = await api.verifySecurityAnswers({
+        [identifierType]: identifier,
+        answers: [answers.answer1, answers.answer2, answers.answer3]
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Incorrect answers');
-      }
-
-      setRecoveredUsername(data.username);
+      setRecoveredUsername(response.username);
       setActiveStep(2);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to verify answers');
@@ -111,23 +88,11 @@ const Recover = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:3000/api/auth/reset-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          username: recoveredUsername,
-          newPassword,
-          answers: [answers.answer1, answers.answer2, answers.answer3]
-        })
+      await api.resetPassword({
+        username: recoveredUsername,
+        newPassword,
+        answers: [answers.answer1, answers.answer2, answers.answer3]
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to reset password');
-      }
 
       // Success! Redirect to login
       navigate('/admin/login', { 
