@@ -18,13 +18,7 @@ import {
   Stack,
   InputAdornment,
   useTheme,
-  useMediaQuery,
-  Card,
-  CardMedia,
-  CardContent,
-  CardActions,
-  Alert,
-  FormControlLabel
+  useMediaQuery
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
@@ -40,30 +34,22 @@ import SessionTimer from '../../../components/session/SessionTimer';
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { setupActivityTracking, cleanupActivityTracking } from '../../../utils/session';
-import { api, getUploadUrl } from '../../../utils/api';
-
-interface Image {
-  id: number;
-  filename: string;
-  title: string;
-  description: string;
-  isVisible: boolean;
-  created_at: string;
-}
 
 const Gallery = () => {
   const navigate = useNavigate();
-  const [images, setImages] = useState<Image[]>([]);
-  const [filteredImages, setFilteredImages] = useState<Image[]>([]);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<Image | null>(null);
-  const [editTitle, setEditTitle] = useState('');
-  const [editDescription, setEditDescription] = useState('');
-  const [editIsVisible, setEditIsVisible] = useState(true);
+  const [images, setImages] = useState<GalleryImage[]>([]);
+  const [filteredImages, setFilteredImages] = useState<GalleryImage[]>([]);
+  const [uploads, setUploads] = useState<UploadStatus[]>([]);
   const [selectedImages, setSelectedImages] = useState<number[]>([]);
+  const [editDialog, setEditDialog] = useState<{
+    open: boolean;
+    imageId: number | null;
+    description: string;
+  }>({
+    open: false,
+    imageId: null,
+    description: ''
+  });
   const [searchQuery, setSearchQuery] = useState('');
   const [dateRange, setDateRange] = useState<{
     from: Date | null;
@@ -79,8 +65,11 @@ const Gallery = () => {
 
   useEffect(() => {
     setupActivityTracking();
-    fetchImages();
     return () => cleanupActivityTracking();
+  }, []);
+
+  useEffect(() => {
+    fetchImages();
   }, []);
 
   useEffect(() => {
@@ -91,7 +80,7 @@ const Gallery = () => {
     if (searchQuery.trim()) {
       const query = searchQuery.trim().toLowerCase();
       filtered = filtered.filter(image => 
-        (image.title || '').toLowerCase().includes(query) ||
+        (image.original_filename || '').toLowerCase().includes(query) ||
         (image.description || '').toLowerCase().includes(query)
       );
     }
@@ -125,100 +114,198 @@ const Gallery = () => {
 
   const fetchImages = async () => {
     try {
-      const response = await api.getImages();
-      console.log('API Response:', response);
-      if (response.success && Array.isArray(response.images)) {
-        setImages(response.images.map(img => ({
-          id: img.id,
-          filename: img.filename,
-          title: img.original_filename,
-          description: img.description || '',
-          isVisible: true, // Default to true since there's no visibility field in the response
-          created_at: img.created_at
-        })));
-      } else {
-        console.error('Unexpected API response structure:', response);
-        setError('Invalid response format from server');
-      }
-    } catch (err) {
-      console.error('Error fetching images:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load images');
-    }
-  };
-
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files && event.target.files[0]) {
-      setSelectedFile(event.target.files[0]);
-    }
-  };
-
-  const handleUpload = async () => {
-    if (!selectedFile) {
-      setError('Please select a file to upload');
-      return;
-    }
-
-    try {
-      const formData = new FormData();
-      formData.append('image', selectedFile);
-
-      await api.uploadImage(formData);
-      setSuccess('Image uploaded successfully');
-      setSelectedFile(null);
-      fetchImages();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to upload image');
-    }
-  };
-
-  const handleEdit = (image: Image) => {
-    setSelectedImage(image);
-    setEditTitle(image.title);
-    setEditDescription(image.description);
-    setEditIsVisible(image.isVisible);
-    setEditDialogOpen(true);
-  };
-
-  const handleSaveEdit = async () => {
-    if (!selectedImage) return;
-
-    try {
-      await api.updateImage(selectedImage.id, {
-        title: editTitle,
-        description: editDescription,
-        isVisible: editIsVisible
+      const token = localStorage.getItem('authToken');
+      const response = await axios.get('http://localhost:3000/api/gallery/images', {
+        headers: { Authorization: `Bearer ${token}` }
       });
-
-      setSuccess('Image updated successfully');
-      setEditDialogOpen(false);
-      fetchImages();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update image');
+      
+      const imagesWithUrls = response.data.images.map((img: GalleryImage) => ({
+        ...img,
+        url: `http://localhost:3000/uploads/${img.filename}`
+      }));
+      setImages(imagesWithUrls);
+    } catch (error) {
+      console.error('Failed to fetch images:', error);
     }
+  };
+
+  const onDrop = async (acceptedFiles: File[]) => {
+    const token = localStorage.getItem('authToken');
+
+    // Create upload status entries
+    const newUploads = acceptedFiles.map(file => ({
+      id: crypto.randomUUID(),
+      file,
+      progress: 0,
+      status: 'uploading' as const
+    }));
+
+    setUploads(current => [...current, ...newUploads]);
+
+    // Upload each file
+    for (const upload of newUploads) {
+      try {
+        const formData = new FormData();
+        formData.append('image', upload.file);
+
+        const response = await axios.post(
+          'http://localhost:3000/api/gallery/upload',
+          formData,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+              Authorization: `Bearer ${token}`
+            },
+            onUploadProgress: (progressEvent) => {
+              const progress = Math.round((progressEvent.loaded * 100) / (progressEvent.total ?? 100));
+              setUploads(current =>
+                current.map(u =>
+                  u.id === upload.id
+                    ? { ...u, progress, status: progress === 100 ? 'completed' : 'uploading' }
+                    : u
+                )
+              );
+            }
+          }
+        );
+
+        if (response.data.success) {
+          const newImage = {
+            ...response.data.image,
+            url: `http://localhost:3000/uploads/${response.data.image.filename}`
+          };
+          setImages(current => [...current, newImage]);
+          
+          // Update upload status to completed but don't remove it
+          setUploads(current =>
+            current.map(u =>
+              u.id === upload.id
+                ? { ...u, progress: 100, status: 'completed' }
+                : u
+            )
+          );
+        }
+      } catch (error: any) {
+        console.error('Upload failed:', error);
+        setUploads(current =>
+          current.map(u =>
+            u.id === upload.id
+              ? { 
+                  ...u, 
+                  status: 'failed', 
+                  error: error.response?.data?.message || 'Upload failed' 
+                }
+              : u
+          )
+        );
+      }
+    }
+  };
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      'image/jpeg': ['.jpg', '.jpeg', '.jfif'],
+      'image/png': ['.png'],
+      'image/gif': ['.gif'],
+      'image/webp': ['.webp'],
+      'image/svg+xml': ['.svg']
+    },
+    onDropRejected: (rejectedFiles) => {
+      const newUploads = rejectedFiles.map(rejected => ({
+        id: crypto.randomUUID(),
+        file: rejected.file,
+        progress: 0,
+        status: 'failed' as const,
+        error: 'Only image files (JPEG, JPG, JFIF, PNG, GIF, WebP, SVG) are allowed.'
+      }));
+      setUploads(current => [...current, ...newUploads]);
+    }
+  });
+
+  const handleSelectImage = (imageId: number) => {
+    setSelectedImages(current => 
+      current.includes(imageId) 
+        ? current.filter(id => id !== imageId)
+        : [...current, imageId]
+    );
+  };
+
+  const handleSelectAll = () => {
+    setSelectedImages(
+      selectedImages.length === filteredImages.length 
+        ? [] 
+        : filteredImages.map(img => img.id)
+    );
   };
 
   const handleDelete = async () => {
-    if (selectedImages.length === 0) {
-      setError('Please select images to delete');
-      return;
-    }
+    if (selectedImages.length === 0) return;
 
-    try {
-      await api.deleteImages(selectedImages);
-      setSuccess('Images deleted successfully');
-      setSelectedImages([]);
-      fetchImages();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete images');
+    if (window.confirm(`Are you sure you want to delete ${selectedImages.length} image(s)?`)) {
+      try {
+        const token = localStorage.getItem('authToken');
+        await axios.delete('http://localhost:3000/api/gallery/images', {
+          headers: { Authorization: `Bearer ${token}` },
+          data: { imageIds: selectedImages }
+        });
+
+        setImages(current => current.filter(img => !selectedImages.includes(img.id)));
+        setSelectedImages([]);
+      } catch (error) {
+        console.error('Failed to delete images:', error);
+        alert('Failed to delete images. Please try again.');
+      }
     }
   };
 
-  const toggleImageSelection = (imageId: number) => {
-    setSelectedImages(prev =>
-      prev.includes(imageId)
-        ? prev.filter(id => id !== imageId)
-        : [...prev, imageId]
-    );
+  const handleEditClick = (image: GalleryImage, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditDialog({
+      open: true,
+      imageId: image.id,
+      description: image.description || ''
+    });
+  };
+
+  const handleEditClose = () => {
+    setEditDialog({
+      open: false,
+      imageId: null,
+      description: ''
+    });
+  };
+
+  const handleEditSave = async () => {
+    if (!editDialog.imageId) return;
+
+    try {
+      const token = localStorage.getItem('authToken');
+      await axios.patch(
+        `http://localhost:3000/api/gallery/images/${editDialog.imageId}`,
+        { description: editDialog.description },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      // Update the image in the local state
+      setImages(current =>
+        current.map(img =>
+          img.id === editDialog.imageId
+            ? { ...img, description: editDialog.description }
+            : img
+        )
+      );
+
+      handleEditClose();
+    } catch (error) {
+      console.error('Failed to update image description:', error);
+      alert('Failed to update image description. Please try again.');
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('authToken');
+    navigate('/admin/login');
   };
 
   return (
@@ -281,10 +368,7 @@ const Gallery = () => {
             Settings
           </Button>
           <Button
-            onClick={() => {
-              localStorage.removeItem('authToken');
-              navigate('/admin/login');
-            }}
+            onClick={handleLogout}
             startIcon={<LogoutIcon sx={{ fontSize: { xs: 20, sm: 28 } }} />}
             sx={{
               ml: 2,
@@ -320,52 +404,26 @@ const Gallery = () => {
           </Typography>
         </Box>
 
-        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-        {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
-
         <Paper sx={{ p: { xs: 2, sm: 3 }, mb: 3 }}>
           {/* Upload Area */}
           <Box
+            {...getRootProps()}
             sx={{
               p: { xs: 2, sm: 3 },
               mb: 3,
               border: '2px dashed',
-              borderColor: selectedFile ? 'primary.main' : 'grey.300',
+              borderColor: isDragActive ? 'primary.main' : 'grey.300',
               borderRadius: 1,
-              backgroundColor: selectedFile ? 'action.hover' : 'background.paper',
+              backgroundColor: isDragActive ? 'action.hover' : 'background.paper',
               cursor: 'pointer',
               textAlign: 'center'
             }}
           >
-            <input
-              accept="image/*"
-              style={{ display: 'none' }}
-              id="image-upload"
-              type="file"
-              onChange={handleFileChange}
-            />
-            <label htmlFor="image-upload">
-              <Typography sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
-                {selectedFile ? 'Drop the image here to upload' : 'Drag & drop image here, or click to select file'}
-              </Typography>
-            </label>
+            <input {...getInputProps()} />
+            <Typography sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
+              {isDragActive ? 'Drop the images here' : 'Drag & drop images here, or click to select files'}
+            </Typography>
           </Box>
-
-          {selectedFile && (
-            <Box sx={{ mt: 2 }}>
-              <Typography variant="body1">
-                Selected file: {selectedFile.name}
-              </Typography>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleUpload}
-                sx={{ mt: 1 }}
-              >
-                Upload
-              </Button>
-            </Box>
-          )}
 
           {/* Search and Filter Section */}
           <Box sx={{ 
@@ -479,8 +537,9 @@ const Gallery = () => {
                 },
               }}
             >
-              {selectedFile && (
+              {uploads.map(upload => (
                 <Box 
+                  key={upload.id} 
                   sx={{ 
                     py: 0.5,
                     display: 'flex',
@@ -493,7 +552,11 @@ const Gallery = () => {
                       width: '8px',
                       height: '8px',
                       borderRadius: '50%',
-                      bgcolor: 'primary.main',
+                      bgcolor: upload.status === 'completed' 
+                        ? 'success.main' 
+                        : upload.status === 'failed' 
+                          ? 'error.main' 
+                          : 'primary.main',
                       flexShrink: 0
                     }} 
                   />
@@ -507,10 +570,25 @@ const Gallery = () => {
                       textOverflow: 'ellipsis'
                     }}
                   >
-                    {selectedFile.name}
+                    {upload.file.name} 
+                    {upload.status === 'uploading' && ` - ${upload.progress}%`}
+                    {upload.status === 'completed' && ' - Completed'}
+                    {upload.status === 'failed' && ' - Failed'}
                   </Typography>
+                  {upload.error && (
+                    <Typography 
+                      variant="body2" 
+                      color="error"
+                      sx={{ 
+                        fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                        flexShrink: 0
+                      }}
+                    >
+                      {upload.error}
+                    </Typography>
+                  )}
                 </Box>
-              )}
+              ))}
             </Box>
           </Box>
 
@@ -532,13 +610,7 @@ const Gallery = () => {
                 <Checkbox
                   checked={selectedImages.length === filteredImages.length}
                   indeterminate={selectedImages.length > 0 && selectedImages.length < filteredImages.length}
-                  onChange={() => {
-                    setSelectedImages(
-                      selectedImages.length === filteredImages.length 
-                        ? [] 
-                        : filteredImages.map(img => img.id)
-                    );
-                  }}
+                  onChange={handleSelectAll}
                 />
                 <Typography variant="body2" sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
                   Select All ({selectedImages.length} of {filteredImages.length} selected)
@@ -562,60 +634,106 @@ const Gallery = () => {
           <Grid container spacing={{ xs: 1, sm: 2 }}>
             {filteredImages.map((image) => (
               <Grid item xs={6} sm={4} md={3} lg={2} key={image.id}>
-                <Card>
-                  <Box sx={{ position: 'relative' }}>
-                    <CardMedia
-                      component="img"
-                      height="200"
-                      image={getUploadUrl(image.filename)}
-                      alt={image.title}
-                      sx={{ objectFit: 'cover' }}
-                    />
-                    {/* Overlay controls */}
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        p: 1,
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        bgcolor: 'rgba(0, 0, 0, 0.3)',
+                <Paper 
+                  sx={{ 
+                    p: 1,
+                    position: 'relative',
+                    '&:hover': {
+                      boxShadow: 3
+                    },
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column'
+                  }}
+                >
+                  <Checkbox
+                    checked={selectedImages.includes(image.id)}
+                    onChange={() => handleSelectImage(image.id)}
+                    sx={{
+                      position: 'absolute',
+                      top: 4,
+                      left: 4,
+                      zIndex: 1,
+                      backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                      borderRadius: 1,
+                      padding: { xs: '4px', sm: '8px' },
+                      '&:hover': {
+                        backgroundColor: 'rgba(255, 255, 255, 0.9)'
+                      }
+                    }}
+                  />
+                  <IconButton
+                    sx={{
+                      position: 'absolute',
+                      top: 4,
+                      right: 4,
+                      zIndex: 1,
+                      backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                      padding: { xs: '4px', sm: '8px' },
+                      '&:hover': {
+                        backgroundColor: 'rgba(255, 255, 255, 0.9)'
+                      }
+                    }}
+                    onClick={(e) => handleEditClick(image, e)}
+                  >
+                    <EditIcon sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }} />
+                  </IconButton>
+                  <Box
+                    component="img"
+                    src={image.url}
+                    alt={image.original_filename}
+                    sx={{
+                      width: '100%',
+                      height: { xs: 120, sm: 160, md: 200 },
+                      objectFit: 'cover',
+                      borderRadius: 1,
+                      filter: selectedImages.includes(image.id) ? 'brightness(0.8)' : 'none'
+                    }}
+                    onClick={() => handleSelectImage(image.id)}
+                  />
+                  <Box sx={{ 
+                    mt: 1, 
+                    display: 'flex', 
+                    flexDirection: 'column',
+                    flexGrow: 1,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    minHeight: 0
+                  }}>
+                    <Typography 
+                      variant="body2" 
+                      noWrap 
+                      align="center" 
+                      sx={{ 
+                        width: '100%',
+                        fontSize: { xs: '0.75rem', sm: '0.875rem' }
                       }}
                     >
-                      <Checkbox
-                        checked={selectedImages.includes(image.id)}
-                        onChange={() => toggleImageSelection(image.id)}
-                        sx={{
-                          color: 'white',
-                          '&.Mui-checked': {
-                            color: 'white',
-                          },
-                        }}
-                      />
-                      <IconButton 
-                        onClick={() => handleEdit(image)}
-                        sx={{
-                          color: 'white',
-                          '&:hover': {
-                            bgcolor: 'rgba(255, 255, 255, 0.2)',
-                          },
+                      {image.original_filename}
+                    </Typography>
+                    {image.description && (
+                      <Typography 
+                        variant="body2" 
+                        color="text.secondary" 
+                        align="center"
+                        sx={{ 
+                          mt: 0.5,
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          lineHeight: 1.2,
+                          width: '100%',
+                          px: 1,
+                          fontSize: { xs: '0.75rem', sm: '0.875rem' }
                         }}
                       >
-                        <EditIcon />
-                      </IconButton>
-                    </Box>
+                        {image.description}
+                      </Typography>
+                    )}
                   </Box>
-                  <CardContent>
-                    <Typography variant="h6" gutterBottom>
-                      {image.title || 'Untitled'}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {image.description || 'No description'}
-                    </Typography>
-                  </CardContent>
-                </Card>
+                </Paper>
               </Grid>
             ))}
           </Grid>
@@ -636,48 +754,32 @@ const Gallery = () => {
 
         {/* Edit Dialog */}
         <Dialog 
-          open={editDialogOpen} 
-          onClose={() => setEditDialogOpen(false)}
+          open={editDialog.open} 
+          onClose={handleEditClose}
           maxWidth="sm"
           fullWidth
           fullScreen={isMobile}
         >
-          <DialogTitle>Edit Image</DialogTitle>
+          <DialogTitle>Edit Image Description</DialogTitle>
           <DialogContent>
             <TextField
               autoFocus
-              margin="dense"
-              label="Title"
-              fullWidth
-              value={editTitle}
-              onChange={(e) => setEditTitle(e.target.value)}
-            />
-            <TextField
               margin="dense"
               label="Description"
               fullWidth
               multiline
               rows={4}
-              value={editDescription}
-              onChange={(e) => setEditDescription(e.target.value)}
-            />
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={editIsVisible}
-                  onChange={(e) => setEditIsVisible(e.target.checked)}
-                />
-              }
-              label="Visible"
+              value={editDialog.description}
+              onChange={(e) => setEditDialog(prev => ({ ...prev, description: e.target.value }))}
             />
           </DialogContent>
           <DialogActions sx={{ flexDirection: { xs: 'column', sm: 'row' }, gap: { xs: 1, sm: 0 }, p: 2 }}>
             <Button 
-              onClick={() => setEditDialogOpen(false)}
+              onClick={() => setEditDialog(prev => ({ ...prev, description: '' }))}
               color="error"
               fullWidth={isMobile}
             >
-              Cancel
+              Clear
             </Button>
             <Box sx={{ flex: { xs: 0, sm: 1 } }} />
             <Stack 
@@ -686,7 +788,13 @@ const Gallery = () => {
               sx={{ width: { xs: '100%', sm: 'auto' } }}
             >
               <Button 
-                onClick={handleSaveEdit} 
+                onClick={handleEditClose}
+                fullWidth={isMobile}
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleEditSave} 
                 variant="contained" 
                 color="primary"
                 fullWidth={isMobile}

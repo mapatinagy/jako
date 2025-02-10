@@ -10,7 +10,6 @@ import NewspaperIcon from '@mui/icons-material/Newspaper';
 import SettingsIcon from '@mui/icons-material/Settings';
 import SessionTimer from '../../components/session/SessionTimer';
 import { setupActivityTracking, cleanupActivityTracking } from '../../utils/session';
-import { api } from '../../utils/api';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -30,28 +29,43 @@ const Dashboard = () => {
 
   const fetchStats = async () => {
     try {
-      // Fetch gallery and news data
-      const [galleryData, newsData] = await Promise.all([
-        api.getImages(),
-        api.getPosts()
-      ]);
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      // Fetch gallery stats
+      const galleryResponse = await fetch('http://localhost:3000/api/gallery/images', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const galleryData = await galleryResponse.json();
       
+      // Fetch news stats
+      const newsResponse = await fetch('http://localhost:3000/api/news/posts', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const newsData = await newsResponse.json();
+
       // Calculate stats
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-      const newImagesCount = galleryData.data.images.filter((image: any) => 
+      const newImagesCount = galleryData.images.filter((image: any) => 
         new Date(image.created_at) > sevenDaysAgo
       ).length;
 
-      const draftPostsCount = newsData.data.posts.filter((post: any) => 
+      const draftPostsCount = newsData.posts.filter((post: any) => 
         !post.is_published
       ).length;
 
       setStats({
-        totalImages: galleryData.data.images.length,
+        totalImages: galleryData.images.length,
         newImages: newImagesCount,
-        totalNews: newsData.data.posts.length,
+        totalNews: newsData.posts.length,
         draftNews: draftPostsCount
       });
     } catch (error) {

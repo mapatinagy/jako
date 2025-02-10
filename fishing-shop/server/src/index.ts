@@ -13,15 +13,8 @@ dotenv.config();
 const app: Express = express();
 const port = process.env.PORT || 3000;
 
-// CORS configuration
-const corsOptions = {
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
-  credentials: true,
-  optionsSuccessStatus: 200
-};
-
 // Middleware
-app.use(cors(corsOptions));
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -35,14 +28,10 @@ app.use('/api/news', newsRoutes);
 
 // Basic route for testing
 app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV
-  });
+  res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
 // Start server
 app.listen(port, () => {
-  console.log(`Server is running in ${process.env.NODE_ENV} mode on port ${port}`);
+  console.log(`Server is running on port ${port}`);
 }); 

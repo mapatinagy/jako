@@ -3,7 +3,6 @@ import { Box, Paper, TextField, Button, Typography, Container, Alert, Link } fro
 import { useNavigate, useLocation, Link as RouterLink } from 'react-router-dom';
 import { getAuthToken } from '../../utils/auth';
 import { initSession } from '../../utils/session';
-import { api, authEndpoints, fetchWithAuth } from '../../utils/api';
 
 const Login = () => {
   const [username, setUsername] = useState('');
@@ -32,14 +31,25 @@ const Login = () => {
 
       try {
         // Verify token with server
-        await fetchWithAuth(authEndpoints.verifyToken);
-        
+        const response = await fetch('http://localhost:3000/api/auth/verify', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (!response.ok) {
+          // Token is invalid, remove it
+          localStorage.removeItem('authToken');
+          return;
+        }
+
         // Token is valid
         initSession();
         navigate(from, { replace: true });
       } catch (error) {
-        // Token is invalid, remove it
+        // On error, remove token and stay on login page
         localStorage.removeItem('authToken');
+        console.error('Token validation error:', error);
       }
     };
 
@@ -52,10 +62,22 @@ const Login = () => {
     setMessage('');
 
     try {
-      const response = await api.login({ username, password });
+      const response = await fetch('http://localhost:3000/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Login failed');
+      }
 
       // Store the token and initialize session
-      localStorage.setItem('authToken', response.token);
+      localStorage.setItem('authToken', data.token);
       initSession();
       
       // Redirect to the previous attempted URL or dashboard

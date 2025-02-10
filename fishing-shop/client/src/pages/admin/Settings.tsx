@@ -12,11 +12,7 @@ import {
   Alert,
   Divider,
   IconButton,
-  InputAdornment,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem
+  InputAdornment
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import DashboardIcon from '@mui/icons-material/Dashboard';
@@ -26,7 +22,6 @@ import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import SessionTimer from '../../components/session/SessionTimer';
 import { setupActivityTracking, cleanupActivityTracking } from '../../utils/session';
-import { api } from '../../utils/api';
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -34,57 +29,65 @@ const Settings = () => {
   const [success, setSuccess] = useState('');
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [securityQuestions, setSecurityQuestions] = useState<string[]>([]);
-  const [selectedQuestions, setSelectedQuestions] = useState({
-    question1: '',
-    question2: '',
-    question3: ''
-  });
-  const [answers, setAnswers] = useState({
-    answer1: '',
-    answer2: '',
-    answer3: ''
+  const [formData, setFormData] = useState({
+    currentPassword: '',
+    newUsername: '',
+    newEmail: '',
+    newPassword: '',
+    securityQuestion1: '',
+    securityAnswer1: '',
+    securityQuestion2: '',
+    securityAnswer2: '',
+    securityQuestion3: '',
+    securityAnswer3: ''
   });
 
   useEffect(() => {
     setupActivityTracking();
     fetchUserData();
-    fetchSecurityQuestions();
     return () => cleanupActivityTracking();
   }, []);
 
   const fetchUserData = async () => {
     try {
-      const response = await api.getUserData();
-      setSelectedQuestions({
-        question1: response.securityQuestion1 || '',
-        question2: response.securityQuestion2 || '',
-        question3: response.securityQuestion3 || ''
-      });
-      setAnswers({
-        answer1: response.securityAnswer1 || '',
-        answer2: response.securityAnswer2 || '',
-        answer3: response.securityAnswer3 || ''
-      });
-    } catch (err) {
-      setError('Failed to load user data');
-    }
-  };
+      const token = localStorage.getItem('authToken');
+      const [questionsResponse, userDataResponse] = await Promise.all([
+        fetch('http://localhost:3000/api/auth/security-questions', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }),
+        fetch('http://localhost:3000/api/auth/user-data', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+      ]);
 
-  const fetchSecurityQuestions = async () => {
-    try {
-      const response = await api.getSecurityQuestions();
-      setSecurityQuestions(response.questions);
-    } catch (err) {
-      setError('Failed to load security questions');
+      if (questionsResponse.ok) {
+        const questionsData = await questionsResponse.json();
+        setFormData(prev => ({
+          ...prev,
+          securityQuestion1: questionsData.securityQuestion1 || '',
+          securityQuestion2: questionsData.securityQuestion2 || '',
+          securityQuestion3: questionsData.securityQuestion3 || ''
+        }));
+      }
+
+      if (userDataResponse.ok) {
+        const userData = await userDataResponse.json();
+        setFormData(prev => ({
+          ...prev,
+          newEmail: userData.email || ''
+        }));
+      }
+    } catch (error) {
+      console.error('Error fetching user data:', error);
     }
   };
 
   const handleInputChange = (field: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
-    setAnswers(prev => ({
+    setFormData(prev => ({
       ...prev,
       [field]: event.target.value
     }));
@@ -97,30 +100,35 @@ const Settings = () => {
     setError('');
     setSuccess('');
 
-    if (newPassword && newPassword !== confirmPassword) {
-      setError('New passwords do not match');
+    if (!formData.currentPassword) {
+      setError('Current password is required');
       return;
     }
 
     try {
-      const data = {
-        currentPassword,
-        newPassword: newPassword || undefined,
-        securityQuestions: [
-          { question: selectedQuestions.question1, answer: answers.answer1 },
-          { question: selectedQuestions.question2, answer: answers.answer2 },
-          { question: selectedQuestions.question3, answer: answers.answer3 }
-        ]
-      };
+      const token = localStorage.getItem('authToken');
+      const response = await fetch('http://localhost:3000/api/auth/update-settings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(formData)
+      });
 
-      await api.updateSettings(data);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to update settings');
+      }
+
       setSuccess('Settings updated successfully');
-
-      // Clear form
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
-      setAnswers({ answer1: '', answer2: '', answer3: '' });
+      setFormData(prev => ({
+        ...prev,
+        currentPassword: '',
+        newUsername: '',
+        newPassword: ''
+      }));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update settings');
     }
@@ -216,8 +224,8 @@ const Settings = () => {
               fullWidth
               type={showCurrentPassword ? 'text' : 'password'}
               label="Current Password"
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
+              value={formData.currentPassword}
+              onChange={handleInputChange('currentPassword')}
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
@@ -235,31 +243,28 @@ const Settings = () => {
             <TextField
               margin="normal"
               fullWidth
-              type={showNewPassword ? 'text' : 'password'}
-              label="New Password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      onClick={() => setShowNewPassword(!showNewPassword)}
-                      edge="end"
-                    >
-                      {showNewPassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
+              label="New Username (optional)"
+              value={formData.newUsername}
+              onChange={handleInputChange('newUsername')}
+            />
+
+            <TextField
+              margin="normal"
+              fullWidth
+              type="email"
+              label="Email Address"
+              value={formData.newEmail}
+              onChange={handleInputChange('newEmail')}
+              helperText="Used for account recovery"
             />
 
             <TextField
               margin="normal"
               fullWidth
               type={showNewPassword ? 'text' : 'password'}
-              label="Confirm Password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
+              label="New Password (optional)"
+              value={formData.newPassword}
+              onChange={handleInputChange('newPassword')}
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
@@ -283,79 +288,52 @@ const Settings = () => {
               Set up security questions to help recover your account if you forget your credentials.
             </Typography>
 
-            <FormControl fullWidth margin="normal">
-              <InputLabel id="question1-label">Security Question 1</InputLabel>
-              <Select
-                labelId="question1-label"
-                id="question1"
-                value={selectedQuestions.question1}
-                label="Security Question 1"
-                onChange={(e) => setSelectedQuestions({ ...selectedQuestions, question1: e.target.value })}
-              >
-                <MenuItem value="">Select a question</MenuItem>
-                {securityQuestions.map((question) => (
-                  <MenuItem key={question} value={question}>
-                    {question}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <TextField
+              margin="normal"
+              fullWidth
+              label="Security Question 1"
+              value={formData.securityQuestion1}
+              onChange={handleInputChange('securityQuestion1')}
+              placeholder="e.g., What was your first pet's name?"
+            />
             <TextField
               margin="normal"
               fullWidth
               label="Answer 1"
-              value={answers.answer1}
-              onChange={handleInputChange('answer1')}
+              value={formData.securityAnswer1}
+              onChange={handleInputChange('securityAnswer1')}
             />
 
-            <FormControl fullWidth margin="normal">
-              <InputLabel id="question2-label">Security Question 2</InputLabel>
-              <Select
-                labelId="question2-label"
-                id="question2"
-                value={selectedQuestions.question2}
-                label="Security Question 2"
-                onChange={(e) => setSelectedQuestions({ ...selectedQuestions, question2: e.target.value })}
-              >
-                <MenuItem value="">Select a question</MenuItem>
-                {securityQuestions.map((question) => (
-                  <MenuItem key={question} value={question}>
-                    {question}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <TextField
+              margin="normal"
+              fullWidth
+              label="Security Question 2"
+              value={formData.securityQuestion2}
+              onChange={handleInputChange('securityQuestion2')}
+              placeholder="e.g., What city were you born in?"
+            />
             <TextField
               margin="normal"
               fullWidth
               label="Answer 2"
-              value={answers.answer2}
-              onChange={handleInputChange('answer2')}
+              value={formData.securityAnswer2}
+              onChange={handleInputChange('securityAnswer2')}
             />
 
-            <FormControl fullWidth margin="normal">
-              <InputLabel id="question3-label">Security Question 3</InputLabel>
-              <Select
-                labelId="question3-label"
-                id="question3"
-                value={selectedQuestions.question3}
-                label="Security Question 3"
-                onChange={(e) => setSelectedQuestions({ ...selectedQuestions, question3: e.target.value })}
-              >
-                <MenuItem value="">Select a question</MenuItem>
-                {securityQuestions.map((question) => (
-                  <MenuItem key={question} value={question}>
-                    {question}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <TextField
+              margin="normal"
+              fullWidth
+              label="Security Question 3"
+              value={formData.securityQuestion3}
+              onChange={handleInputChange('securityQuestion3')}
+              placeholder="e.g., What was your childhood nickname?"
+            />
             <TextField
               margin="normal"
               fullWidth
               label="Answer 3"
-              value={answers.answer3}
-              onChange={handleInputChange('answer3')}
+              value={formData.securityAnswer3}
+              onChange={handleInputChange('securityAnswer3')}
             />
 
             <Box sx={{ mt: 3 }}>
