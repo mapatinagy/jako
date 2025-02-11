@@ -18,11 +18,14 @@ export default function Layout() {
   };
 
   const menuItems = [
-    { text: 'Gallery', path: '/gallery' },
-    { text: 'News', path: '/news' },
-    { text: 'Contact', path: '/contact' },
-    { text: 'Imprint', path: '/imprint' },
-    { text: 'Admin', path: '/admin/login' },
+    { text: 'Galéria', path: '/gallery' },
+    { text: 'Újdonságok', path: '/news' },
+    { text: 'Kapcsolat', path: '/contact' }
+  ];
+
+  const footerMenuItems = [
+    ...menuItems,
+    { text: 'Impresszum', path: '/imprint' }
   ];
 
   return (
@@ -60,7 +63,7 @@ export default function Layout() {
                 display: 'inline-block'
               }}
             >
-              Fishing Shop
+              Jákó Díszállat és Horgász Szaküzlet
             </Typography>
           </Box>
           
@@ -177,38 +180,65 @@ export default function Layout() {
       >
         <Container maxWidth={false} sx={{ px: { xs: 2, sm: 4, md: 6, lg: 8 } }}>
           <Grid container spacing={4}>
-            <Grid item xs={12} md={4}>
+            <Grid item xs={12} md={3}>
               <Typography variant="h6" sx={{ mb: 2, textAlign: 'center' }}>
-                Contact Us
+                Kapcsolat
               </Typography>
               <Typography variant="body2" sx={{ mb: 1, textAlign: 'center' }}>
-                Hauptstraße 123
+                5630 Békés
               </Typography>
               <Typography variant="body2" sx={{ mb: 1, textAlign: 'center' }}>
-                20095 Hamburg
+                Szánthó Albert utca 4.
               </Typography>
               <Typography variant="body2" sx={{ mb: 1, textAlign: 'center' }}>
-                Tel: +49 (0) 123 456789
+                Tel.: +30 471 7047
               </Typography>
               <Typography variant="body2" sx={{ textAlign: 'center' }}>
-                Email: info@fishing-shop.com
+                Email: info@jakobekes.com
               </Typography>
             </Grid>
-            <Grid item xs={12} md={4}>
+            <Grid item xs={12} md={3}>
               <Typography variant="h6" sx={{ mb: 2, textAlign: 'center' }}>
-                Opening Hours
+                Nyitvatartás
               </Typography>
               <Typography variant="body2" sx={{ mb: 1, textAlign: 'center' }}>
-                Monday - Friday: 9:00 - 18:00
+                Hétfő - Péntek: 8:00 - 17:30
               </Typography>
               <Typography variant="body2" sx={{ mb: 1, textAlign: 'center' }}>
-                Saturday: 9:00 - 16:00
+                Szombat: 8:00 - 12:00
               </Typography>
               <Typography variant="body2" sx={{ textAlign: 'center' }}>
-                Sunday: Closed
+                Vasárnap: 8:00 - 11:00
               </Typography>
             </Grid>
-            <Grid item xs={12} md={4}>
+            <Grid item xs={12} md={3}>
+              <Typography variant="h6" sx={{ mb: 2, textAlign: 'center' }}>
+                Gyorslinkek
+              </Typography>
+              <Stack spacing={1} alignItems="center">
+                {footerMenuItems.map((item) => (
+                  <Typography
+                    key={item.path}
+                    component={RouterLink}
+                    to={item.path}
+                    variant="body2"
+                    sx={{
+                      mb: 1,
+                      textAlign: 'center',
+                      color: 'white',
+                      textDecoration: 'none',
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        transform: 'translateY(-2px)'
+                      }
+                    }}
+                  >
+                    {item.text}
+                  </Typography>
+                ))}
+              </Stack>
+            </Grid>
+            <Grid item xs={12} md={3}>
               <Typography variant="h6" sx={{ mb: 2, textAlign: 'center' }}>
                 Follow Us
               </Typography>
@@ -249,7 +279,7 @@ export default function Layout() {
               textAlign: 'center' 
             }}
           >
-            © 2024 Fishing Shop. All rights reserved.
+            © 2025 Jákó Díszállat és Horgász Szaküzlet. Minden jog fenntartva.
           </Typography>
         </Container>
       </Box>

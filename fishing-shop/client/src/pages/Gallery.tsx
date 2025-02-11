@@ -79,9 +79,9 @@ const Gallery = () => {
   return (
     <Box sx={{ py: 6, bgcolor: 'background.default' }}>
       <Helmet>
-        <title>Gallery - Fishing Shop Product Showcase</title>
-        <meta name="description" content="Browse our gallery of fishing equipment, animal feed products, and beautiful plants. See our quality products and store images." />
-        <meta name="keywords" content="fishing equipment gallery, fishing shop photos, product showcase, store gallery" />
+        <title>Galéria - Jákó Díszállat és Horgászbolt</title>
+        <meta name="description" content="Fedezze fel galériánkat, ahol horgászfelszerelések, prémium állateledelek és gyönyörű dísznövények képei várják. Tekintse meg kínálatunkat!" />
+        <meta name="keywords" content="galéria, horgászképek, ptermékbemutatás, bolt galéria" />
       </Helmet>
       <Container maxWidth="lg">
         {/* Hero Section */}
@@ -105,10 +105,10 @@ const Gallery = () => {
               }
             }}
           >
-            Our Gallery
+            Galéria
           </Typography>
           <Typography variant="h5" color="text.secondary" sx={{ maxWidth: 800, mx: 'auto', mt: 3 }}>
-            Explore our collection of fishing equipment, beautiful plants, and quality animal feed products
+            Fedezze fel termékeinket! Tekintse meg horgászfelszereléseink, állateledeleink és dísznövényeink kínálatát! 
           </Typography>
         </Box>
 

@@ -370,7 +370,7 @@ const Home = () => {
       {/* Categories Section */}
       <Box sx={{ py: 4, px: { xs: 2, sm: 4, md: 6, lg: 8 } }}>
         <Typography variant="h2" sx={{ mb: 4 }}>
-          Our Categories
+          Termékeink
         </Typography>
         <Grid container spacing={4}>
           <Grid item xs={12} md={4}>
@@ -396,10 +396,10 @@ const Home = () => {
             }}>
               <Box sx={{ position: 'relative', zIndex: 2 }}>
                 <Typography variant="h3" sx={{ mb: 2, color: 'white' }}>
-                  Fishing Equipment
+                  Horgászfelszerelés
                 </Typography>
                 <Typography sx={{ mb: 2, color: 'rgba(255, 255, 255, 0.9)' }}>
-                  Discover our wide range of high-quality fishing gear for both beginners and professionals.
+                  Fedezd fel széles választékunkat kiváló minőségű horgászfelszerelésekből, kezdők és profi horgászok számára egyaránt.
                 </Typography>
                 <Box component="ul" sx={{ 
                   pl: 2,
@@ -409,10 +409,10 @@ const Home = () => {
                     '&:last-child': { mb: 0 }
                   }
                 }}>
-                  <li>Fishing Rods & Reels</li>
-                  <li>Baits & Lures</li>
-                  <li>Fishing Lines & Hooks</li>
-                  <li>Accessories & Tools</li>
+                  <li>Horgászbotok és orsók</li>
+                  <li>Csalik</li>
+                  <li>Damilok és horgok</li>
+                  <li>Szerszámok és kiegészítők</li>
                 </Box>
               </Box>
             </Paper>
@@ -440,10 +440,10 @@ const Home = () => {
             }}>
               <Box sx={{ position: 'relative', zIndex: 2 }}>
                 <Typography variant="h3" sx={{ mb: 2, color: 'white' }}>
-                  Animal Feed
+                  Állateledel
                 </Typography>
                 <Typography sx={{ mb: 2, color: 'rgba(255, 255, 255, 0.9)' }}>
-                  Premium nutrition for your pets and livestock, carefully selected for their well-being.
+                  Prémium minőségű állateledel kedvencei számára, gondosan válogatott összetevőkkel az optimális egészség és jólét érdekében.
                 </Typography>
                 <Box component="ul" sx={{ 
                   pl: 2,
@@ -453,10 +453,10 @@ const Home = () => {
                     '&:last-child': { mb: 0 }
                   }
                 }}>
-                  <li>Dog & Cat Food</li>
-                  <li>Bird Feed & Seeds</li>
-                  <li>Fish Food</li>
-                  <li>Livestock Feed</li>
+                  <li>Kutya- és macskaeledel</li>
+                  <li>Madáreleség</li>
+                  <li>Haleleség</li>
+                  <li>Egyéb díszállat eledelek</li>
                 </Box>
               </Box>
             </Paper>
@@ -484,10 +484,10 @@ const Home = () => {
             }}>
               <Box sx={{ position: 'relative', zIndex: 2 }}>
                 <Typography variant="h3" sx={{ mb: 2, color: 'white' }}>
-                  Plants
+                  Növények
                 </Typography>
                 <Typography sx={{ mb: 2, color: 'rgba(255, 255, 255, 0.9)' }}>
-                  Beautiful and healthy plants to bring life to your garden and home.
+                  Gyönyörű és egészséges növények otthona és kertje természetes harmóniájának megteremtéséhez.
                 </Typography>
                 <Box component="ul" sx={{ 
                   pl: 2,
@@ -497,11 +497,11 @@ const Home = () => {
                     '&:last-child': { mb: 0 }
                   }
                 }}>
-                  <li>Indoor Plants</li>
-                  <li>Garden Plants</li>
-                  <li>Seeds & Bulbs</li>
-                  <li>Plant Care Products</li>
-                </Box>
+                  <li>Benti növények</li>
+                  <li>Kert növények</li>
+                  <li>Magvak</li>
+                  <li>Növénygondozási termékek</li>
+                 </Box>
               </Box>
             </Paper>
           </Grid>
@@ -513,7 +513,7 @@ const Home = () => {
         <Container maxWidth={false} sx={{ px: { xs: 2, sm: 4, md: 6, lg: 8 } }}>
           <Box sx={{ mb: 4, textAlign: 'center' }}>
             <Typography variant="h2" gutterBottom>
-              Latest News
+              Legfrissebb újdonságaink
             </Typography>
           </Box>
 
@@ -651,7 +651,7 @@ const Home = () => {
                 }
               }}
             >
-              View All News
+              Összes újdonság megtekintése
             </Button>
           </Box>
         </Container>
