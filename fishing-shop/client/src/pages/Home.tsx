@@ -131,8 +131,8 @@ const Home = () => {
   return (
     <Box>
       <Helmet>
-        <title>Jákó Díszállat és Horgászbolt - A horgászfelszerelés egy helyen</title>
-        <meta name="description" content="Prémium horgászfelszerelés, minőségi állateledel és gyönyörű növények. Több mint 30 év tapasztalat a közösség szolgálatában." />
+        <title>Jákó Díszállat és Horgászbolt - Profi horgászfelszerelés, állateledel és dísznövények egy helyen</title>
+        <meta name="description" content="Profi horgászfelszerelés, minőségi állateledel és gyönyörű növények. Több mint 30 év tapasztalat a közösség szolgálatában." />
         <meta name="keywords" content="horgászfelszerelés, állateledel, dísznövények, horgászbolt, díszállat" />
       </Helmet>
       {/* Hero Section */}
@@ -227,7 +227,7 @@ const Home = () => {
               }
             }}
           >
-            Welcome to Our Fishing Shop
+            Jákó Díszállat és Horgászbolt
           </Typography>
           <Typography 
             variant="h5" 
@@ -252,7 +252,7 @@ const Home = () => {
               }
             }}
           >
-            Your one-stop destination for premium fishing equipment, quality animal feed, and beautiful plants
+            Profi horgászfelszerelés, állateledel és dísznövények egy helyen
           </Typography>
         </Container>
       </Box>
@@ -278,13 +278,13 @@ const Home = () => {
         <Grid container spacing={6} alignItems="center">
           <Grid item xs={12} md={6}>
             <Typography variant="h2" sx={{ mb: 3 }}>
-              About Us
+              Rólunk
             </Typography>
             <Typography variant="body1" sx={{ mb: 3, color: 'text.secondary', lineHeight: 1.8 }}>
-              Since 1995, we've been more than just a shop – we're a community hub for fishing enthusiasts, pet owners, and garden lovers. Our journey began with a simple vision: to provide quality products and expert advice to our local community.
+              Több mint 30 év tapasztalatunkkal, már elmondhatjuk, hogy nem csak egy bolt vagyunk – mi egy közösség vagyunk a horgászok, állat- és növénybarátok számára. A kezdetünk egy egyszerű elképzelésből indult: minőségi termékeket és szakértő tanácsot adni a vásárlóinknak.
             </Typography>
             <Typography variant="body1" sx={{ mb: 4, color: 'text.secondary', lineHeight: 1.8 }}>
-              Today, we pride ourselves on our personalized service and carefully curated selection of products. Whether you're an experienced angler, a dedicated pet owner, or a passionate gardener, our knowledgeable team is here to help you succeed.
+              Büszkék vagyunk személyre szabott szolgáltatásainkra és gondosan válogatott termékválasztékunkra. Legyen szó tapasztalt horgászról, elkötelezett kisállattartóról vagy lelkes kertészről, hozzáértő csapatunk készen áll, hogy segítsen a siker elérésében.
             </Typography>
             <Box sx={{ 
               display: 'flex', 
@@ -308,10 +308,10 @@ const Home = () => {
                 }}
               >
                 <Typography variant="h4" sx={{ mb: 1, fontWeight: 'bold' }}>
-                  28+
+                  30+
                 </Typography>
                 <Typography variant="body2">
-                  Years of Experience
+                  Év tapasztalat
                 </Typography>
               </Paper>
               <Paper 
@@ -331,10 +331,10 @@ const Home = () => {
                 }}
               >
                 <Typography variant="h4" sx={{ mb: 1, fontWeight: 'bold' }}>
-                  5000+
+                  50000+
                 </Typography>
                 <Typography variant="body2">
-                  Happy Customers
+                  Elégedett vevő
                 </Typography>
               </Paper>
             </Box>
