@@ -131,9 +131,9 @@ const Home = () => {
   return (
     <Box>
       <Helmet>
-        <title>Fishing Shop - Your One-Stop Shop for Fishing Equipment</title>
-        <meta name="description" content="Premium fishing equipment, quality animal feed, and beautiful plants. Over 28 years of experience serving our community." />
-        <meta name="keywords" content="fishing equipment, animal feed, plants, fishing shop, fishing supplies" />
+        <title>Jákó Díszállat és Horgászbolt - A horgászfelszerelés egy helyen</title>
+        <meta name="description" content="Prémium horgászfelszerelés, minőségi állateledel és gyönyörű növények. Több mint 30 év tapasztalat a közösség szolgálatában." />
+        <meta name="keywords" content="horgászfelszerelés, állateledel, dísznövények, horgászbolt, díszállat" />
       </Helmet>
       {/* Hero Section */}
       <Box 
