@@ -6,6 +6,7 @@ import authRoutes from './routes/auth.routes';
 import galleryRoutes from './routes/gallery.routes';
 import newsRoutes from './routes/news.routes';
 import contactRoutes from './routes/contact.routes';
+import seasonalRoutes from './routes/seasonal.routes';
 
 // Load environment variables
 dotenv.config();
@@ -34,6 +35,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/gallery', galleryRoutes);
 app.use('/api/news', newsRoutes);
 app.use('/api/contact', contactRoutes);
+app.use('/api/seasonal', seasonalRoutes);
 
 // Basic route for testing
 app.get('/api/health', (req, res) => {

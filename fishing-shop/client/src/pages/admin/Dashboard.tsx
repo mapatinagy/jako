@@ -8,6 +8,7 @@ import DashboardIcon from '@mui/icons-material/Dashboard';
 import ImageIcon from '@mui/icons-material/Image';
 import NewspaperIcon from '@mui/icons-material/Newspaper';
 import SettingsIcon from '@mui/icons-material/Settings';
+import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import SessionTimer from '../../components/session/SessionTimer';
 import { setupActivityTracking, cleanupActivityTracking } from '../../utils/session';
 
@@ -273,6 +274,38 @@ const Dashboard = () => {
               </Typography>
               <Typography variant="body2" sx={{ mt: 1, opacity: 0.8 }}>
                 {stats.draftNews} vázlat függőben
+              </Typography>
+            </Paper>
+          </Grid>
+
+          {/* Seasonal Products Card */}
+          <Grid item xs={12} md={6} sx={{ mx: 'auto' }}>
+            <Paper
+              sx={{
+                p: 4,
+                height: '300px',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: 'success.main',
+                color: 'white',
+                '&:hover': {
+                  transform: 'translateY(-4px)',
+                  boxShadow: (theme) => `0 8px 24px ${theme.palette.success.main}40`,
+                },
+              }}
+              onClick={() => navigate('/admin/seasonal')}
+            >
+              <LocalOfferIcon sx={{ fontSize: 80, mb: 2 }} />
+              <Typography variant="h5" component="h2" align="center">
+                Szezonális termékek
+              </Typography>
+              <Divider sx={{ my: 2, width: '60%', borderColor: 'rgba(255,255,255,0.2)' }} />
+              <Typography variant="body1" align="center">
+                Szezonális termékek kezelése és megjelenítése
               </Typography>
             </Paper>
           </Grid>

@@ -17,6 +17,7 @@ import AdminNews from './pages/admin/news/News';
 import AdminSettings from './pages/admin/Settings';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import { useEffect } from 'react';
+import SeasonalProducts from './pages/admin/SeasonalProducts';
 
 const theme = createTheme({
   palette: {
@@ -156,6 +157,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <AdminSettings />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/seasonal"
+                element={
+                  <ProtectedRoute>
+                    <SeasonalProducts />
                   </ProtectedRoute>
                 }
               />
