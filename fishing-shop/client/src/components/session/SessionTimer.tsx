@@ -1,51 +1,24 @@
-import { useEffect, useState } from 'react';
-import { Box, Typography, Alert } from '@mui/material';
-import { getSessionObservable, formatTimeLeft } from '../../utils/session';
+import { useState, useEffect } from 'react';
+import { Typography } from '@mui/material';
+import { getTimeLeft } from '../../utils/session';
 
 const SessionTimer = () => {
-  const [timeLeft, setTimeLeft] = useState<number>(0);
-  const [isWarning, setIsWarning] = useState(false);
+  const [time, setTime] = useState('Munkamenet idő: 00:00:30');
 
   useEffect(() => {
-    const subscription = getSessionObservable().subscribe(({ timeLeft, isWarning }) => {
-      setTimeLeft(timeLeft);
-      setIsWarning(isWarning);
-    });
+    setTime(getTimeLeft());
+    
+    const interval = setInterval(() => {
+      setTime(getTimeLeft());
+    }, 1000);
 
-    return () => subscription.unsubscribe();
+    return () => clearInterval(interval);
   }, []);
 
-  if (!timeLeft) return null;
-
   return (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-      {isWarning ? (
-        <Alert 
-          severity="warning" 
-          sx={{ 
-            py: 0,
-            '& .MuiAlert-message': { 
-              display: 'flex', 
-              alignItems: 'center' 
-            } 
-          }}
-        >
-          Munkamenet lejár: {formatTimeLeft(timeLeft)}
-        </Alert>
-      ) : (
-        <Typography 
-          variant="body2" 
-          sx={{ 
-            color: 'white',
-            display: 'flex',
-            alignItems: 'center',
-            opacity: 0.9
-          }}
-        >
-          Munkamenet idő: {formatTimeLeft(timeLeft)}
-        </Typography>
-      )}
-    </Box>
+    <Typography variant="body2" sx={{ color: 'white' }}>
+      {time}
+    </Typography>
   );
 };
 

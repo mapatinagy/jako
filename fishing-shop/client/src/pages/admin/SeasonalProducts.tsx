@@ -15,7 +15,9 @@ import {
   CircularProgress,
   AppBar,
   Toolbar,
-  Stack
+  Stack,
+  Container,
+  InputAdornment
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -248,7 +250,7 @@ const SeasonalProducts = () => {
           <Stack 
             direction="row" 
             alignItems="center" 
-            spacing={1.5} 
+            spacing={1} 
             sx={{ 
               cursor: 'pointer',
               '&:hover': {
@@ -261,7 +263,7 @@ const SeasonalProducts = () => {
           >
             <DashboardIcon 
               sx={{ 
-                fontSize: 32,
+                fontSize: { xs: 24, sm: 32 },
                 color: 'white',
                 transition: 'opacity 0.2s ease'
               }} 
@@ -271,67 +273,92 @@ const SeasonalProducts = () => {
               sx={{ 
                 color: 'white',
                 fontWeight: 600,
-                transition: 'opacity 0.2s ease'
+                transition: 'opacity 0.2s ease',
+                display: { xs: 'none', sm: 'block' }
               }}
             >
               Admin Panel
             </Typography>
           </Stack>
           <Box sx={{ flexGrow: 1 }} />
-          <SessionTimer />
-          <Button
-            onClick={() => navigate('/admin/settings')}
-            startIcon={<SettingsIcon sx={{ fontSize: 28 }} />}
-            sx={{
-              ml: 2,
-              color: 'white',
-              fontSize: '1.2rem',
-              '&:hover': {
-                backgroundColor: 'rgba(255, 255, 255, 0.1)'
-              }
-            }}
-          >
-            Beállítások
-          </Button>
-          <Button
-            onClick={handleLogout}
-            startIcon={<LogoutIcon sx={{ fontSize: 28 }} />}
-            sx={{
-              ml: 2,
-              color: 'white',
-              fontSize: '1.2rem',
-              '&:hover': {
-                backgroundColor: 'rgba(255, 255, 255, 0.1)'
-              }
-            }}
-          >
-            Kijelentkezés
-          </Button>
+          <Stack direction="row" spacing={1} alignItems="center">
+            <SessionTimer />
+            <Button
+              onClick={() => navigate('/admin/settings')}
+              startIcon={<SettingsIcon sx={{ fontSize: { xs: 20, sm: 28 } }} />}
+              sx={{
+                color: 'white',
+                fontSize: { xs: '0.9rem', sm: '1.2rem' },
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)'
+                },
+                px: { xs: 1, sm: 2 }
+              }}
+            >
+              <Box component="span" sx={{ display: { xs: 'none', sm: 'block' } }}>
+                Beállítások
+              </Box>
+            </Button>
+            <Button
+              onClick={handleLogout}
+              startIcon={<LogoutIcon sx={{ fontSize: { xs: 20, sm: 28 } }} />}
+              sx={{
+                color: 'white',
+                fontSize: { xs: '0.9rem', sm: '1.2rem' },
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)'
+                },
+                px: { xs: 1, sm: 2 }
+              }}
+            >
+              <Box component="span" sx={{ display: { xs: 'none', sm: 'block' } }}>
+                Kijelentkezés
+              </Box>
+            </Button>
+          </Stack>
         </Toolbar>
       </AppBar>
 
       {/* Main Content */}
-      <Box sx={{ p: 3 }}>
-        <Box sx={{ mb: 4 }}>
-          <Typography variant="h4" sx={{ mb: 3 }}>Szezonális Termékek</Typography>
-          
+      <Box sx={{ 
+        p: 3,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center'
+      }}>
+        <Box sx={{ width: '100%' }}>
+          {/* Page title and New Product button */}
+          <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant="h4">Szezonális Termékek</Typography>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => handleOpen()}
+            >
+              Új termék
+            </Button>
+          </Box>
+
+          {/* Filter bar */}
           <Paper sx={{ p: 2, mb: 3 }}>
             <Grid container spacing={2} alignItems="center">
               <Grid item xs={12} md={4}>
                 <TextField
                   fullWidth
-                  label="Keresés"
+                  placeholder="Keresés..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  size="small"
                   InputProps={{
                     startAdornment: (
-                      <SearchIcon color="action" sx={{ mr: 1 }} />
-                    )
+                      <InputAdornment position="start">
+                        <SearchIcon />
+                      </InputAdornment>
+                    ),
                   }}
+                  size="small"
                 />
               </Grid>
-              <Grid item xs={12} md={3}>
+              <Grid item xs={12} sm={6} md={3}>
                 <DatePicker
                   label="Kezdő dátum"
                   value={dateRange.from}
@@ -340,7 +367,7 @@ const SeasonalProducts = () => {
                   slotProps={{ textField: { size: 'small', fullWidth: true } }}
                 />
               </Grid>
-              <Grid item xs={12} md={3}>
+              <Grid item xs={12} sm={6} md={3}>
                 <DatePicker
                   label="Záró dátum"
                   value={dateRange.to}
@@ -349,10 +376,14 @@ const SeasonalProducts = () => {
                   slotProps={{ textField: { size: 'small', fullWidth: true } }}
                 />
               </Grid>
-              <Grid item xs={12} md={2}>
-                <Stack direction="row" spacing={1}>
+              <Grid item xs={12} sm={6} md={2}>
+                <Stack 
+                  direction={{ xs: 'row', sm: 'row' }} 
+                  spacing={1} 
+                  sx={{ width: '100%' }}
+                >
                   <Button
-                    fullWidth
+                    sx={{ flex: { xs: 1, md: 'none' } }}
                     variant="outlined"
                     onClick={() => {
                       setSearchQuery('');
@@ -361,245 +392,250 @@ const SeasonalProducts = () => {
                   >
                     Szűrők törlése
                   </Button>
-                  <Button
-                    variant="contained"
-                    startIcon={<AddIcon />}
-                    onClick={() => handleOpen()}
-                  >
-                    Új termék
-                  </Button>
                 </Stack>
               </Grid>
             </Grid>
           </Paper>
-        </Box>
 
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {error}
-          </Alert>
-        )}
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {error}
+            </Alert>
+          )}
 
-        <Grid container spacing={3} sx={{ maxWidth: '1400px', mx: 'auto' }}>
-          {filteredProducts.map((product) => (
-            <Grid item xs={12} sm={6} md={4} key={product.id}>
-              <Paper 
-                sx={{ 
-                  p: 3,
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
+          {/* Products grid */}
+          <Grid 
+            container 
+            spacing={2}
+            sx={{ 
+              width: '100%',
+              px: { xs: 0, sm: 0 },
+              justifyContent: 'center',
+              margin: '0 auto',
+              maxWidth: 1200
+            }}
+          >
+            {filteredProducts.map((product) => (
+              <Grid item xs={12} sm={6} md={4} key={product.id}>
+                <Paper 
+                  sx={{ 
+                    p: { xs: 1.5, sm: 3 },
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    width: '100%',
+                    transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
+                    '&:hover': {
+                      transform: 'translateY(-2px)',
+                      boxShadow: 4
+                    }
+                  }}
+                >
+                  {product.image_path && (
+                    <Box 
+                      sx={{ 
+                        width: '100%',
+                        height: { xs: 150, sm: 200 },
+                        borderRadius: 2,
+                        overflow: 'hidden',
+                        cursor: 'pointer',
+                        transition: 'transform 0.2s',
+                        mb: 2,
+                        '&:hover': {
+                          transform: 'scale(1.02)'
+                        }
+                      }}
+                      onClick={(e) => handleImageClick(product.image_path!, e)}
+                    >
+                      <img
+                        src={`http://localhost:3000${product.image_path}`}
+                        alt={product.title}
+                        style={{ 
+                          width: '100%', 
+                          height: '100%', 
+                          objectFit: 'cover'
+                        }}
+                      />
+                    </Box>
+                  )}
+
+                  <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+                    <Typography 
+                      variant="h6" 
+                      gutterBottom 
+                      sx={{ 
+                        fontSize: '1.2rem',
+                        fontWeight: 500,
+                        lineHeight: 1.2,
+                        mb: 2
+                      }}
+                    >
+                      {product.title}
+                    </Typography>
+                    <Typography 
+                      variant="body2" 
+                      color="text.secondary"
+                      sx={{ 
+                        fontSize: '0.9rem',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 3,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        lineHeight: 1.4,
+                        mb: 2
+                      }}
+                    >
+                      {product.content}
+                    </Typography>
+                  </Box>
+
+                  <Box 
+                    sx={{ 
+                      pt: 2,
+                      borderTop: 1,
+                      borderColor: 'divider',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between'
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', gap: 0.5 }}>
+                      <IconButton 
+                        onClick={() => handleToggleStatus(product.id)} 
+                        size="small"
+                        color={product.is_active ? "success" : "default"}
+                        sx={{ p: 0.5 }}
+                      >
+                        {product.is_active ? <VisibilityIcon /> : <VisibilityOffIcon />}
+                      </IconButton>
+                      <IconButton 
+                        onClick={() => handleOpen(product)} 
+                        size="small"
+                        color="primary"
+                        sx={{ p: 0.5 }}
+                      >
+                        <EditIcon />
+                      </IconButton>
+                      <IconButton 
+                        onClick={() => handleDelete(product.id)} 
+                        size="small"
+                        color="error"
+                        sx={{ p: 0.5 }}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </Box>
+                    <Typography 
+                      variant="caption" 
+                      color="text.secondary"
+                      sx={{ fontSize: '0.75rem' }}
+                    >
+                      {new Date(product.created_at).toLocaleDateString()}
+                    </Typography>
+                  </Box>
+                </Paper>
+              </Grid>
+            ))}
+          </Grid>
+
+          <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+            <DialogTitle>
+              {selectedProduct ? 'Termék szerkesztése' : 'Új termék hozzáadása'}
+            </DialogTitle>
+            <form onSubmit={handleSubmit}>
+              <DialogContent>
+                <TextField
+                  fullWidth
+                  label="Cím"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  required
+                  sx={{ mb: 2 }}
+                />
+                <TextField
+                  fullWidth
+                  label="Leírás"
+                  value={formData.content}
+                  onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                  required
+                  multiline
+                  rows={4}
+                  sx={{ mb: 2 }}
+                />
+                <Box sx={{ mb: 2 }}>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileSelect}
+                    style={{ display: 'none' }}
+                    id="image-upload"
+                  />
+                  <label htmlFor="image-upload">
+                    <Button
+                      variant="outlined"
+                      component="span"
+                      startIcon={<ImageIcon />}
+                    >
+                      Kép kiválasztása
+                    </Button>
+                  </label>
+                  {imagePreview && (
+                    <Box sx={{ mt: 2, height: 200, overflow: 'hidden' }}>
+                      <img
+                        src={imagePreview}
+                        alt="Preview"
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
+                    </Box>
+                  )}
+                </Box>
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={handleClose}>Mégse</Button>
+                <Button type="submit" variant="contained" disabled={loading}>
+                  {loading ? <CircularProgress size={24} /> : 'Mentés'}
+                </Button>
+              </DialogActions>
+            </form>
+          </Dialog>
+
+          <Dialog 
+            open={imageModal.open} 
+            onClose={() => setImageModal({ open: false, imagePath: null })}
+            maxWidth="lg"
+            fullWidth
+          >
+            <DialogContent sx={{ p: 0, position: 'relative' }}>
+              <IconButton
+                onClick={() => setImageModal({ open: false, imagePath: null })}
+                sx={{
+                  position: 'absolute',
+                  right: 8,
+                  top: 8,
+                  color: 'white',
+                  bgcolor: 'rgba(0, 0, 0, 0.5)',
                   '&:hover': {
-                    transform: 'translateY(-2px)',
-                    boxShadow: 4
+                    bgcolor: 'rgba(0, 0, 0, 0.7)'
                   }
                 }}
               >
-                {product.image_path && (
-                  <Box 
-                    sx={{ 
-                      width: '100%',
-                      height: 200,
-                      borderRadius: 2,
-                      overflow: 'hidden',
-                      cursor: 'pointer',
-                      transition: 'transform 0.2s',
-                      mb: 2,
-                      '&:hover': {
-                        transform: 'scale(1.02)'
-                      }
-                    }}
-                    onClick={(e) => handleImageClick(product.image_path!, e)}
-                  >
-                    <img
-                      src={`http://localhost:3000${product.image_path}`}
-                      alt={product.title}
-                      style={{ 
-                        width: '100%', 
-                        height: '100%', 
-                        objectFit: 'cover'
-                      }}
-                    />
-                  </Box>
-                )}
-
-                <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-                  <Typography 
-                    variant="h6" 
-                    gutterBottom 
-                    sx={{ 
-                      fontSize: '1.2rem',
-                      fontWeight: 500,
-                      lineHeight: 1.2,
-                      mb: 2
-                    }}
-                  >
-                    {product.title}
-                  </Typography>
-                  <Typography 
-                    variant="body2" 
-                    color="text.secondary"
-                    sx={{ 
-                      fontSize: '0.9rem',
-                      display: '-webkit-box',
-                      WebkitLineClamp: 3,
-                      WebkitBoxOrient: 'vertical',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      lineHeight: 1.4,
-                      mb: 2
-                    }}
-                  >
-                    {product.content}
-                  </Typography>
-                </Box>
-
-                <Box 
-                  sx={{ 
-                    pt: 2,
-                    borderTop: 1,
-                    borderColor: 'divider',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between'
+                <CloseIcon />
+              </IconButton>
+              {imageModal.imagePath && (
+                <img
+                  src={imageModal.imagePath}
+                  alt="Full size"
+                  style={{
+                    width: '100%',
+                    height: 'auto',
+                    display: 'block'
                   }}
-                >
-                  <Box sx={{ display: 'flex', gap: 0.5 }}>
-                    <IconButton 
-                      onClick={() => handleToggleStatus(product.id)} 
-                      size="small"
-                      color={product.is_active ? "success" : "default"}
-                      sx={{ p: 0.5 }}
-                    >
-                      {product.is_active ? <VisibilityIcon /> : <VisibilityOffIcon />}
-                    </IconButton>
-                    <IconButton 
-                      onClick={() => handleOpen(product)} 
-                      size="small"
-                      color="primary"
-                      sx={{ p: 0.5 }}
-                    >
-                      <EditIcon />
-                    </IconButton>
-                    <IconButton 
-                      onClick={() => handleDelete(product.id)} 
-                      size="small"
-                      color="error"
-                      sx={{ p: 0.5 }}
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </Box>
-                  <Typography 
-                    variant="caption" 
-                    color="text.secondary"
-                    sx={{ fontSize: '0.75rem' }}
-                  >
-                    {new Date(product.created_at).toLocaleDateString()}
-                  </Typography>
-                </Box>
-              </Paper>
-            </Grid>
-          ))}
-        </Grid>
-
-        <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-          <DialogTitle>
-            {selectedProduct ? 'Termék szerkesztése' : 'Új termék hozzáadása'}
-          </DialogTitle>
-          <form onSubmit={handleSubmit}>
-            <DialogContent>
-              <TextField
-                fullWidth
-                label="Cím"
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                required
-                sx={{ mb: 2 }}
-              />
-              <TextField
-                fullWidth
-                label="Leírás"
-                value={formData.content}
-                onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                required
-                multiline
-                rows={4}
-                sx={{ mb: 2 }}
-              />
-              <Box sx={{ mb: 2 }}>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileSelect}
-                  style={{ display: 'none' }}
-                  id="image-upload"
                 />
-                <label htmlFor="image-upload">
-                  <Button
-                    variant="outlined"
-                    component="span"
-                    startIcon={<ImageIcon />}
-                  >
-                    Kép kiválasztása
-                  </Button>
-                </label>
-                {imagePreview && (
-                  <Box sx={{ mt: 2, height: 200, overflow: 'hidden' }}>
-                    <img
-                      src={imagePreview}
-                      alt="Preview"
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    />
-                  </Box>
-                )}
-              </Box>
+              )}
             </DialogContent>
-            <DialogActions>
-              <Button onClick={handleClose}>Mégse</Button>
-              <Button type="submit" variant="contained" disabled={loading}>
-                {loading ? <CircularProgress size={24} /> : 'Mentés'}
-              </Button>
-            </DialogActions>
-          </form>
-        </Dialog>
-
-        <Dialog 
-          open={imageModal.open} 
-          onClose={() => setImageModal({ open: false, imagePath: null })}
-          maxWidth="lg"
-          fullWidth
-        >
-          <DialogContent sx={{ p: 0, position: 'relative' }}>
-            <IconButton
-              onClick={() => setImageModal({ open: false, imagePath: null })}
-              sx={{
-                position: 'absolute',
-                right: 8,
-                top: 8,
-                color: 'white',
-                bgcolor: 'rgba(0, 0, 0, 0.5)',
-                '&:hover': {
-                  bgcolor: 'rgba(0, 0, 0, 0.7)'
-                }
-              }}
-            >
-              <CloseIcon />
-            </IconButton>
-            {imageModal.imagePath && (
-              <img
-                src={imageModal.imagePath}
-                alt="Full size"
-                style={{
-                  width: '100%',
-                  height: 'auto',
-                  display: 'block'
-                }}
-              />
-            )}
-          </DialogContent>
-        </Dialog>
+          </Dialog>
+        </Box>
       </Box>
     </Box>
   );

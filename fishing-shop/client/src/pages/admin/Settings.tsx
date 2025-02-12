@@ -146,7 +146,7 @@ const Settings = () => {
           <Stack 
             direction="row" 
             alignItems="center" 
-            spacing={1.5} 
+            spacing={1} 
             sx={{ 
               cursor: 'pointer',
               '&:hover': {
@@ -159,7 +159,7 @@ const Settings = () => {
           >
             <DashboardIcon 
               sx={{ 
-                fontSize: 32,
+                fontSize: { xs: 24, sm: 32 },
                 color: 'white',
                 transition: 'opacity 0.2s ease'
               }} 
@@ -169,42 +169,49 @@ const Settings = () => {
               sx={{ 
                 color: 'white',
                 fontWeight: 600,
-                transition: 'opacity 0.2s ease'
+                transition: 'opacity 0.2s ease',
+                display: { xs: 'none', sm: 'block' }
               }}
             >
               Admin Panel
             </Typography>
           </Stack>
           <Box sx={{ flexGrow: 1 }} />
-          <SessionTimer />
-          <Button
-            onClick={() => navigate('/admin/settings')}
-            startIcon={<SettingsIcon sx={{ fontSize: 28 }} />}
-            sx={{
-              ml: 2,
-              color: 'white',
-              fontSize: '1.2rem',
-              '&:hover': {
-                backgroundColor: 'rgba(255, 255, 255, 0.1)'
-              }
-            }}
-          >
-            Beállítások
-          </Button>
-          <Button
-            onClick={handleLogout}
-            startIcon={<LogoutIcon sx={{ fontSize: 28 }} />}
-            sx={{
-              ml: 2,
-              color: 'white',
-              fontSize: '1.2rem',
-              '&:hover': {
-                backgroundColor: 'rgba(255, 255, 255, 0.1)'
-              }
-            }}
-          >
-            Kijelentkezés
-          </Button>
+          <Stack direction="row" spacing={1} alignItems="center">
+            <SessionTimer />
+            <Button
+              onClick={() => navigate('/admin/settings')}
+              startIcon={<SettingsIcon sx={{ fontSize: { xs: 20, sm: 28 } }} />}
+              sx={{
+                color: 'white',
+                fontSize: { xs: '0.9rem', sm: '1.2rem' },
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)'
+                },
+                px: { xs: 1, sm: 2 }
+              }}
+            >
+              <Box component="span" sx={{ display: { xs: 'none', sm: 'block' } }}>
+                Beállítások
+              </Box>
+            </Button>
+            <Button
+              onClick={handleLogout}
+              startIcon={<LogoutIcon sx={{ fontSize: { xs: 20, sm: 28 } }} />}
+              sx={{
+                color: 'white',
+                fontSize: { xs: '0.9rem', sm: '1.2rem' },
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)'
+                },
+                px: { xs: 1, sm: 2 }
+              }}
+            >
+              <Box component="span" sx={{ display: { xs: 'none', sm: 'block' } }}>
+                Kijelentkezés
+              </Box>
+            </Button>
+          </Stack>
         </Toolbar>
       </AppBar>
 
