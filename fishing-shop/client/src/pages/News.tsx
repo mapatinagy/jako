@@ -691,23 +691,23 @@ const News = () => {
                   </Typography>
                   <Stack spacing={1}>
                     <Box sx={{ p: 1.5, borderRadius: 1, bgcolor: 'background.default' }}>
-                      <Typography variant="body2" sx={{ fontWeight: 500 }}>Monday - Friday</Typography>
-                      <Typography variant="body2" color="text.secondary">8:00 - 18:00</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 500 }}>Hétfő - Péntek</Typography>
+                      <Typography variant="body2" color="text.secondary">8:00 - 17:30</Typography>
                     </Box>
                     <Box sx={{ p: 1.5, borderRadius: 1, bgcolor: 'background.default' }}>
-                      <Typography variant="body2" sx={{ fontWeight: 500 }}>Saturday</Typography>
-                      <Typography variant="body2" color="text.secondary">9:00 - 16:00</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 500 }}>Szombat</Typography>
+                      <Typography variant="body2" color="text.secondary">8:00 - 12:00</Typography>
                     </Box>
                     <Box sx={{ p: 1.5, borderRadius: 1, bgcolor: 'background.default' }}>
-                      <Typography variant="body2" sx={{ fontWeight: 500 }}>Sunday</Typography>
-                      <Typography variant="body2" color="text.secondary">Closed</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 500 }}>Vasárnap</Typography>
+                      <Typography variant="body2" color="text.secondary">8:00 - 11:00</Typography>
                     </Box>
                   </Stack>
                 </Paper>
 
                 <Paper sx={{ p: 3, borderRadius: 2 }}>
                   <Typography variant="h6" sx={{ mb: 2, color: 'primary.main' }}>
-                    Follow Us
+                    Kövess minket
                   </Typography>
                   <Stack direction="row" spacing={2} justifyContent="center">
                     <IconButton
@@ -765,7 +765,7 @@ const News = () => {
                     align="center" 
                     sx={{ mt: 2 }}
                   >
-                    Stay connected with us on social media for the latest updates and fishing tips!
+                    Kövessen minket a közösségi médiában a legfrissebb híreinkért és akcióinkért!
                   </Typography>
                 </Paper>
               </Box>
@@ -798,27 +798,27 @@ const News = () => {
               >
                 <Paper sx={{ p: 3, mb: 3, borderRadius: 2 }}>
                   <Typography variant="h6" sx={{ mb: 2, color: 'primary.main' }}>
-                    Contact Information
+                    Kapcsolat
                   </Typography>
                   <Stack spacing={2}>
                     <Box sx={{ p: 2, borderRadius: 1, bgcolor: 'background.default' }}>
                       <Typography variant="body2" sx={{ fontWeight: 500, mb: 1 }}>
-                        Address
+                        Cím
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
-                        123 Fishing Street
+                        5630 Békés
                         <br />
-                        Fishtown, FT 12345
+                        Szánthó Albert utca 4.
                       </Typography>
                     </Box>
                     <Box sx={{ p: 2, borderRadius: 1, bgcolor: 'background.default' }}>
                       <Typography variant="body2" sx={{ fontWeight: 500, mb: 1 }}>
-                        Phone & Email
+                        Telefon & Email
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
-                        +1 234 567 890
+                        +36 30 471 7047
                         <br />
-                        info@fishingshop.com
+                        info@jakobekes.hu
                       </Typography>
                     </Box>
                   </Stack>
@@ -826,7 +826,7 @@ const News = () => {
 
                 <Paper sx={{ p: 3, borderRadius: 2 }}>
                   <Typography variant="h6" sx={{ mb: 2, color: 'primary.main' }}>
-                    Find Us
+                    Itt találsz meg minket:
                   </Typography>
                   <Box 
                     sx={{ 
