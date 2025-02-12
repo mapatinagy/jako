@@ -1,4 +1,4 @@
-import express, { Express } from 'express';
+import express, { Express, NextFunction, Request, Response } from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import path from 'path';
@@ -20,6 +20,13 @@ app.use(express.urlencoded({ extended: true }));
 
 // Static files
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
+// Add this before your routes
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+  console.error('Error:', err.message);
+  console.error('Stack:', err.stack);
+  res.status(500).json({ error: 'Internal server error' });
+});
 
 // Routes
 app.use('/api/auth', authRoutes);

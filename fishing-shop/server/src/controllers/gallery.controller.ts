@@ -5,11 +5,18 @@ import { GalleryImage, UpdateImageRequest, DeleteImagesRequest } from '../types/
 // Get all images
 export const getAllImages = async (req: Request, res: Response) => {
   try {
-    const [images] = await pool.execute('SELECT * FROM gallery ORDER BY created_at DESC');
-    res.json({ success: true, images });
+    const [images] = await pool.execute('SELECT * FROM fishing_shop.gallery ORDER BY created_at DESC');
+    res.json({
+      success: true,
+      images: images
+    });
   } catch (error) {
     console.error('Error fetching images:', error);
-    res.status(500).json({ success: false, message: 'Failed to fetch images' });
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to fetch images',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 };
 
@@ -29,7 +36,7 @@ export const uploadImage = async (req: Request, res: Response) => {
 
     // Check if file with same original filename already exists
     const [existingFiles] = await pool.execute(
-      'SELECT id FROM gallery WHERE original_filename = ?',
+      'SELECT id FROM fishing_shop.gallery WHERE original_filename = ?',
       [originalname]
     );
 
@@ -42,13 +49,13 @@ export const uploadImage = async (req: Request, res: Response) => {
     }
 
     const [result] = await pool.execute(
-      `INSERT INTO gallery (filename, original_filename, description, file_size, mime_type, upload_status)
+      `INSERT INTO fishing_shop.gallery (filename, original_filename, description, file_size, mime_type, upload_status)
        VALUES (?, ?, ?, ?, ?, 'completed')`,
       [filename, originalname, description, size, mimetype]
     );
 
     const insertId = (result as any).insertId;
-    const [newImage] = await pool.execute('SELECT * FROM gallery WHERE id = ?', [insertId]);
+    const [newImage] = await pool.execute('SELECT * FROM fishing_shop.gallery WHERE id = ?', [insertId]);
 
     // Log successful upload
     console.log(`[${new Date().toISOString()}] Upload successful: ${originalname} (ID: ${insertId})`);
@@ -85,11 +92,11 @@ export const updateImage = async (req: Request, res: Response) => {
     }
 
     await pool.execute(
-      'UPDATE gallery SET description = ? WHERE id = ?',
+      'UPDATE fishing_shop.gallery SET description = ? WHERE id = ?',
       [description, id]
     );
 
-    const [updatedImage] = await pool.execute('SELECT * FROM gallery WHERE id = ?', [id]);
+    const [updatedImage] = await pool.execute('SELECT * FROM fishing_shop.gallery WHERE id = ?', [id]);
 
     if (!(updatedImage as any[])[0]) {
       return res.status(404).json({ success: false, message: 'Image not found' });
@@ -117,13 +124,13 @@ export const deleteImages = async (req: Request, res: Response) => {
 
     // Get filenames before deletion for file cleanup
     const [images] = await pool.execute(
-      `SELECT filename FROM gallery WHERE id IN (${imageIds.map(() => '?').join(',')})`,
+      `SELECT filename FROM fishing_shop.gallery WHERE id IN (${imageIds.map(() => '?').join(',')})`,
       imageIds
     );
 
     // Delete from database
     await pool.execute(
-      `DELETE FROM gallery WHERE id IN (${imageIds.map(() => '?').join(',')})`,
+      `DELETE FROM fishing_shop.gallery WHERE id IN (${imageIds.map(() => '?').join(',')})`,
       imageIds
     );
 

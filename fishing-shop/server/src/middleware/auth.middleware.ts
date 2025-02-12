@@ -11,17 +11,25 @@ export const authenticateToken = (
   const token = authHeader && authHeader.split(' ')[1];
 
   if (!token) {
+    console.log('No token provided');
     return res.status(401).json({ message: 'Authentication token is required' });
   }
 
   try {
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET as string
-    ) as JwtPayload;
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+      console.error('JWT_SECRET is not set');
+      return res.status(500).json({ message: 'Server configuration error' });
+    }
+
+    const decoded = jwt.verify(token, secret) as JwtPayload;
     (req as AuthenticatedRequest).user = decoded;
     next();
   } catch (error) {
-    return res.status(403).json({ message: 'Invalid or expired token' });
+    console.error('Token verification failed:', error);
+    if (error instanceof jwt.TokenExpiredError) {
+      return res.status(403).json({ message: 'Token has expired' });
+    }
+    return res.status(403).json({ message: 'Invalid token' });
   }
 }; 

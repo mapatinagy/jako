@@ -7,58 +7,59 @@ import { SignOptions } from 'jsonwebtoken';
 
 export const login = async (req: Request, res: Response) => {
   try {
-    const { username, password }: LoginRequest = req.body;
+    const { username, password } = req.body;
 
-    if (!username || !password) {
-      return res.status(400).json({ message: 'Felhasználónév és jelszó megadása kötelező' });
-    }
+    // First, log the received credentials (without the password)
+    console.log('Login attempt for username:', username);
 
+    // Get user from database
     const [users] = await pool.execute(
-      'SELECT * FROM admin_user WHERE username = ?',
+      'SELECT * FROM fishing_shop.admin_user WHERE username = ?',
       [username]
     );
 
     const user = (users as any[])[0];
+    
+    // Log user lookup result (without sensitive data)
+    console.log('User found:', user ? 'Yes' : 'No');
 
     if (!user) {
-      return res.status(401).json({ message: 'Érvénytelen bejelentkezési adatok' });
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid username or password'
+      });
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user.password_hash);
-
-    if (!isPasswordValid) {
-      // Update failed login attempts
-      await pool.execute(
-        `UPDATE admin_user 
-         SET failed_login_attempts = failed_login_attempts + 1,
-             last_failed_login = CURRENT_TIMESTAMP
-         WHERE id = ?`,
-        [user.id]
-      );
-
-      return res.status(401).json({ message: 'Érvénytelen bejelentkezési adatok' });
+    // Check which password field exists in the user object
+    const hashedPassword = user.password_hash || user.password;
+    
+    if (!hashedPassword) {
+      console.error('No password hash found in user record');
+      return res.status(500).json({
+        success: false,
+        message: 'Authentication error'
+      });
     }
 
-    // Reset failed login attempts and update last login
-    await pool.execute(
-      `UPDATE admin_user 
-       SET failed_login_attempts = 0,
-           last_login = CURRENT_TIMESTAMP
-       WHERE id = ?`,
-      [user.id]
-    );
+    // Verify password
+    const isValidPassword = await bcrypt.compare(password, hashedPassword);
 
-    const jwtOptions: SignOptions = {
-      expiresIn: (process.env.JWT_EXPIRES_IN || '24h') as jwt.SignOptions['expiresIn']
-    };
+    if (!isValidPassword) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid username or password'
+      });
+    }
 
+    // Generate JWT token
     const token = jwt.sign(
       { userId: user.id, username: user.username },
-      process.env.JWT_SECRET || 'fallback_secret',
-      jwtOptions
+      process.env.JWT_SECRET || 'jak0_F1sh1ng_Sh0p_2024_S3cur3_K3y_!@#$%^&*()_+',
+      { expiresIn: '1h' }
     );
 
     res.json({
+      success: true,
       token,
       user: {
         id: user.id,
@@ -67,7 +68,11 @@ export const login = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ message: 'Belső szerverhiba' });
+    res.status(500).json({
+      success: false,
+      message: 'Login failed',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 };
 

@@ -10,7 +10,7 @@ export const getNewsPosts = async (req: Request, res: Response) => {
     console.log('Test query successful:', testResult);
 
     // Get all posts ordered by creation date DESC
-    const [posts] = await pool.execute('SELECT * FROM news ORDER BY created_at DESC');
+    const [posts] = await pool.execute('SELECT * FROM fishing_shop.news ORDER BY created_at DESC');
     console.log('Posts retrieved:', (posts as any[]).length);
 
     // Transform the posts
