@@ -577,9 +577,9 @@ const News = () => {
       <Helmet>
         {!currentPost && (
           <>
-            <title>Latest News - Fishing Shop Updates and Articles</title>
-            <meta name="description" content="Stay updated with the latest news, articles, and updates from our fishing shop. New products, fishing tips, and special offers." />
-            <meta name="keywords" content="fishing news, fishing articles, fishing shop updates, fishing equipment news" />
+            <title>Újdonságok - Jákó Díszállat és Horgászbolt</title>
+            <meta name="description" content="Jákó Díszállat és Horgászbolt - Újdonságok, aktuális akciók és horgásztippek." />
+            <meta name="keywords" content="horgászújdonságok, horgásztippek, horgászbolt, díszállat újdonságk, növény újdonságok, akció, akciók" />
           </>
         )}
       </Helmet>
@@ -661,10 +661,10 @@ const News = () => {
                   }
                 }}
               >
-                Latest News
+                Újdonságok, akciók
               </Typography>
               <Typography variant="h5" sx={{ maxWidth: 800, mx: 'auto', mt: 3, color: 'rgba(255, 255, 255, 0.9)' }}>
-                Stay updated with our latest products, events, and special offers
+                Maradjon naprakész legújabb termékeinkkel, eseményeinkkel és különleges ajánlatainkkal kapcsolatban.
               </Typography>
             </Paper>
           </Container>
@@ -687,7 +687,7 @@ const News = () => {
               >
                 <Paper sx={{ p: 3, mb: 3, borderRadius: 2 }}>
                   <Typography variant="h6" sx={{ mb: 2, color: 'primary.main' }}>
-                    Opening Hours
+                    Nyitvatartás
                   </Typography>
                   <Stack spacing={1}>
                     <Box sx={{ p: 1.5, borderRadius: 1, bgcolor: 'background.default' }}>
