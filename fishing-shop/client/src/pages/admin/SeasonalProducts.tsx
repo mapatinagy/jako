@@ -27,12 +27,14 @@ import {
   Settings as SettingsIcon,
   Logout as LogoutIcon,
   Image as ImageIcon,
-  Close as CloseIcon
+  Close as CloseIcon,
+  Search as SearchIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import api from '../../utils/api';
 import SessionTimer from '../../components/session/SessionTimer';
 import { setupActivityTracking, cleanupActivityTracking } from '../../utils/session';
+import { DatePicker } from '@mui/x-date-pickers';
 
 interface SeasonalProduct {
   id: number;
@@ -63,6 +65,15 @@ const SeasonalProducts = () => {
     open: false,
     imagePath: null
   });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [dateRange, setDateRange] = useState<{
+    from: Date | null;
+    to: Date | null;
+  }>({
+    from: null,
+    to: null
+  });
+  const [filteredProducts, setFilteredProducts] = useState<SeasonalProduct[]>([]);
 
   const fetchProducts = async () => {
     try {
@@ -79,6 +90,38 @@ const SeasonalProducts = () => {
     fetchProducts();
     return () => cleanupActivityTracking();
   }, []);
+
+  useEffect(() => {
+    let filtered = [...products];
+
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      filtered = filtered.filter(product => 
+        product.title.toLowerCase().includes(query) ||
+        product.content.toLowerCase().includes(query)
+      );
+    }
+
+    if (dateRange.from || dateRange.to) {
+      filtered = filtered.filter(product => {
+        const productDate = new Date(product.created_at);
+        if (dateRange.from && dateRange.to) {
+          const endDate = new Date(dateRange.to);
+          endDate.setHours(23, 59, 59, 999);
+          return productDate >= dateRange.from && productDate <= endDate;
+        } else if (dateRange.from) {
+          return productDate >= dateRange.from;
+        } else if (dateRange.to) {
+          const endDate = new Date(dateRange.to);
+          endDate.setHours(23, 59, 59, 999);
+          return productDate <= endDate;
+        }
+        return true;
+      });
+    }
+
+    setFilteredProducts(filtered);
+  }, [products, searchQuery, dateRange]);
 
   const handleOpen = (product?: SeasonalProduct) => {
     if (product) {
@@ -173,6 +216,13 @@ const SeasonalProducts = () => {
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      const validImageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+      if (!validImageTypes.includes(file.type)) {
+        setError('Csak képfájlokat lehet feltölteni (JPEG, PNG, GIF, WEBP)');
+        e.target.value = '';
+        return;
+      }
+
       setSelectedFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -262,15 +312,66 @@ const SeasonalProducts = () => {
 
       {/* Main Content */}
       <Box sx={{ p: 3 }}>
-        <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="h4">Szezonális Termékek</Typography>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => handleOpen()}
-          >
-            Új termék
-          </Button>
+        <Box sx={{ mb: 4 }}>
+          <Typography variant="h4" sx={{ mb: 3 }}>Szezonális Termékek</Typography>
+          
+          <Paper sx={{ p: 2, mb: 3 }}>
+            <Grid container spacing={2} alignItems="center">
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  label="Keresés"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  size="small"
+                  InputProps={{
+                    startAdornment: (
+                      <SearchIcon color="action" sx={{ mr: 1 }} />
+                    )
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12} md={3}>
+                <DatePicker
+                  label="Kezdő dátum"
+                  value={dateRange.from}
+                  onChange={(date) => setDateRange(prev => ({ ...prev, from: date }))}
+                  maxDate={dateRange.to || undefined}
+                  slotProps={{ textField: { size: 'small', fullWidth: true } }}
+                />
+              </Grid>
+              <Grid item xs={12} md={3}>
+                <DatePicker
+                  label="Záró dátum"
+                  value={dateRange.to}
+                  onChange={(date) => setDateRange(prev => ({ ...prev, to: date }))}
+                  minDate={dateRange.from || undefined}
+                  slotProps={{ textField: { size: 'small', fullWidth: true } }}
+                />
+              </Grid>
+              <Grid item xs={12} md={2}>
+                <Stack direction="row" spacing={1}>
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    onClick={() => {
+                      setSearchQuery('');
+                      setDateRange({ from: null, to: null });
+                    }}
+                  >
+                    Szűrők törlése
+                  </Button>
+                  <Button
+                    variant="contained"
+                    startIcon={<AddIcon />}
+                    onClick={() => handleOpen()}
+                  >
+                    Új termék
+                  </Button>
+                </Stack>
+              </Grid>
+            </Grid>
+          </Paper>
         </Box>
 
         {error && (
@@ -279,12 +380,12 @@ const SeasonalProducts = () => {
           </Alert>
         )}
 
-        <Grid container spacing={2}>
-          {products.map((product) => (
-            <Grid item xs={12} sm={6} md={4} lg={3} key={product.id}>
+        <Grid container spacing={3} sx={{ maxWidth: '1400px', mx: 'auto' }}>
+          {filteredProducts.map((product) => (
+            <Grid item xs={12} sm={6} md={4} key={product.id}>
               <Paper 
                 sx={{ 
-                  p: 2,
+                  p: 3,
                   height: '100%',
                   display: 'flex',
                   flexDirection: 'column',
@@ -295,69 +396,67 @@ const SeasonalProducts = () => {
                   }
                 }}
               >
-                <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
-                  <Box sx={{ flex: 1 }}>
-                    <Typography 
-                      variant="h6" 
-                      gutterBottom 
-                      sx={{ 
-                        fontSize: '1rem',
-                        fontWeight: 500,
-                        lineHeight: 1.2,
-                        mb: 1
+                {product.image_path && (
+                  <Box 
+                    sx={{ 
+                      width: '100%',
+                      height: 200,
+                      borderRadius: 2,
+                      overflow: 'hidden',
+                      cursor: 'pointer',
+                      transition: 'transform 0.2s',
+                      mb: 2,
+                      '&:hover': {
+                        transform: 'scale(1.02)'
+                      }
+                    }}
+                    onClick={(e) => handleImageClick(product.image_path!, e)}
+                  >
+                    <img
+                      src={`http://localhost:3000${product.image_path}`}
+                      alt={product.title}
+                      style={{ 
+                        width: '100%', 
+                        height: '100%', 
+                        objectFit: 'cover'
                       }}
-                    >
-                      {product.title}
-                    </Typography>
-                    <Typography 
-                      variant="body2" 
-                      color="text.secondary"
-                      sx={{ 
-                        fontSize: '0.875rem',
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        lineHeight: 1.3
-                      }}
-                    >
-                      {product.content}
-                    </Typography>
+                    />
                   </Box>
-                  
-                  {product.image_path && (
-                    <Box 
-                      sx={{ 
-                        width: 80,
-                        height: 80,
-                        flexShrink: 0,
-                        borderRadius: 1,
-                        overflow: 'hidden',
-                        cursor: 'pointer',
-                        transition: 'transform 0.2s',
-                        '&:hover': {
-                          transform: 'scale(1.05)'
-                        }
-                      }}
-                      onClick={(e) => handleImageClick(product.image_path!, e)}
-                    >
-                      <img
-                        src={`http://localhost:3000${product.image_path}`}
-                        alt={product.title}
-                        style={{ 
-                          width: '100%', 
-                          height: '100%', 
-                          objectFit: 'cover'
-                        }}
-                      />
-                    </Box>
-                  )}
+                )}
+
+                <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+                  <Typography 
+                    variant="h6" 
+                    gutterBottom 
+                    sx={{ 
+                      fontSize: '1.2rem',
+                      fontWeight: 500,
+                      lineHeight: 1.2,
+                      mb: 2
+                    }}
+                  >
+                    {product.title}
+                  </Typography>
+                  <Typography 
+                    variant="body2" 
+                    color="text.secondary"
+                    sx={{ 
+                      fontSize: '0.9rem',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 3,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      lineHeight: 1.4,
+                      mb: 2
+                    }}
+                  >
+                    {product.content}
+                  </Typography>
                 </Box>
 
                 <Box 
                   sx={{ 
-                    mt: 'auto',
                     pt: 2,
                     borderTop: 1,
                     borderColor: 'divider',
