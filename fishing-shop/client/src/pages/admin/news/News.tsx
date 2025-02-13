@@ -19,6 +19,12 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Grid,
+  InputAdornment,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import ReactQuill from 'react-quill';
@@ -34,6 +40,10 @@ import { setupActivityTracking, cleanupActivityTracking } from '../../../utils/s
 import { formatDistanceToNow } from 'date-fns';
 import { DatePicker } from '@mui/x-date-pickers';
 import SettingsIcon from '@mui/icons-material/Settings';
+import { Helmet } from 'react-helmet-async';
+import { datePickerConfig } from '../../../utils/dateConfig';
+import SearchIcon from '@mui/icons-material/Search';
+import Header from '../../../components/layout/Header';
 
 interface UploadedImage {
   url: string;
@@ -65,8 +75,8 @@ const News = () => {
   const [editingPost, setEditingPost] = useState<NewsPost | null>(null);
   const [deleteConfirmPost, setDeleteConfirmPost] = useState<NewsPost | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [fromDate, setFromDate] = useState<Date | null>(null);
-  const [toDate, setToDate] = useState<Date | null>(null);
+  const [dateRange, setDateRange] = useState({ from: null, to: null });
+  const [statusFilter, setStatusFilter] = useState('all');
 
   useEffect(() => {
     setupActivityTracking();
@@ -364,121 +374,53 @@ const News = () => {
 
     // Date range filter
     let matchesDateRange = true;
-    if (fromDate) {
-      const fromDateTime = new Date(fromDate);
+    if (dateRange.from) {
+      const fromDateTime = new Date(dateRange.from);
       fromDateTime.setHours(0, 0, 0, 0);
       matchesDateRange = matchesDateRange && new Date(post.created_at) >= fromDateTime;
     }
-    if (toDate) {
-      const toDateTime = new Date(toDate);
+    if (dateRange.to) {
+      const toDateTime = new Date(dateRange.to);
       toDateTime.setHours(23, 59, 59, 999);
       matchesDateRange = matchesDateRange && new Date(post.created_at) <= toDateTime;
     }
 
-    return matchesSearch && matchesDateRange;
+    // Status filter
+    const matchesStatus = statusFilter === 'all' || (statusFilter === 'published' && post.is_published) || (statusFilter === 'draft' && !post.is_published);
+
+    return matchesSearch && matchesDateRange && matchesStatus;
   });
 
   return (
     <Box>
-      <Snackbar
-        open={!!error}
-        autoHideDuration={6000}
-        onClose={handleCloseError}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-      >
-        <Alert onClose={handleCloseError} severity="error" sx={{ width: '100%' }}>
-          {error}
-        </Alert>
-      </Snackbar>
+      <Header />
+      <Container maxWidth="xl" sx={{ py: { xs: 2, sm: 4 } }}>
+        <Helmet>
+          <title>Hírek Management | Admin Panel</title>
+        </Helmet>
+        <Snackbar
+          open={!!error}
+          autoHideDuration={6000}
+          onClose={handleCloseError}
+          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        >
+          <Alert onClose={handleCloseError} severity="error" sx={{ width: '100%' }}>
+            {error}
+          </Alert>
+        </Snackbar>
 
-      <Snackbar
-        open={!!success}
-        autoHideDuration={6000}
-        onClose={handleCloseSuccess}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-      >
-        <Alert onClose={handleCloseSuccess} severity="success" sx={{ width: '100%' }}>
-          {success}
-        </Alert>
-      </Snackbar>
+        <Snackbar
+          open={!!success}
+          autoHideDuration={6000}
+          onClose={handleCloseSuccess}
+          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        >
+          <Alert onClose={handleCloseSuccess} severity="success" sx={{ width: '100%' }}>
+            {success}
+          </Alert>
+        </Snackbar>
 
-      {/* Admin Header */}
-      <AppBar position="static" sx={{ backgroundColor: 'primary.main' }}>
-        <Toolbar sx={{ px: { xs: 2, sm: 4, md: 6, lg: 8 } }}>
-          <Stack 
-            direction="row" 
-            alignItems="center" 
-            spacing={1} 
-            sx={{ 
-              cursor: 'pointer',
-              '&:hover': {
-                '& .MuiTypography-root, & .MuiSvgIcon-root': {
-                  opacity: 0.8
-                }
-              }
-            }}
-            onClick={() => navigate('/admin/dashboard')}
-          >
-            <DashboardIcon 
-              sx={{ 
-                fontSize: { xs: 24, sm: 32 },
-                color: 'white',
-                transition: 'opacity 0.2s ease'
-              }} 
-            />
-            <Typography 
-              variant="h5" 
-              sx={{ 
-                color: 'white',
-                fontWeight: 600,
-                transition: 'opacity 0.2s ease',
-                display: { xs: 'none', sm: 'block' }
-              }}
-            >
-              Admin Panel
-            </Typography>
-          </Stack>
-          <Box sx={{ flexGrow: 1 }} />
-          <Stack direction="row" spacing={1} alignItems="center">
-            <SessionTimer />
-            <Button
-              onClick={() => navigate('/admin/settings')}
-              startIcon={<SettingsIcon sx={{ fontSize: { xs: 20, sm: 28 } }} />}
-              sx={{
-                color: 'white',
-                fontSize: { xs: '0.9rem', sm: '1.2rem' },
-                '&:hover': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.1)'
-                },
-                px: { xs: 1, sm: 2 }
-              }}
-            >
-              <Box component="span" sx={{ display: { xs: 'none', sm: 'block' } }}>
-                Beállítások
-              </Box>
-            </Button>
-            <Button
-              onClick={handleLogout}
-              startIcon={<LogoutIcon sx={{ fontSize: { xs: 20, sm: 28 } }} />}
-              sx={{
-                color: 'white',
-                fontSize: { xs: '0.9rem', sm: '1.2rem' },
-                '&:hover': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.1)'
-                },
-                px: { xs: 1, sm: 2 }
-              }}
-            >
-              <Box component="span" sx={{ display: { xs: 'none', sm: 'block' } }}>
-                Kijelentkezés
-              </Box>
-            </Button>
-          </Stack>
-        </Toolbar>
-      </AppBar>
-
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Paper sx={{ p: 3 }}>
+        <Paper sx={{ p: 3, mb: 3 }}>
           <Typography variant="h5" gutterBottom>
             Új poszt létrehozása
           </Typography>
@@ -583,65 +525,84 @@ const News = () => {
             </Box>
           </Box>
         </Paper>
-      </Container>
 
-      {/* Filter Section */}
-      <Container maxWidth="lg" sx={{ pb: 4 }}>
-        <Paper sx={{ p: 3 }}>
-          <Typography variant="h6" gutterBottom>
-            Posztok szűrése
-          </Typography>
-          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-            <TextField
-              label="Cím és tartalom szerinti keresés"
-              variant="outlined"
-              size="small"
-              fullWidth
-              sx={{ flex: 1, minWidth: '200px' }}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Írd ide a keresési kifejezéseket..."
-            />
-            <Box sx={{ 
-              display: 'flex', 
-              gap: 2, 
-              flexWrap: 'wrap',
-              flex: 1,
-              minWidth: { xs: '100%', sm: '200px' }
-            }}>
+        <Paper sx={{ p: 2, mb: 3 }}>
+          <Grid container spacing={2} alignItems="center">
+            <Grid item xs={12} md={4}>
+              <TextField
+                fullWidth
+                placeholder="Keresés..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon />
+                    </InputAdornment>
+                  ),
+                }}
+                size="small"
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={2}>
               <DatePicker
                 label="Kezdő dátum"
-                value={fromDate}
-                onChange={(newValue) => setFromDate(newValue)}
-                maxDate={toDate || undefined}
-                slotProps={{
-                  textField: {
-                    size: 'small',
-                    fullWidth: true,
-                    sx: { minWidth: { xs: '100%', sm: 'auto' } }
-                  }
-                }}
+                value={dateRange.from}
+                onChange={(date) => setDateRange(prev => ({ ...prev, from: date }))}
+                maxDate={dateRange.to || undefined}
+                {...datePickerConfig}
               />
+            </Grid>
+            <Grid item xs={12} sm={6} md={2}>
               <DatePicker
                 label="Záró dátum"
-                value={toDate}
-                onChange={(newValue) => setToDate(newValue)}
-                minDate={fromDate || undefined}
-                slotProps={{
-                  textField: {
-                    size: 'small',
-                    fullWidth: true,
-                    sx: { minWidth: { xs: '100%', sm: 'auto' } }
-                  }
-                }}
+                value={dateRange.to}
+                onChange={(date) => setDateRange(prev => ({ ...prev, to: date }))}
+                minDate={dateRange.from || undefined}
+                {...datePickerConfig}
               />
-            </Box>
-          </Box>
+            </Grid>
+            <Grid item xs={12} sm={6} md={2}>
+              <FormControl fullWidth size="small">
+                <InputLabel>Státusz</InputLabel>
+                <Select
+                  value={statusFilter}
+                  label="Státusz"
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                >
+                  <MenuItem value="all">Összes</MenuItem>
+                  <MenuItem value="published">Publikált</MenuItem>
+                  <MenuItem value="draft">Vázlat</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={6} md={2}>
+              <Stack 
+                direction={{ xs: 'row', sm: 'row' }} 
+                spacing={1} 
+                sx={{ 
+                  width: '100%',
+                  justifyContent: { md: 'flex-end' }
+                }}
+              >
+                <Button
+                  sx={{ 
+                    flex: { xs: 1, md: 'initial' }
+                  }}
+                  variant="outlined"
+                  onClick={() => {
+                    setSearchQuery('');
+                    setDateRange({ from: null, to: null });
+                    setStatusFilter('all');
+                  }}
+                >
+                  Szűrők törlése
+                </Button>
+              </Stack>
+            </Grid>
+          </Grid>
         </Paper>
-      </Container>
 
-      {/* Posts Section */}
-      <Container maxWidth="lg" sx={{ pb: 4 }}>
         <Paper sx={{ p: 3 }}>
           <Typography variant="h5" gutterBottom>
             Létrehozott posztok
@@ -772,29 +733,29 @@ const News = () => {
             </Stack>
           )}
         </Paper>
-      </Container>
 
-      <Dialog
-        open={!!deleteConfirmPost}
-        onClose={() => setDeleteConfirmPost(null)}
-      >
-        <DialogTitle>Biztosan törlöni szeretnéd a posztot?</DialogTitle>
-        <DialogContent>
-          <Typography>
-            Biztosan törlöd a posztot "{deleteConfirmPost?.title}"? Ez az művelet nem visszafordítható.
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDeleteConfirmPost(null)}>Mégsem</Button>
-          <Button 
-            onClick={() => deleteConfirmPost && handleDelete(deleteConfirmPost.id)} 
-            color="error" 
-            variant="contained"
-          >
-            Törlés
-          </Button>
-        </DialogActions>
-      </Dialog>
+        <Dialog
+          open={!!deleteConfirmPost}
+          onClose={() => setDeleteConfirmPost(null)}
+        >
+          <DialogTitle>Biztosan törlöni szeretnéd a posztot?</DialogTitle>
+          <DialogContent>
+            <Typography>
+              Biztosan törlöd a posztot "{deleteConfirmPost?.title}"? Ez az művelet nem visszafordítható.
+            </Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setDeleteConfirmPost(null)}>Mégsem</Button>
+            <Button 
+              onClick={() => deleteConfirmPost && handleDelete(deleteConfirmPost.id)} 
+              color="error" 
+              variant="contained"
+            >
+              Törlés
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </Container>
     </Box>
   );
 };

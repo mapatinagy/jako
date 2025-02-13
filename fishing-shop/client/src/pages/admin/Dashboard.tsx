@@ -11,14 +11,15 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import SessionTimer from '../../components/session/SessionTimer';
 import { setupActivityTracking, cleanupActivityTracking } from '../../utils/session';
+import { Helmet } from 'react-helmet-async';
+import Header from '../../components/layout/Header';
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const [stats, setStats] = useState({
     totalImages: 0,
-    newImages: 0,
+    totalSeasonalProducts: 0,
     totalNews: 0,
-    draftNews: 0
   });
   const [isLoading, setIsLoading] = useState(true);
 
@@ -35,39 +36,29 @@ const Dashboard = () => {
         throw new Error('No authentication token found');
       }
 
-      // Fetch gallery stats
-      const galleryResponse = await fetch('http://localhost:3000/api/gallery/images', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      const galleryData = await galleryResponse.json();
-      
-      // Fetch news stats
-      const newsResponse = await fetch('http://localhost:3000/api/news/posts', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      const newsData = await newsResponse.json();
+      // Fetch all stats in parallel
+      const [galleryResponse, newsResponse, seasonalResponse] = await Promise.all([
+        fetch('http://localhost:3000/api/gallery/images', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }),
+        fetch('http://localhost:3000/api/news/posts', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }),
+        fetch('http://localhost:3000/api/seasonal', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+      ]);
 
-      // Calculate stats
-      const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
-      const newImagesCount = galleryData.images.filter((image: any) => 
-        new Date(image.created_at) > sevenDaysAgo
-      ).length;
-
-      const draftPostsCount = newsData.posts.filter((post: any) => 
-        !post.is_published
-      ).length;
+      const [galleryData, newsData, seasonalData] = await Promise.all([
+        galleryResponse.json(),
+        newsResponse.json(),
+        seasonalResponse.json()
+      ]);
 
       setStats({
         totalImages: galleryData.images.length,
-        newImages: newImagesCount,
+        totalSeasonalProducts: seasonalData.products.length,
         totalNews: newsData.posts.length,
-        draftNews: draftPostsCount
       });
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -83,81 +74,10 @@ const Dashboard = () => {
 
   return (
     <Box>
-      {/* Admin Header */}
-      <AppBar position="static" sx={{ backgroundColor: 'primary.main' }}>
-        <Toolbar sx={{ px: { xs: 2, sm: 4, md: 6, lg: 8 } }}>
-          <Stack 
-            direction="row" 
-            alignItems="center" 
-            spacing={1} 
-            sx={{ 
-              cursor: 'pointer',
-              '&:hover': {
-                '& .MuiTypography-root, & .MuiSvgIcon-root': {
-                  opacity: 0.8
-                }
-              }
-            }}
-            onClick={() => navigate('/admin/dashboard')}
-          >
-            <DashboardIcon 
-              sx={{ 
-                fontSize: { xs: 24, sm: 32 },
-                color: 'white',
-                transition: 'opacity 0.2s ease'
-              }} 
-            />
-            <Typography 
-              variant="h5" 
-              sx={{ 
-                color: 'white',
-                fontWeight: 600,
-                transition: 'opacity 0.2s ease',
-                display: { xs: 'none', sm: 'block' }
-              }}
-            >
-              Admin Panel
-            </Typography>
-          </Stack>
-          <Box sx={{ flexGrow: 1 }} />
-          <Stack direction="row" spacing={1} alignItems="center">
-            <SessionTimer />
-            <Button
-              onClick={() => navigate('/admin/settings')}
-              startIcon={<SettingsIcon sx={{ fontSize: { xs: 20, sm: 28 } }} />}
-              sx={{
-                color: 'white',
-                fontSize: { xs: '0.9rem', sm: '1.2rem' },
-                '&:hover': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.1)'
-                },
-                px: { xs: 1, sm: 2 }
-              }}
-            >
-              <Box component="span" sx={{ display: { xs: 'none', sm: 'block' } }}>
-                Beállítások
-              </Box>
-            </Button>
-            <Button
-              onClick={handleLogout}
-              startIcon={<LogoutIcon sx={{ fontSize: { xs: 20, sm: 28 } }} />}
-              sx={{
-                color: 'white',
-                fontSize: { xs: '0.9rem', sm: '1.2rem' },
-                '&:hover': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.1)'
-                },
-                px: { xs: 1, sm: 2 }
-              }}
-            >
-              <Box component="span" sx={{ display: { xs: 'none', sm: 'block' } }}>
-                Kijelentkezés
-              </Box>
-            </Button>
-          </Stack>
-        </Toolbar>
-      </AppBar>
-
+      <Header />
+      <Helmet>
+        <title>Vezérlőpult | Admin Panel</title>
+      </Helmet>
       <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
         {/* Welcome Section */}
         <Paper sx={{ p: 3, mb: 4 }}>
@@ -170,25 +90,8 @@ const Dashboard = () => {
         </Paper>
 
         {/* Statistics Section */}
-        <Grid container spacing={3} sx={{ mb: 4 }}>
-          <Grid item xs={12} sm={6} md={3}>
-            <Paper sx={{ p: 3, textAlign: 'center' }}>
-              <ImageIcon color="primary" sx={{ fontSize: 40, mb: 1 }} />
-              <Typography variant="h4" color="primary">
-                {isLoading ? '...' : stats.totalImages}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">Összes feltöltött kép</Typography>
-            </Paper>
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <Paper sx={{ p: 3, textAlign: 'center' }}>
-              <CollectionsIcon color="primary" sx={{ fontSize: 40, mb: 1 }} />
-              <Typography variant="h4" color="primary">
-                {isLoading ? '...' : stats.newImages}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">Új képek (utolsó 7 nap)</Typography>
-            </Paper>
-          </Grid>
+        <Grid container spacing={3} sx={{ mb: 4, justifyContent: 'center' }}>
+          {/* News Counter */}
           <Grid item xs={12} sm={6} md={3}>
             <Paper sx={{ p: 3, textAlign: 'center' }}>
               <NewspaperIcon color="primary" sx={{ fontSize: 40, mb: 1 }} />
@@ -198,13 +101,26 @@ const Dashboard = () => {
               <Typography variant="body2" color="text.secondary">Összes poszt</Typography>
             </Paper>
           </Grid>
+
+          {/* Gallery Counter */}
           <Grid item xs={12} sm={6} md={3}>
             <Paper sx={{ p: 3, textAlign: 'center' }}>
-              <ArticleIcon color="primary" sx={{ fontSize: 40, mb: 1 }} />
+              <ImageIcon color="primary" sx={{ fontSize: 40, mb: 1 }} />
               <Typography variant="h4" color="primary">
-                {isLoading ? '...' : stats.draftNews}
+                {isLoading ? '...' : stats.totalImages}
               </Typography>
-              <Typography variant="body2" color="text.secondary">Vázlatok száma</Typography>
+              <Typography variant="body2" color="text.secondary">Összes feltöltött kép</Typography>
+            </Paper>
+          </Grid>
+
+          {/* Seasonal Products Counter */}
+          <Grid item xs={12} sm={6} md={3}>
+            <Paper sx={{ p: 3, textAlign: 'center' }}>
+              <CollectionsIcon color="primary" sx={{ fontSize: 40, mb: 1 }} />
+              <Typography variant="h4" color="primary">
+                {isLoading ? '...' : stats.totalSeasonalProducts}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">Szezonális termékek száma</Typography>
             </Paper>
           </Grid>
         </Grid>
@@ -215,6 +131,41 @@ const Dashboard = () => {
         </Typography>
 
         <Grid container spacing={4}>
+          {/* News Management Card */}
+          <Grid item xs={12} md={6}>
+            <Paper
+              sx={{
+                p: 4,
+                height: '300px',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: 'success.main',
+                color: 'white',
+                '&:hover': {
+                  transform: 'translateY(-4px)',
+                  boxShadow: (theme) => `0 8px 24px ${theme.palette.success.main}40`,
+                },
+              }}
+              onClick={() => navigate('/admin/news')}
+            >
+              <ArticleIcon sx={{ fontSize: 80, mb: 2 }} />
+              <Typography variant="h5" component="h2" align="center">
+                Újdonság-, posztkezelés
+              </Typography>
+              <Divider sx={{ my: 2, width: '60%', borderColor: 'rgba(255,255,255,0.2)' }} />
+              <Typography variant="body1" align="center">
+                Újdonság-, poszt létrehozása, szerkesztése és közzététele
+              </Typography>
+              <Typography variant="body2" sx={{ mt: 1, opacity: 0.8 }}>
+                {stats.totalNews} poszt összesen
+              </Typography>
+            </Paper>
+          </Grid>
+
           {/* Gallery Management Card */}
           <Grid item xs={12} md={6}>
             <Paper
@@ -245,42 +196,7 @@ const Dashboard = () => {
                 Feltöltés, szerkesztés és galéria képek kezelése
               </Typography>
               <Typography variant="body2" sx={{ mt: 1, opacity: 0.8 }}>
-                {stats.totalImages} kép a galériában
-              </Typography>
-            </Paper>
-          </Grid>
-
-          {/* News Management Card */}
-          <Grid item xs={12} md={6}>
-            <Paper
-              sx={{
-                p: 4,
-                height: '300px',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: 'secondary.main',
-                color: 'white',
-                '&:hover': {
-                  transform: 'translateY(-4px)',
-                  boxShadow: (theme) => `0 8px 24px ${theme.palette.secondary.main}40`,
-                },
-              }}
-              onClick={() => navigate('/admin/news')}
-            >
-              <ArticleIcon sx={{ fontSize: 80, mb: 2 }} />
-              <Typography variant="h5" component="h2" align="center">
-                Újdonság-, posztkezelés
-              </Typography>
-              <Divider sx={{ my: 2, width: '60%', borderColor: 'rgba(255,255,255,0.2)' }} />
-              <Typography variant="body1" align="center">
-                Újdonság-, poszt létrehozása, szerkesztése és közzététele
-              </Typography>
-              <Typography variant="body2" sx={{ mt: 1, opacity: 0.8 }}>
-                {stats.draftNews} vázlat függőben
+                {stats.totalImages} kép összesen
               </Typography>
             </Paper>
           </Grid>
@@ -313,6 +229,9 @@ const Dashboard = () => {
               <Divider sx={{ my: 2, width: '60%', borderColor: 'rgba(255,255,255,0.2)' }} />
               <Typography variant="body1" align="center">
                 Szezonális termékek kezelése és megjelenítése
+              </Typography>
+              <Typography variant="body2" sx={{ mt: 1, opacity: 0.8 }}>
+                {stats.totalSeasonalProducts} termék összesen
               </Typography>
             </Paper>
           </Grid>

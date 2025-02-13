@@ -17,6 +17,7 @@ import {
   MenuItem
 } from '@mui/material';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 
 const Recover = () => {
   const navigate = useNavigate();
@@ -139,161 +140,166 @@ const Recover = () => {
   };
 
   return (
-    <Container maxWidth="sm">
-      <Box sx={{ mt: 8, mb: 4 }}>
-        <Paper sx={{ p: 4 }}>
-          <Typography variant="h4" component="h1" align="center" gutterBottom>
-            Fiók helyreállítás
-          </Typography>
+    <Box>
+      <Helmet>
+        <title>Jelszó Visszaállítás | Admin Panel</title>
+      </Helmet>
+      <Container maxWidth="sm">
+        <Box sx={{ mt: 8, mb: 4 }}>
+          <Paper sx={{ p: 4 }}>
+            <Typography variant="h4" component="h1" align="center" gutterBottom>
+              Fiók helyreállítás
+            </Typography>
 
-          <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
-            {steps.map((label) => (
-              <Step key={label}>
-                <StepLabel>{label}</StepLabel>
-              </Step>
-            ))}
-          </Stepper>
+            <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
+              {steps.map((label) => (
+                <Step key={label}>
+                  <StepLabel>{label}</StepLabel>
+                </Step>
+              ))}
+            </Stepper>
 
-          {error && (
-            <Alert severity="error" sx={{ mb: 3 }}>
-              {error}
-            </Alert>
-          )}
+            {error && (
+              <Alert severity="error" sx={{ mb: 3 }}>
+                {error}
+              </Alert>
+            )}
 
-          {activeStep === 0 && (
-            <Box component="form" onSubmit={handleIdentifierSubmit}>
-              <Typography variant="body1" sx={{ mb: 2 }}>
-                Kérlek, add meg a felhasználónevedet vagy email címedet a helyreállítás folytatásához.
-              </Typography>
-              <FormControl fullWidth sx={{ mb: 2 }}>
-                <InputLabel>Identitás ellenőrzése</InputLabel>
-                <Select
-                  value={identifierType}
-                  label="Identitás ellenőrzése"
-                  onChange={(e) => setIdentifierType(e.target.value)}
-                >
-                  <MenuItem value="username">Felhasználónév</MenuItem>
-                  <MenuItem value="email">Email</MenuItem>
-                </Select>
-              </FormControl>
-              <TextField
-                fullWidth
-                label={identifierType === 'username' ? 'Felhasználónév' : 'Email'}
-                value={identifier}
-                onChange={(e) => setIdentifier(e.target.value)}
-                type={identifierType === 'email' ? 'email' : 'text'}
-                required
-                sx={{ mb: 3 }}
-              />
-              <Button
-                type="submit"
-                variant="contained"
-                fullWidth
-              >
-                Folytatás
-              </Button>
-            </Box>
-          )}
-
-          {activeStep === 1 && (
-            <Box component="form" onSubmit={handleAnswersSubmit}>
-              <Typography variant="body1" sx={{ mb: 2 }}>
-                Kérlek, válaszd ki a biztonsági kérdéseket és add meg a válaszait.
-              </Typography>
-              {securityQuestions.question1 && (
+            {activeStep === 0 && (
+              <Box component="form" onSubmit={handleIdentifierSubmit}>
+                <Typography variant="body1" sx={{ mb: 2 }}>
+                  Kérlek, add meg a felhasználónevedet vagy email címedet a helyreállítás folytatásához.
+                </Typography>
+                <FormControl fullWidth sx={{ mb: 2 }}>
+                  <InputLabel>Identitás ellenőrzése</InputLabel>
+                  <Select
+                    value={identifierType}
+                    label="Identitás ellenőrzése"
+                    onChange={(e) => setIdentifierType(e.target.value)}
+                  >
+                    <MenuItem value="username">Felhasználónév</MenuItem>
+                    <MenuItem value="email">Email</MenuItem>
+                  </Select>
+                </FormControl>
                 <TextField
                   fullWidth
-                  label={securityQuestions.question1}
-                  value={answers.answer1}
-                  onChange={(e) => setAnswers(prev => ({ ...prev, answer1: e.target.value }))}
-                  required
-                  sx={{ mb: 2 }}
-                />
-              )}
-              {securityQuestions.question2 && (
-                <TextField
-                  fullWidth
-                  label={securityQuestions.question2}
-                  value={answers.answer2}
-                  onChange={(e) => setAnswers(prev => ({ ...prev, answer2: e.target.value }))}
-                  required
-                  sx={{ mb: 2 }}
-                />
-              )}
-              {securityQuestions.question3 && (
-                <TextField
-                  fullWidth
-                  label={securityQuestions.question3}
-                  value={answers.answer3}
-                  onChange={(e) => setAnswers(prev => ({ ...prev, answer3: e.target.value }))}
+                  label={identifierType === 'username' ? 'Felhasználónév' : 'Email'}
+                  value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
+                  type={identifierType === 'email' ? 'email' : 'text'}
                   required
                   sx={{ mb: 3 }}
                 />
-              )}
-              <Button
-                type="submit"
-                variant="contained"
-                fullWidth
-              >
-                Válaszok ellenőrzése
-              </Button>
-            </Box>
-          )}
+                <Button
+                  type="submit"
+                  variant="contained"
+                  fullWidth
+                >
+                  Folytatás
+                </Button>
+              </Box>
+            )}
 
-          {activeStep === 2 && (
-            <Box component="form" onSubmit={handlePasswordReset}>
-              <Alert severity="info" sx={{ mb: 3 }}>
-                A felhasználóneved: <strong>{recoveredUsername}</strong>
-              </Alert>
-              <Typography variant="body1" sx={{ mb: 2 }}>
-                Kérlek, add meg az új jelszavad.
-              </Typography>
-              <TextField
-                fullWidth
-                type="password"
-                label="Új jelszó"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                required
-                sx={{ mb: 2 }}
-              />
-              <TextField
-                fullWidth
-                type="password"
-                label="Új jelszó megerősítése"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-                sx={{ mb: 3 }}
-              />
-              <Button
-                type="submit"
-                variant="contained"
-                fullWidth
-              >
-                Jelszó visszaállítás
-              </Button>
-            </Box>
-          )}
+            {activeStep === 1 && (
+              <Box component="form" onSubmit={handleAnswersSubmit}>
+                <Typography variant="body1" sx={{ mb: 2 }}>
+                  Kérlek, válaszd ki a biztonsági kérdéseket és add meg a válaszait.
+                </Typography>
+                {securityQuestions.question1 && (
+                  <TextField
+                    fullWidth
+                    label={securityQuestions.question1}
+                    value={answers.answer1}
+                    onChange={(e) => setAnswers(prev => ({ ...prev, answer1: e.target.value }))}
+                    required
+                    sx={{ mb: 2 }}
+                  />
+                )}
+                {securityQuestions.question2 && (
+                  <TextField
+                    fullWidth
+                    label={securityQuestions.question2}
+                    value={answers.answer2}
+                    onChange={(e) => setAnswers(prev => ({ ...prev, answer2: e.target.value }))}
+                    required
+                    sx={{ mb: 2 }}
+                  />
+                )}
+                {securityQuestions.question3 && (
+                  <TextField
+                    fullWidth
+                    label={securityQuestions.question3}
+                    value={answers.answer3}
+                    onChange={(e) => setAnswers(prev => ({ ...prev, answer3: e.target.value }))}
+                    required
+                    sx={{ mb: 3 }}
+                  />
+                )}
+                <Button
+                  type="submit"
+                  variant="contained"
+                  fullWidth
+                >
+                  Válaszok ellenőrzése
+                </Button>
+              </Box>
+            )}
 
-          <Box sx={{ mt: 3, textAlign: 'center' }}>
-            <Link
-              component={RouterLink}
-              to="/admin/login"
-              variant="body2"
-              sx={{
-                textDecoration: 'none',
-                '&:hover': {
-                  textDecoration: 'underline'
-                }
-              }}
-            >
-              Vissza a belépéshez
-            </Link>
-          </Box>
-        </Paper>
-      </Box>
-    </Container>
+            {activeStep === 2 && (
+              <Box component="form" onSubmit={handlePasswordReset}>
+                <Alert severity="info" sx={{ mb: 3 }}>
+                  A felhasználóneved: <strong>{recoveredUsername}</strong>
+                </Alert>
+                <Typography variant="body1" sx={{ mb: 2 }}>
+                  Kérlek, add meg az új jelszavad.
+                </Typography>
+                <TextField
+                  fullWidth
+                  type="password"
+                  label="Új jelszó"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  required
+                  sx={{ mb: 2 }}
+                />
+                <TextField
+                  fullWidth
+                  type="password"
+                  label="Új jelszó megerősítése"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  sx={{ mb: 3 }}
+                />
+                <Button
+                  type="submit"
+                  variant="contained"
+                  fullWidth
+                >
+                  Jelszó visszaállítás
+                </Button>
+              </Box>
+            )}
+
+            <Box sx={{ mt: 3, textAlign: 'center' }}>
+              <Link
+                component={RouterLink}
+                to="/admin/login"
+                variant="body2"
+                sx={{
+                  textDecoration: 'none',
+                  '&:hover': {
+                    textDecoration: 'underline'
+                  }
+                }}
+              >
+                Vissza a belépéshez
+              </Link>
+            </Box>
+          </Paper>
+        </Box>
+      </Container>
+    </Box>
   );
 };
 

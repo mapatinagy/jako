@@ -35,6 +35,9 @@ import SessionTimer from '../../../components/session/SessionTimer';
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { setupActivityTracking, cleanupActivityTracking } from '../../../utils/session';
+import { Helmet } from 'react-helmet-async';
+import { datePickerConfig } from '../../../utils/dateConfig';
+import Header from '../../../components/layout/Header';
 
 const Gallery = () => {
   const navigate = useNavigate();
@@ -62,7 +65,6 @@ const Gallery = () => {
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const isTablet = useMediaQuery(theme.breakpoints.down('md'));
 
   useEffect(() => {
     setupActivityTracking();
@@ -310,82 +312,11 @@ const Gallery = () => {
 
   return (
     <Box>
-      {/* Admin Header */}
-      <AppBar position="static" sx={{ backgroundColor: 'primary.main' }}>
-        <Toolbar sx={{ px: { xs: 2, sm: 4, md: 6, lg: 8 } }}>
-          <Stack 
-            direction="row" 
-            alignItems="center" 
-            spacing={1} 
-            sx={{ 
-              cursor: 'pointer',
-              '&:hover': {
-                '& .MuiTypography-root, & .MuiSvgIcon-root': {
-                  opacity: 0.8
-                }
-              }
-            }}
-            onClick={() => navigate('/admin/dashboard')}
-          >
-            <DashboardIcon 
-              sx={{ 
-                fontSize: { xs: 24, sm: 32 },
-                color: 'white',
-                transition: 'opacity 0.2s ease'
-              }} 
-            />
-            <Typography 
-              variant="h5" 
-              sx={{ 
-                color: 'white',
-                fontWeight: 600,
-                transition: 'opacity 0.2s ease',
-                display: { xs: 'none', sm: 'block' }
-              }}
-            >
-              Admin Panel
-            </Typography>
-          </Stack>
-          <Box sx={{ flexGrow: 1 }} />
-          <Stack direction="row" spacing={1} alignItems="center">
-            <SessionTimer />
-            <Button
-              onClick={() => navigate('/admin/settings')}
-              startIcon={<SettingsIcon sx={{ fontSize: { xs: 20, sm: 28 } }} />}
-              sx={{
-                color: 'white',
-                fontSize: { xs: '0.9rem', sm: '1.2rem' },
-                '&:hover': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.1)'
-                },
-                px: { xs: 1, sm: 2 }
-              }}
-            >
-              <Box component="span" sx={{ display: { xs: 'none', sm: 'block' } }}>
-                Beállítások
-              </Box>
-            </Button>
-            <Button
-              onClick={handleLogout}
-              startIcon={<LogoutIcon sx={{ fontSize: { xs: 20, sm: 28 } }} />}
-              sx={{
-                color: 'white',
-                fontSize: { xs: '0.9rem', sm: '1.2rem' },
-                '&:hover': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.1)'
-                },
-                px: { xs: 1, sm: 2 }
-              }}
-            >
-              <Box component="span" sx={{ display: { xs: 'none', sm: 'block' } }}>
-                Kijelentkezés
-              </Box>
-            </Button>
-          </Stack>
-        </Toolbar>
-      </AppBar>
-
+      <Header />
       <Container maxWidth="xl" sx={{ py: { xs: 2, sm: 4 } }}>
+        <Helmet>
+          <title>Galéria Management | Admin Panel</title>
+        </Helmet>
         {/* Header Section */}
         <Box sx={{ mb: { xs: 2, sm: 4 } }}>
           <Typography 
@@ -426,77 +357,68 @@ const Gallery = () => {
             </Typography>
           </Box>
 
-          {/* Search and Filter Section */}
-          <Box sx={{ 
-            mb: 3, 
-            display: 'flex', 
-            gap: { xs: 1, sm: 2 }, 
-            alignItems: 'center', 
-            flexWrap: 'wrap' 
-          }}>
-            <TextField
-              placeholder="Képek keresése..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              sx={{ 
-                flexGrow: 1,
-                minWidth: { xs: '100%', sm: '200px' }
-              }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon />
-                  </InputAdornment>
-                ),
-              }}
-            />
-            <LocalizationProvider dateAdapter={AdapterDateFns}>
-              <Stack 
-                direction={{ xs: 'column', sm: 'row' }} 
-                spacing={1} 
-                sx={{ width: { xs: '100%', sm: 'auto' } }}
-              >
+          {/* Filter bar */}
+          <Paper sx={{ p: 2, mb: 3 }}>
+            <Grid container spacing={2} alignItems="center">
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  placeholder="Keresés..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon />
+                      </InputAdornment>
+                    ),
+                  }}
+                  size="small"
+                />
+              </Grid>
+              <Grid item xs={12} sm={6} md={3}>
                 <DatePicker
                   label="Kezdő dátum"
                   value={dateRange.from}
-                  onChange={(newValue) => setDateRange(prev => ({ ...prev, from: newValue }))}
-                  slotProps={{ 
-                    textField: { 
-                      sx: { 
-                        minWidth: { xs: '100%', sm: '160px' } 
-                      } 
-                    } 
-                  }}
+                  onChange={(date) => setDateRange(prev => ({ ...prev, from: date }))}
                   maxDate={dateRange.to || undefined}
+                  {...datePickerConfig}
                 />
+              </Grid>
+              <Grid item xs={12} sm={6} md={3}>
                 <DatePicker
                   label="Záró dátum"
                   value={dateRange.to}
-                  onChange={(newValue) => setDateRange(prev => ({ ...prev, to: newValue }))}
-                  slotProps={{ 
-                    textField: { 
-                      sx: { 
-                        minWidth: { xs: '100%', sm: '160px' } 
-                      } 
-                    } 
-                  }}
+                  onChange={(date) => setDateRange(prev => ({ ...prev, to: date }))}
                   minDate={dateRange.from || undefined}
+                  {...datePickerConfig}
                 />
-              </Stack>
-            </LocalizationProvider>
-            {(dateRange.from || dateRange.to || searchQuery) && (
-              <Button 
-                variant="outlined" 
-                onClick={() => {
-                  setDateRange({ from: null, to: null });
-                  setSearchQuery('');
-                }}
-                sx={{ width: { xs: '100%', sm: 'auto' } }}
-              >
-                Szűrők törlése
-              </Button>
-            )}
-          </Box>
+              </Grid>
+              <Grid item xs={12} sm={6} md={2}>
+                <Stack 
+                  direction={{ xs: 'row', sm: 'row' }} 
+                  spacing={1} 
+                  sx={{ 
+                    width: '100%',
+                    justifyContent: { md: 'flex-end' }
+                  }}
+                >
+                  <Button
+                    sx={{ 
+                      flex: { xs: 1, md: 'initial' }
+                    }}
+                    variant="outlined"
+                    onClick={() => {
+                      setSearchQuery('');
+                      setDateRange({ from: null, to: null });
+                    }}
+                  >
+                    Szűrők törlése
+                  </Button>
+                </Stack>
+              </Grid>
+            </Grid>
+          </Paper>
 
           {/* Upload Progress */}
           <Box 

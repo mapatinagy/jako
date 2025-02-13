@@ -3,6 +3,7 @@ import { Box, Paper, TextField, Button, Typography, Container, Alert, Link } fro
 import { useNavigate, useLocation, Link as RouterLink } from 'react-router-dom';
 import { getAuthToken } from '../../utils/auth';
 import { initSession } from '../../utils/session';
+import { Helmet } from 'react-helmet-async';
 
 const Login = () => {
   const [username, setUsername] = useState('');
@@ -88,93 +89,98 @@ const Login = () => {
   };
 
   return (
-    <Container maxWidth="sm">
-      <Box
-        sx={{
-          marginTop: 8,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-        }}
-      >
-        <Paper 
-          elevation={3}
+    <Box>
+      <Helmet>
+        <title>Bejelentkezés | Admin Panel</title>
+      </Helmet>
+      <Container maxWidth="sm">
+        <Box
           sx={{
-            p: 4,
-            width: '100%',
+            marginTop: 8,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
           }}
         >
-          <Typography component="h1" variant="h5" sx={{ mb: 3 }}>
-            Admin belépés
-          </Typography>
+          <Paper 
+            elevation={3}
+            sx={{
+              p: 4,
+              width: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+            }}
+          >
+            <Typography component="h1" variant="h5" sx={{ mb: 3 }}>
+              Admin belépés
+            </Typography>
 
-          {message && (
-            <Alert severity="info" sx={{ mb: 2, width: '100%' }}>
-              {message}
-            </Alert>
-          )}
+            {message && (
+              <Alert severity="info" sx={{ mb: 2, width: '100%' }}>
+                {message}
+              </Alert>
+            )}
 
-          {error && (
-            <Alert severity="error" sx={{ mb: 2, width: '100%' }}>
-              {error}
-            </Alert>
-          )}
+            {error && (
+              <Alert severity="error" sx={{ mb: 2, width: '100%' }}>
+                {error}
+              </Alert>
+            )}
 
-          <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              id="username"
-              label="Felhasználónév"
-              name="username"
-              autoComplete="username"
-              autoFocus
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-            />
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              name="password"
-              label="Jelszó"
-              type="password"
-              id="password"
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              sx={{ mt: 3, mb: 2 }}
-            >
-              Belépés
-            </Button>
-            <Box sx={{ textAlign: 'center' }}>
-              <Link
-                component={RouterLink}
-                to="/admin/recover"
-                variant="body2"
-                sx={{
-                  textDecoration: 'none',
-                  '&:hover': {
-                    textDecoration: 'underline'
-                  }
-                }}
+            <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                id="username"
+                label="Felhasználónév"
+                name="username"
+                autoComplete="username"
+                autoFocus
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+              />
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                name="password"
+                label="Jelszó"
+                type="password"
+                id="password"
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <Button
+                type="submit"
+                fullWidth
+                variant="contained"
+                sx={{ mt: 3, mb: 2 }}
               >
-                Elfelejtetted a felhasználónevedet vagy a jelszavadat?
-              </Link>
+                Belépés
+              </Button>
+              <Box sx={{ textAlign: 'center' }}>
+                <Link
+                  component={RouterLink}
+                  to="/admin/recover"
+                  variant="body2"
+                  sx={{
+                    textDecoration: 'none',
+                    '&:hover': {
+                      textDecoration: 'underline'
+                    }
+                  }}
+                >
+                  Elfelejtetted a felhasználónevedet vagy a jelszavadat?
+                </Link>
+              </Box>
             </Box>
-          </Box>
-        </Paper>
-      </Box>
-    </Container>
+          </Paper>
+        </Box>
+      </Container>
+    </Box>
   );
 };
 

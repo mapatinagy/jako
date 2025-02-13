@@ -22,6 +22,8 @@ import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import SessionTimer from '../../components/session/SessionTimer';
 import { setupActivityTracking, cleanupActivityTracking } from '../../utils/session';
+import { Helmet } from 'react-helmet-async';
+import Header from '../../components/layout/Header';
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -141,81 +143,8 @@ const Settings = () => {
 
   return (
     <Box>
-      <AppBar position="static" sx={{ backgroundColor: 'primary.main' }}>
-        <Toolbar sx={{ px: { xs: 2, sm: 4, md: 6, lg: 8 } }}>
-          <Stack 
-            direction="row" 
-            alignItems="center" 
-            spacing={1} 
-            sx={{ 
-              cursor: 'pointer',
-              '&:hover': {
-                '& .MuiTypography-root, & .MuiSvgIcon-root': {
-                  opacity: 0.8
-                }
-              }
-            }}
-            onClick={() => navigate('/admin/dashboard')}
-          >
-            <DashboardIcon 
-              sx={{ 
-                fontSize: { xs: 24, sm: 32 },
-                color: 'white',
-                transition: 'opacity 0.2s ease'
-              }} 
-            />
-            <Typography 
-              variant="h5" 
-              sx={{ 
-                color: 'white',
-                fontWeight: 600,
-                transition: 'opacity 0.2s ease',
-                display: { xs: 'none', sm: 'block' }
-              }}
-            >
-              Admin Panel
-            </Typography>
-          </Stack>
-          <Box sx={{ flexGrow: 1 }} />
-          <Stack direction="row" spacing={1} alignItems="center">
-            <SessionTimer />
-            <Button
-              onClick={() => navigate('/admin/settings')}
-              startIcon={<SettingsIcon sx={{ fontSize: { xs: 20, sm: 28 } }} />}
-              sx={{
-                color: 'white',
-                fontSize: { xs: '0.9rem', sm: '1.2rem' },
-                '&:hover': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.1)'
-                },
-                px: { xs: 1, sm: 2 }
-              }}
-            >
-              <Box component="span" sx={{ display: { xs: 'none', sm: 'block' } }}>
-                Beállítások
-              </Box>
-            </Button>
-            <Button
-              onClick={handleLogout}
-              startIcon={<LogoutIcon sx={{ fontSize: { xs: 20, sm: 28 } }} />}
-              sx={{
-                color: 'white',
-                fontSize: { xs: '0.9rem', sm: '1.2rem' },
-                '&:hover': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.1)'
-                },
-                px: { xs: 1, sm: 2 }
-              }}
-            >
-              <Box component="span" sx={{ display: { xs: 'none', sm: 'block' } }}>
-                Kijelentkezés
-              </Box>
-            </Button>
-          </Stack>
-        </Toolbar>
-      </AppBar>
-
-      <Container maxWidth="md" sx={{ py: 4 }}>
+      <Header />
+      <Container maxWidth="lg" sx={{ py: { xs: 2, sm: 4 } }}>
         <Typography variant="h4" gutterBottom color="primary">
           Fiók beállítások
         </Typography>
