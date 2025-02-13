@@ -326,7 +326,10 @@ const SeasonalProducts = () => {
         flexDirection: 'column',
         alignItems: 'center'
       }}>
-        <Box sx={{ width: '100%' }}>
+        <Box sx={{ 
+          width: '100%', 
+          maxWidth: '1200px',
+        }}>
           {/* Page title and New Product button */}
           <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Typography variant="h4">Szezonális Termékek</Typography>
@@ -404,140 +407,139 @@ const SeasonalProducts = () => {
           )}
 
           {/* Products grid */}
-          <Grid 
-            container 
-            spacing={2}
-            sx={{ 
-              width: '100%',
-              px: { xs: 0, sm: 0 },
-              justifyContent: 'center',
-              margin: '0 auto',
-              maxWidth: 1200
-            }}
-          >
-            {filteredProducts.map((product) => (
-              <Grid item xs={12} sm={6} md={4} key={product.id}>
-                <Paper 
-                  sx={{ 
-                    p: { xs: 1.5, sm: 3 },
-                    height: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    width: '100%',
-                    transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
-                    '&:hover': {
-                      transform: 'translateY(-2px)',
-                      boxShadow: 4
-                    }
-                  }}
-                >
-                  {product.image_path && (
-                    <Box 
-                      sx={{ 
-                        width: '100%',
-                        height: { xs: 150, sm: 200 },
-                        borderRadius: 2,
-                        overflow: 'hidden',
-                        cursor: 'pointer',
-                        transition: 'transform 0.2s',
-                        mb: 2,
-                        '&:hover': {
-                          transform: 'scale(1.02)'
-                        }
-                      }}
-                      onClick={(e) => handleImageClick(product.image_path!, e)}
-                    >
-                      <img
-                        src={`http://localhost:3000${product.image_path}`}
-                        alt={product.title}
-                        style={{ 
-                          width: '100%', 
-                          height: '100%', 
-                          objectFit: 'cover'
-                        }}
-                      />
-                    </Box>
-                  )}
-
-                  <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-                    <Typography 
-                      variant="h6" 
-                      gutterBottom 
-                      sx={{ 
-                        fontSize: '1.2rem',
-                        fontWeight: 500,
-                        lineHeight: 1.2,
-                        mb: 2
-                      }}
-                    >
-                      {product.title}
-                    </Typography>
-                    <Typography 
-                      variant="body2" 
-                      color="text.secondary"
-                      sx={{ 
-                        fontSize: '0.9rem',
-                        display: '-webkit-box',
-                        WebkitLineClamp: 3,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        lineHeight: 1.4,
-                        mb: 2
-                      }}
-                    >
-                      {product.content}
-                    </Typography>
-                  </Box>
-
-                  <Box 
+          <Box sx={{ mt: 2 }}>
+            <Grid 
+              container 
+              spacing={2}
+              sx={{ 
+                width: '100%',
+                m: 0,
+                p: 0,
+                '& .MuiGrid-item': {
+                  pl: 1,
+                  pr: 1,
+                }
+              }}
+            >
+              {filteredProducts.map((product) => (
+                <Grid item xs={12} sm={6} md={4} key={product.id}>
+                  <Paper 
                     sx={{ 
-                      pt: 2,
-                      borderTop: 1,
-                      borderColor: 'divider',
+                      p: { xs: 1.5, sm: 3 },
+                      height: '100%',
                       display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between'
+                      flexDirection: 'column',
+                      width: '100%',
                     }}
                   >
-                    <Box sx={{ display: 'flex', gap: 0.5 }}>
-                      <IconButton 
-                        onClick={() => handleToggleStatus(product.id)} 
-                        size="small"
-                        color={product.is_active ? "success" : "default"}
-                        sx={{ p: 0.5 }}
+                    {product.image_path && (
+                      <Box 
+                        sx={{ 
+                          width: '100%',
+                          height: { xs: 150, sm: 200 },
+                          borderRadius: 2,
+                          overflow: 'hidden',
+                          cursor: 'pointer',
+                          transition: 'transform 0.2s',
+                          mb: 2,
+                          '&:hover': {
+                            transform: 'scale(1.02)'
+                          }
+                        }}
+                        onClick={(e) => handleImageClick(product.image_path!, e)}
                       >
-                        {product.is_active ? <VisibilityIcon /> : <VisibilityOffIcon />}
-                      </IconButton>
-                      <IconButton 
-                        onClick={() => handleOpen(product)} 
-                        size="small"
-                        color="primary"
-                        sx={{ p: 0.5 }}
+                        <img
+                          src={`http://localhost:3000${product.image_path}`}
+                          alt={product.title}
+                          style={{ 
+                            width: '100%', 
+                            height: '100%', 
+                            objectFit: 'cover'
+                          }}
+                        />
+                      </Box>
+                    )}
+
+                    <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+                      <Typography 
+                        variant="h6" 
+                        gutterBottom 
+                        sx={{ 
+                          fontSize: '1.2rem',
+                          fontWeight: 500,
+                          lineHeight: 1.2,
+                          mb: 2
+                        }}
                       >
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton 
-                        onClick={() => handleDelete(product.id)} 
-                        size="small"
-                        color="error"
-                        sx={{ p: 0.5 }}
+                        {product.title}
+                      </Typography>
+                      <Typography 
+                        variant="body2" 
+                        color="text.secondary"
+                        sx={{ 
+                          fontSize: '0.9rem',
+                          display: '-webkit-box',
+                          WebkitLineClamp: 3,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          lineHeight: 1.4,
+                          mb: 2
+                        }}
                       >
-                        <DeleteIcon />
-                      </IconButton>
+                        {product.content}
+                      </Typography>
                     </Box>
-                    <Typography 
-                      variant="caption" 
-                      color="text.secondary"
-                      sx={{ fontSize: '0.75rem' }}
+
+                    <Box 
+                      sx={{ 
+                        pt: 2,
+                        borderTop: 1,
+                        borderColor: 'divider',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between'
+                      }}
                     >
-                      {new Date(product.created_at).toLocaleDateString()}
-                    </Typography>
-                  </Box>
-                </Paper>
-              </Grid>
-            ))}
-          </Grid>
+                      <Box sx={{ display: 'flex', gap: 0.5 }}>
+                        <IconButton 
+                          onClick={() => handleToggleStatus(product.id)} 
+                          size="small"
+                          color={product.is_active ? "success" : "default"}
+                          sx={{ p: 0.5 }}
+                        >
+                          {product.is_active ? <VisibilityIcon /> : <VisibilityOffIcon />}
+                        </IconButton>
+                        <IconButton 
+                          onClick={() => handleOpen(product)} 
+                          size="small"
+                          color="primary"
+                          sx={{ p: 0.5 }}
+                        >
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton 
+                          onClick={() => handleDelete(product.id)} 
+                          size="small"
+                          color="error"
+                          sx={{ p: 0.5 }}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </Box>
+                      <Typography 
+                        variant="caption" 
+                        color="text.secondary"
+                        sx={{ fontSize: '0.75rem' }}
+                      >
+                        {new Date(product.created_at).toLocaleDateString()}
+                      </Typography>
+                    </Box>
+                  </Paper>
+                </Grid>
+              ))}
+            </Grid>
+          </Box>
 
           <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
             <DialogTitle>
