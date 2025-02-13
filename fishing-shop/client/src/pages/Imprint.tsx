@@ -5,9 +5,9 @@ const Imprint = () => {
   return (
     <Box sx={{ py: 6, bgcolor: 'background.default' }}>
       <Helmet>
-        <title>Imprint - Fishing Shop Legal Information</title>
-        <meta name="description" content="Legal information and company details for our fishing shop. Find our business registration, contact details, and legal disclaimers." />
-        <meta name="keywords" content="fishing shop imprint, legal information, company details, business registration" />
+        <title>Impresszum - Jákó Díszállat és Horgász Szaküzlet</title>
+        <meta name="description" content="Boltunk jogi és üzleti információi. Itt találja engedélyezési adatainkat, elérhetőségeinket és jogi nyilatkozatainkat." />
+        <meta name="keywords" content="impresszum, jogi információk, horgászbolt impresszum, állateledel impresszum, dísznövénybolt impresszum" />
       </Helmet>
 
       <Container maxWidth="lg">
@@ -35,7 +35,7 @@ const Imprint = () => {
             Imprint
           </Typography>
           <Typography variant="h5" color="text.secondary" sx={{ maxWidth: 800, mx: 'auto', mt: 3 }}>
-            Legal information and company details
+            Jogi információk és üzleti adatok
           </Typography>
         </Box>
 
@@ -55,20 +55,20 @@ const Imprint = () => {
               }}
             >
               <Typography variant="h3" color="primary" gutterBottom>
-                Company Information
+                Üzleti adatok
               </Typography>
               <Divider sx={{ mb: 3 }} />
               <Box sx={{ '& > *': { mb: 2 } }}>
-                <Typography variant="h6">Fishing Shop Ltd.</Typography>
+                <Typography variant="h6">Bécsiné Hévizi Erika ev.</Typography>
                 <Typography variant="body1">
-                  Hauptstraße 123<br />
-                  20095 Hamburg<br />
-                  Germany
+                  5630 Békés<br />
+                  Szánthó Albert utca 4.
                 </Typography>
                 <Typography variant="body1" sx={{ mt: 2 }}>
-                  <strong>Registration Number:</strong> HRB 123456<br />
-                  <strong>VAT ID:</strong> DE123456789<br />
-                  <strong>Commercial Register:</strong> Hamburg District Court
+                  <strong>Adószám:</strong> 44640190-2-24<br />
+                  <strong>Cégjegyzékszám:</strong> ES-092199<br />
+                  <strong>Bejegyző hatóság:</strong> Békés Város Önkormányzat<br />
+                  <strong>Tárhely szolgáltató:</strong> Datatronic Kereskedelmi és Szolgáltató Kft.
                 </Typography>
               </Box>
             </Paper>
@@ -88,17 +88,17 @@ const Imprint = () => {
               }}
             >
               <Typography variant="h3" color="primary" gutterBottom>
-                Contact Details
+                Elérhetőségeink
               </Typography>
               <Divider sx={{ mb: 3 }} />
               <Box sx={{ '& > *': { mb: 2 } }}>
                 <Typography variant="body1">
-                  <strong>Phone:</strong><br />
-                  +49 (0) 123 456789
+                  <strong>Telefonszám:</strong><br />
+                  +36 30 471 7047
                 </Typography>
                 <Typography variant="body1">
                   <strong>Email:</strong><br />
-                  info@fishing-shop.com
+                  info@jakobekes.hu
                 </Typography>
                 <Typography variant="body1">
                   <strong>Website:</strong><br />
@@ -121,17 +121,16 @@ const Imprint = () => {
               }}
             >
               <Typography variant="h3" color="primary" gutterBottom>
-                Legal Notice
+                Jogi nyilatkozat
               </Typography>
               <Divider sx={{ mb: 3 }} />
               <Typography variant="body1" paragraph>
-                Despite careful content control, we assume no liability for the content of external links. The operators of the linked pages are solely responsible for their content.
+                A gondos tartalomellenőrzés ellenére nem vállalunk felelősséget a külső hivatkozások tartalmáért. A hivatkozott oldalak üzemeltetői kizárólagos felelősséget vállalnak érte.
               </Typography>
               <Typography variant="body1" paragraph>
-                All content on this website is protected by copyright. Any use outside the narrow limits of copyright law without the consent of the respective rights holder is prohibited and punishable by law.
-              </Typography>
+                A weboldalon található minden tartalom szerzői jogvédelem alatt áll. A szerzői jogi törvény szűk korlátain kívüli felhasználás az adott jogtulajdonos beleegyezése nélkül tilos és törvény által büntetendő.              </Typography>
               <Typography variant="body1">
-                © {new Date().getFullYear()} Fishing Shop Ltd. All rights reserved.
+                © {new Date().getFullYear()} Jákó Díszállat és Horgász Szaküzlet. Minden jog fenntartva.
               </Typography>
             </Paper>
           </Grid>

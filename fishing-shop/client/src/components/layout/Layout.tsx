@@ -20,6 +20,7 @@ export default function Layout() {
   const menuItems = [
     { text: 'Galéria', path: '/gallery' },
     { text: 'Újdonságok', path: '/news' },
+    { text: 'Szezonális', path: '/seasonal' },
     { text: 'Kapcsolat', path: '/contact' }
   ];
 
@@ -33,20 +34,22 @@ export default function Layout() {
       <AppBar position="sticky">
         <Toolbar sx={{ px: { xs: 2, sm: 4, md: 6, lg: 8 } }}>
           <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
-            <Box 
-              component="img"
-              src="/logo.png"
-              alt="Logo"
-              sx={{ 
-                height: 50,
-                width: 'auto',
-                mr: 2,
-                transition: 'transform 0.3s ease',
-                '&:hover': {
-                  transform: 'scale(1.05)'
-                }
-              }}
-            />
+            <RouterLink to="/" style={{ display: 'flex', alignItems: 'center' }}>
+              <Box 
+                component="img"
+                src="/logo.png"
+                alt="Logo"
+                sx={{ 
+                  height: 70,
+                  width: 'auto',
+                  mr: 2,
+                  transition: 'transform 0.3s ease',
+                  '&:hover': {
+                    transform: 'scale(1.05)'
+                  }
+                }}
+              />
+            </RouterLink>
             <Typography
               variant="h6"
               component={RouterLink}
@@ -90,7 +93,7 @@ export default function Layout() {
                     maxWidth: '100%',
                     left: '0 !important',
                     right: '0',
-                    mt: 0,
+                    mt: { xs: 1.5, sm: 2 },
                     background: 'primary.dark',
                   },
                   '& .MuiList-root': {
@@ -279,7 +282,7 @@ export default function Layout() {
               textAlign: 'center' 
             }}
           >
-            © 2025 Jákó Díszállat és Horgász Szaküzlet. Minden jog fenntartva.
+            © {new Date().getFullYear()} Jákó Díszállat és Horgász Szaküzlet. Minden jog fenntartva.
           </Typography>
         </Container>
       </Box>

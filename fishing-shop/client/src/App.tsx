@@ -18,6 +18,7 @@ import AdminSettings from './pages/admin/Settings';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import { useEffect } from 'react';
 import SeasonalProducts from './pages/admin/SeasonalProducts';
+import Seasonal from './pages/Seasonal';
 
 const theme = createTheme({
   palette: {
@@ -124,6 +125,7 @@ function App() {
                 </Route>
                 <Route path="contact" element={<Contact />} />
                 <Route path="imprint" element={<Imprint />} />
+                <Route path="seasonal" element={<Seasonal />} />
               </Route>
               
               <Route path="/admin/login" element={<AdminLogin />} />
