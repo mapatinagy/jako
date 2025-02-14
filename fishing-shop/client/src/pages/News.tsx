@@ -710,28 +710,40 @@ const News = () => {
                     Kövess minket
                   </Typography>
                   <Stack direction="row" spacing={2} justifyContent="center">
-                    <IconButton
+                    <IconButton 
+                      component="a"
+                      href="https://www.facebook.com/horgaszszakuzlet.jakodiszallat"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      color="inherit" 
+                      size="small"
                       sx={{
-                        bgcolor: 'background.default',
+                        transition: 'all 0.3s ease',
                         '&:hover': {
-                          bgcolor: 'primary.main',
-                          '& svg': { color: 'white' }
+                          transform: 'translateY(-4px) scale(1.1)',
+                          bgcolor: 'rgba(255,255,255,0.1)'
                         }
                       }}
                     >
                       <Box 
                         component="img"
-                        src="/social/facebook.png"
+                        src="/social/facebook.svg"
                         alt="Facebook"
                         sx={{ width: 24, height: 24 }}
                       />
                     </IconButton>
-                    <IconButton
+                    <IconButton 
+                      component="a"
+                      href="https://www.instagram.com/jako_horgasz/#"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      color="inherit" 
+                      size="small"
                       sx={{
-                        bgcolor: 'background.default',
+                        transition: 'all 0.3s ease',
                         '&:hover': {
-                          bgcolor: 'primary.main',
-                          '& svg': { color: 'white' }
+                          transform: 'translateY(-4px) scale(1.1)',
+                          bgcolor: 'rgba(255,255,255,0.1)'
                         }
                       }}
                     >
@@ -742,19 +754,25 @@ const News = () => {
                         sx={{ width: 24, height: 24 }}
                       />
                     </IconButton>
-                    <IconButton
+                    <IconButton 
+                      component="a"
+                      href="https://www.tiktok.com/@JK.szakzlet.bks"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      color="inherit" 
+                      size="small"
                       sx={{
-                        bgcolor: 'background.default',
+                        transition: 'all 0.3s ease',
                         '&:hover': {
-                          bgcolor: 'primary.main',
-                          '& svg': { color: 'white' }
+                          transform: 'translateY(-4px) scale(1.1)',
+                          bgcolor: 'rgba(255,255,255,0.1)'
                         }
                       }}
                     >
                       <Box 
                         component="img"
-                        src="/social/twitter.png"
-                        alt="Twitter"
+                        src="/social/tiktok.png"
+                        alt="TikTok"
                         sx={{ width: 24, height: 24 }}
                       />
                     </IconButton>

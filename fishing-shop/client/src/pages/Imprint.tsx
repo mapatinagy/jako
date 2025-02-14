@@ -32,7 +32,7 @@ const Imprint = () => {
               }
             }}
           >
-            Imprint
+            Impresszum
           </Typography>
           <Typography variant="h5" color="text.secondary" sx={{ maxWidth: 800, mx: 'auto', mt: 3 }}>
             Jogi információk és üzleti adatok
@@ -102,7 +102,7 @@ const Imprint = () => {
                 </Typography>
                 <Typography variant="body1">
                   <strong>Website:</strong><br />
-                  www.fishing-shop.com
+                  www.jakobekes.hu
                 </Typography>
               </Box>
             </Paper>

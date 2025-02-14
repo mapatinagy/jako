@@ -26,7 +26,8 @@ export default function Layout() {
 
   const footerMenuItems = [
     ...menuItems,
-    { text: 'Impresszum', path: '/imprint' }
+    { text: 'Impresszum', path: '/imprint' },
+    { text: 'Adatkezelési tájékoztató', path: '/privacy' }
   ];
 
   return (
@@ -40,7 +41,7 @@ export default function Layout() {
                 src="/logo.png"
                 alt="Logo"
                 sx={{ 
-                  height: 70,
+                  height: 60,
                   width: 'auto',
                   mr: 2,
                   transition: 'transform 0.3s ease',
@@ -243,31 +244,73 @@ export default function Layout() {
             </Grid>
             <Grid item xs={12} md={3}>
               <Typography variant="h6" sx={{ mb: 2, textAlign: 'center' }}>
-                Follow Us
+                Kövess minket!
               </Typography>
-              <Stack direction="row" spacing={2} justifyContent="center">
-                <IconButton color="inherit" size="small">
+              <Stack direction="row" spacing={1} justifyContent="center">
+                <IconButton 
+                  component="a"
+                  href="https://www.facebook.com/horgaszszakuzlet.jakodiszallat"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  color="inherit" 
+                  size="large"
+                  sx={{
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      transform: 'translateY(-4px) scale(1.1)',
+                      bgcolor: 'rgba(255,255,255,0.1)'
+                    }
+                  }}
+                >
                   <Box 
                     component="img"
-                    src="/social/facebook.png"
+                    src="/social/facebook.svg"
                     alt="Facebook"
-                    sx={{ width: 24, height: 24 }}
+                    sx={{ width: 36, height: 36 }}
                   />
                 </IconButton>
-                <IconButton color="inherit" size="small">
+                <IconButton 
+                  component="a"
+                  href="https://www.instagram.com/jako_horgasz/#"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  color="inherit" 
+                  size="large"
+                  sx={{
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      transform: 'translateY(-4px) scale(1.1)',
+                      bgcolor: 'rgba(255,255,255,0.1)'
+                    }
+                  }}
+                >
                   <Box 
                     component="img"
                     src="/social/instagram.png"
                     alt="Instagram"
-                    sx={{ width: 24, height: 24 }}
+                    sx={{ width: 36, height: 36 }}
                   />
                 </IconButton>
-                <IconButton color="inherit" size="small">
+                <IconButton 
+                  component="a"
+                  href="https://www.tiktok.com/@JK.szakzlet.bks"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  color="inherit" 
+                  size="large"
+                  sx={{
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      transform: 'translateY(-4px) scale(1.1)',
+                      bgcolor: 'rgba(255,255,255,0.1)'
+                    }
+                  }}
+                >
                   <Box 
                     component="img"
-                    src="/social/twitter.png"
-                    alt="Twitter"
-                    sx={{ width: 24, height: 24 }}
+                    src="/social/tiktok.png"
+                    alt="TikTok"
+                    sx={{ width: 36, height: 36 }}
                   />
                 </IconButton>
               </Stack>

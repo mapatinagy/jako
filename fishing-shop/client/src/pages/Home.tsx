@@ -15,6 +15,12 @@ const backgroundImages = [
   '/hero/hero4.jpg',
   '/hero/hero5.jpg',
   '/hero/hero6.jpg',
+  '/hero/hero7.jpg',
+  '/hero/hero8.jpg',
+  '/hero/hero9.jpg',
+  '/hero/hero10.jpg',
+  '/hero/hero11.jpg',
+  '/hero/hero12.jpg',
 ];
 
 const Home = () => {

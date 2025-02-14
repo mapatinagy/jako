@@ -9,7 +9,8 @@ import {
   Button, 
   Alert,
   Divider,
-  CircularProgress
+  CircularProgress,
+  Link
 } from '@mui/material';
 import { Helmet } from 'react-helmet-async';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
@@ -17,6 +18,7 @@ import PhoneIcon from '@mui/icons-material/Phone';
 import EmailIcon from '@mui/icons-material/Email';
 import emailjs from '@emailjs/browser';
 import ReCAPTCHA from "react-google-recaptcha";
+import { Link as RouterLink } from 'react-router-dom';
 
 interface FormData {
   name: string;
@@ -189,10 +191,10 @@ const Contact = () => {
               }
             }}
           >
-            Contact Us
+            Kapcsolat
           </Typography>
           <Typography variant="h5" color="text.secondary" sx={{ maxWidth: 800, mx: 'auto', mt: 3 }}>
-            We're here to help and answer any questions you might have
+            Bármilyen kérdése van termékeinkkel és szolgáltatásainkkal kapcsolatban, ne habozzon felvenni velünk a kapcsolatot!
           </Typography>
         </Box>
 
@@ -246,7 +248,7 @@ const Contact = () => {
               </Box>
 
               {/* Google Maps Integration */}
-              <Box sx={{ width: '100%', height: 300, mb: 2 }}>
+              <Box sx={{ width: '100%', height: 490, mb: 2 }}>
                 <iframe
                   title="Store Location"
                   src="https://www.google.com/maps?q=46.77351657480384,21.13216451780124&z=16&output=embed"
@@ -375,6 +377,27 @@ const Contact = () => {
                     'Üzenet küldése'
                   )}
                 </Button>
+
+                <Typography 
+                  variant="body2" 
+                  color="text.secondary" 
+                  sx={{ mt: 2, textAlign: 'center' }}
+                >
+                  A "Üzenet küldése" gombra kattintva elfogadja az{' '}
+                  <Link
+                    component={RouterLink}
+                    to="/privacy"
+                    sx={{
+                      color: 'primary.main',
+                      textDecoration: 'none',
+                      '&:hover': {
+                        textDecoration: 'underline'
+                      }
+                    }}
+                  >
+                    Adatkezelési tájékoztatónkat
+                  </Link>.
+                </Typography>
               </Box>
             </Paper>
           </Grid>
