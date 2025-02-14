@@ -293,7 +293,7 @@ const Home = () => {
               Több mint 30 év tapasztalatunkkal, már elmondhatjuk, hogy nem csak egy bolt vagyunk – mi egy közösség vagyunk a horgászok, állat- és növénybarátok számára. A kezdetünk egy egyszerű elképzelésből indult: minőségi termékeket és szakértő tanácsot adni a vásárlóinknak.
             </Typography>
             <Typography variant="body1" sx={{ mb: 4, color: 'text.secondary', lineHeight: 1.8 }}>
-              Büszkék vagyunk személyre szabott szolgáltatásainkra és gondosan válogatott termékválasztékunkra. Legyen szó tapasztalt horgászról, elkötelezett kisállattartóról vagy lelkes kertészről, hozzáértő csapatunk készen áll, hogy segítsen a siker elérésében.
+              Büszkék vagyunk személyre szabott szolgáltatásainkra és gondosan válogatott termékválasztékunkra. Legyen szó tapasztalt horgászról, elkötelezett kisállattartóról vagy lelkes kertészről, hozzáértő csapatunk készen áll, hogy segítse a siker elérésében.
             </Typography>
             <Box sx={{ 
               display: 'flex', 
@@ -408,7 +408,7 @@ const Home = () => {
                   Horgászfelszerelés
                 </Typography>
                 <Typography sx={{ mb: 2, color: 'rgba(255, 255, 255, 0.9)' }}>
-                  Fedezd fel széles választékunkat kiváló minőségű horgászfelszerelésekből, kezdők és profi horgászok számára egyaránt.
+                  Fedezze fel széles választékunkat kiváló minőségű horgászfelszerelésekből, kezdők és profi horgászok számára egyaránt.
                 </Typography>
                 <Box component="ul" sx={{ 
                   pl: 2,

@@ -76,7 +76,7 @@ const Seasonal = () => {
 
       <Container maxWidth="xl" sx={{ py: { xs: 4, sm: 6, md: 8 } }}>
         {/* Hero Section */}
-        <Box sx={{ mb: { xs: 4, sm: 6 } }}>
+        <Box sx={{ mb: { xs: 4, sm: 6 }, textAlign: 'center' }}>
           <Typography 
             variant="h2" 
             component="h1" 
@@ -84,7 +84,19 @@ const Seasonal = () => {
             sx={{ 
               mb: 2,
               fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
-              fontWeight: 600
+              fontWeight: 600,
+              position: 'relative',
+              display: 'inline-block',
+              '&::after': {
+                content: '""',
+                position: 'absolute',
+                bottom: -8,
+                left: 0,
+                width: '100%',
+                height: 3,
+                bgcolor: 'primary.main',
+                borderRadius: 1
+              }
             }}
           >
             Szezonális Termékek
@@ -96,7 +108,8 @@ const Seasonal = () => {
             sx={{ 
               maxWidth: '800px', 
               mx: 'auto',
-              mb: 4
+              mb: 4,
+              mt: 3
             }}
           >
             Fedezze fel aktuális szezonális kínálatunkat! Ezek a termékek limitált ideig elérhetőek üzletünkben.

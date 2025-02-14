@@ -182,9 +182,8 @@ const Contact = () => {
                 content: '""',
                 position: 'absolute',
                 bottom: -8,
-                left: '50%',
-                transform: 'translateX(-50%)',
-                width: 100,
+                left: 0,
+                width: '100%',
                 height: 3,
                 bgcolor: 'primary.main',
                 borderRadius: 1
@@ -277,7 +276,7 @@ const Contact = () => {
               }}
             >
               <Typography variant="h3" color="primary" gutterBottom>
-                Üzenj nekünk!
+                Üzenjen nekünk!
               </Typography>
               <Divider sx={{ mb: 3 }} />
 

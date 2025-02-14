@@ -652,9 +652,8 @@ const News = () => {
                     content: '""',
                     position: 'absolute',
                     bottom: -8,
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    width: 100,
+                    left: 0,
+                    width: '100%',
                     height: 3,
                     bgcolor: 'white',
                     borderRadius: 1
@@ -707,7 +706,7 @@ const News = () => {
 
                 <Paper sx={{ p: 3, borderRadius: 2 }}>
                   <Typography variant="h6" sx={{ mb: 2, color: 'primary.main' }}>
-                    Kövess minket
+                    Kövessen minket
                   </Typography>
                   <Stack direction="row" spacing={2} justifyContent="center">
                     <IconButton 
@@ -844,7 +843,7 @@ const News = () => {
 
                 <Paper sx={{ p: 3, borderRadius: 2 }}>
                   <Typography variant="h6" sx={{ mb: 2, color: 'primary.main' }}>
-                    Itt találsz meg minket:
+                    Itt talál meg minket:
                   </Typography>
                   <Box 
                     sx={{ 

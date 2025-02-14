@@ -25,7 +25,6 @@ export default function Layout() {
   ];
 
   const footerMenuItems = [
-    ...menuItems,
     { text: 'Impresszum', path: '/imprint' },
     { text: 'Adatkezelési tájékoztató', path: '/privacy' }
   ];

@@ -4,6 +4,7 @@ import { useNavigate, useLocation, Link as RouterLink } from 'react-router-dom';
 import { getAuthToken } from '../../utils/auth';
 import { initSession } from '../../utils/session';
 import { Helmet } from 'react-helmet-async';
+import HomeIcon from '@mui/icons-material/Home';
 
 const Login = () => {
   const [username, setUsername] = useState('');
@@ -89,11 +90,30 @@ const Login = () => {
   };
 
   return (
-    <Box>
+    <>
       <Helmet>
-        <title>Bejelentkezés | Admin Panel</title>
+        <title>Admin Bejelentkezés | Jákó Díszállat és Horgász Szaküzlet</title>
       </Helmet>
-      <Container maxWidth="sm">
+      
+      <Box sx={{ position: 'absolute', top: 16, left: 16 }}>
+        <Button
+          component={RouterLink}
+          to="/"
+          variant="contained"
+          startIcon={<HomeIcon />}
+          sx={{
+            bgcolor: 'primary.main',
+            color: 'white',
+            '&:hover': {
+              bgcolor: 'primary.dark',
+            }
+          }}
+        >
+          Vissza a főoldalra
+        </Button>
+      </Box>
+
+      <Container maxWidth="xs">
         <Box
           sx={{
             marginTop: 8,
@@ -180,7 +200,7 @@ const Login = () => {
           </Paper>
         </Box>
       </Container>
-    </Box>
+    </>
   );
 };
 

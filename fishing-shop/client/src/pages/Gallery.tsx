@@ -96,9 +96,8 @@ const Gallery = () => {
                 content: '""',
                 position: 'absolute',
                 bottom: -8,
-                left: '50%',
-                transform: 'translateX(-50%)',
-                width: 100,
+                left: 0,
+                width: '100%',
                 height: 3,
                 bgcolor: 'primary.main',
                 borderRadius: 1
