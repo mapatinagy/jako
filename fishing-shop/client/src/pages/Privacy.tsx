@@ -167,9 +167,6 @@ const Privacy = () => {
             <Typography paragraph>
               b.) az Ön lakóhelye, ill. tartózkodási helye szerint illetékes Törvényszékhez.
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-              Utolsó frissítés: {new Date().toLocaleDateString('hu-HU')}
-            </Typography>
           </Box>
         </Paper>
       </Container>

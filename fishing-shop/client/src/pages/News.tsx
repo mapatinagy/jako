@@ -600,11 +600,11 @@ const News = () => {
       >
         <MenuItem onClick={() => handleShare('facebook')} sx={{ py: 1.5 }}>
           <FacebookIcon sx={{ mr: 1.5, color: '#1877F2' }} />
-          <Typography variant="body2">Share on Facebook</Typography>
+          <Typography variant="body2">Megosztás Facebookon</Typography>
         </MenuItem>
         <MenuItem onClick={() => handleShare('copy')} sx={{ py: 1.5 }}>
           <ContentCopyIcon sx={{ mr: 1.5 }} />
-          <Typography variant="body2">Copy Link</Typography>
+          <Typography variant="body2">Link másolása</Typography>
         </MenuItem>
       </Menu>
       

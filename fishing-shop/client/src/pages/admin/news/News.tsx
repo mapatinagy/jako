@@ -367,10 +367,11 @@ const News = () => {
 
   const filteredPosts = posts.filter(post => {
     // Text search filter
-    const searchLower = searchQuery.toLowerCase();
-    const matchesSearch = searchQuery === '' || 
+    const searchLower = searchQuery.toLowerCase().trim();
+    const contentWithoutHtml = post.content.replace(/<[^>]*>/g, '');
+    const matchesSearch = searchLower === '' || 
       post.title.toLowerCase().includes(searchLower) ||
-      post.content.toLowerCase().includes(searchLower);
+      contentWithoutHtml.toLowerCase().includes(searchLower);
 
     // Date range filter
     let matchesDateRange = true;
@@ -615,7 +616,9 @@ const News = () => {
           ) : filteredPosts.length === 0 ? (
             <Box sx={{ p: 3, textAlign: 'center' }}>
               <Typography color="text.secondary">
-                Még nincs létrehozva poszt. Kérlek hozd létre az elsőt fent!
+                {posts.length === 0 
+                  ? 'Még nincs létrehozva poszt. Kérlek hozd létre az elsőt fent!'
+                  : 'Nincs a megadott szűrőknek megfelelő poszt.'}
               </Typography>
             </Box>
           ) : (
