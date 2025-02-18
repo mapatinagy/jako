@@ -5,9 +5,39 @@ import pool from '../config/database';
 import { LoginRequest } from '../types/auth.types';
 import { SignOptions } from 'jsonwebtoken';
 
+// Store login attempts in memory
+interface LoginAttempt {
+  attempts: number;
+  lastAttempt: number;
+  blockedUntil: number;
+}
+
+const loginAttempts: { [key: string]: LoginAttempt } = {};
+
+const MAX_ATTEMPTS = 3;
+const BLOCK_DURATION = 60 * 1000; // 1 minute in milliseconds
+
 export const login = async (req: Request, res: Response) => {
   try {
     const { username, password } = req.body;
+    const clientIp = req.ip || req.socket.remoteAddress || 'unknown';
+
+    // Check if the user is currently blocked
+    const attempt = loginAttempts[clientIp] || { attempts: 0, lastAttempt: 0, blockedUntil: 0 };
+    const now = Date.now();
+
+    if (now < attempt.blockedUntil) {
+      const remainingSeconds = Math.ceil((attempt.blockedUntil - now) / 1000);
+      return res.status(429).json({
+        success: false,
+        message: `Túl sok sikertelen próbálkozás. Kérjük, próbálja újra ${remainingSeconds} másodperc múlva.`
+      });
+    }
+
+    // Reset attempts if the block duration has passed
+    if (now - attempt.lastAttempt > BLOCK_DURATION) {
+      attempt.attempts = 0;
+    }
 
     // First, log the received credentials (without the password)
     console.log('Login attempt for username:', username);
@@ -24,6 +54,16 @@ export const login = async (req: Request, res: Response) => {
     console.log('User found:', user ? 'Yes' : 'No');
 
     if (!user) {
+      // Increment failed attempts
+      attempt.attempts++;
+      attempt.lastAttempt = now;
+      
+      if (attempt.attempts >= MAX_ATTEMPTS) {
+        attempt.blockedUntil = now + BLOCK_DURATION;
+      }
+      
+      loginAttempts[clientIp] = attempt;
+
       return res.status(401).json({
         success: false,
         message: 'Érvénytelen felhasználónév vagy jelszó'
@@ -45,16 +85,32 @@ export const login = async (req: Request, res: Response) => {
     const isValidPassword = await bcrypt.compare(password, hashedPassword);
 
     if (!isValidPassword) {
+      // Increment failed attempts ONLY after verifying the password is wrong
+      attempt.attempts++;
+      attempt.lastAttempt = now;
+      
+      if (attempt.attempts >= MAX_ATTEMPTS) {
+        attempt.blockedUntil = now + BLOCK_DURATION;
+      }
+      
+      loginAttempts[clientIp] = attempt;
+
       return res.status(401).json({
         success: false,
         message: 'Érvénytelen felhasználónév vagy jelszó'
       });
     }
 
+    // If login is successful, reset the attempts
+    delete loginAttempts[clientIp];
+
+    // Check for JWT secret in environment variables with fallback
+    const jwtSecret = process.env.JWT_SECRET || 'kP9#mF5$vL2@nR8*xQ4&hJ7^cW1!tY3?bN6_eA9%uD4(sG5)mZ8+pX2';
+
     // Generate JWT token
     const token = jwt.sign(
       { userId: user.id, username: user.username },
-      process.env.JWT_SECRET || 'kP9#mF5$vL2@nR8*xQ4&hJ7^cW1!tY3?bN6_eA9%uD4(sG5)mZ8+pX2',
+      jwtSecret,
       { expiresIn: '1h' }
     );
 
@@ -70,8 +126,8 @@ export const login = async (req: Request, res: Response) => {
     console.error('Login error:', error);
     res.status(500).json({
       success: false,
-      message: 'Login failed',
-      error: error instanceof Error ? error.message : 'Unknown error'
+      message: 'Bejelentkezés sikertelen',
+      error: error instanceof Error ? error.message : 'Ismeretlen hiba'
     });
   }
 };
